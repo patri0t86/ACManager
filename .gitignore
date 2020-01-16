@@ -338,3 +338,7 @@ ASALocalRun/
 
 # BeatPulse healthcheck temp database
 healthchecksdb
+
+# Custom
+dll/Decal.Adapter.dll
+dll/VirindiViewService.dll
