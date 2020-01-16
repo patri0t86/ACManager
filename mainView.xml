@@ -1,0 +1,39 @@
+<?xml version="1.0"?>
+<view icon="8712" title="Fellowship Manager" width="180" height="380">
+  <control progid="DecalControls.Notebook" name="nbMain">
+    
+    <page label="Setup">
+      <control progid="DecalControls.FixedLayout" clipped="">
+        <control progid="DecalControls.StaticText" name="secretLabel" left="5" top="5" width="130" height="16" text="Recruit Command" />
+        <control progid="DecalControls.Edit" name="SecretPassword" left="5" top="23" width="130" height="19" text="XP" />
+        <control progid="DecalControls.CheckBox" name="AutoFellow" left="5" top="45" width="130" height="16" text="Auto Management" />
+        <control progid="DecalControls.CheckBox" name="AutoRespond" left="5" top="63" width="130" height="16" text="Auto Respond" />
+      </control>
+    </page>
+
+    <page label="XP Tracker">
+      <control progid="DecalControls.FixedLayout" clipped="">
+        <control progid="DecalControls.StaticText" name="xpAtLogonLabel" left="5" top="5" width="130" height="16" text="Total XP At Logon" />
+        <control progid="DecalControls.StaticText" name="XpAtLogon" left="5" top="23" width="130" height="16" text="" />
+        <control progid="DecalControls.StaticText" name="xpSinceLogonLabel" left="5" top="41" width="130" height="16" text="XP Earned Since Logon" />
+        <control progid="DecalControls.StaticText" name="xpSinceLogon" left="5" top="59" width="130" height="16" text="" />
+        <control progid="DecalControls.StaticText" name="xpSinceResetLabel" left="5" top="77" width="130" height="16" text="XP Earned Since Reset" />
+        <control progid="DecalControls.StaticText" name="xpSinceReset" left="5" top="95" width="130" height="16" text="" />
+        <control progid="DecalControls.StaticText" name="xpPerHourLabel" left="5" top="113" width="130" height="16" text="XP/hr" />
+        <control progid="DecalControls.StaticText" name="xpPerHour" left="5" top="131" width="130" height="16" text="" />
+        <control progid="DecalControls.StaticText" name="xpLast5Label" left="5" top="149" width="180" height="16" text="XP/hr (Last 5 Mins)" />
+        <control progid="DecalControls.StaticText" name="xpLast5" left="5" top="167" width="130" height="16" text="" />
+        <control progid="DecalControls.PushButton" name="xpReset" left="5" top="185" width="130" height="16" text="Reset XP Tracking" />
+        <control progid="DecalControls.PushButton" name="xpFellow" left="5" top="203" width="60" height="16" text="/f" />
+        <control progid="DecalControls.PushButton" name="xpAlleg" left="75" top="203" width="60" height="16" text="/a" />
+        <control progid="DecalControls.StaticText" name="loginTimeLabel" left="5" top="221" width="130" height="16" text="Time Logged In" />
+        <control progid="DecalControls.StaticText" name="loginTime" left="5" top="239" width="130" height="16" text="" />
+        <control progid="DecalControls.StaticText" name="timeSinceResetLabel" left="5" top="257" width="130" height="16" text="Time Since Reset" />
+        <control progid="DecalControls.StaticText" name="timeSinceReset" left="5" top="275" width="130" height="16" text="" />
+        <control progid="DecalControls.StaticText" name="timeToNextLevelLabel" left="5" top="293" width="130" height="16" text="Time To Next Level" />
+        <control progid="DecalControls.StaticText" name="timeToNextLevel" left="5" top="311" width="130" height="16" text="" />
+      </control>
+    </page>
+    
+  </control>
+</view>
