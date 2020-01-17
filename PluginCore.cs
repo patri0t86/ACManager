@@ -271,7 +271,7 @@ namespace FellowshipManager
             timeSinceReset.Text = String.Format("{0}h {1}m {2}s", String.Format("{0:00}", t.Hours), String.Format("{0:00}", t.Minutes), String.Format("{0:00}", t.Seconds));
             if (XpPerHourLong > 0)
             {
-                timeLeftToLevel = TimeSpan.FromSeconds((double)((decimal)Globals.Core.CharacterFilter.XPToNextLevel / (decimal)XpPerHourLong * 3600));
+                timeLeftToLevel = TimeSpan.FromSeconds((double)((decimal)Globals.Core.CharacterFilter.XPToNextLevel / (decimal)XpLast5Long * 3600));
                 timeToNextLevel.Text = String.Format("{0:D2}h {1:D2}m {2:D2}s", timeLeftToLevel.Hours, timeLeftToLevel.Minutes, timeLeftToLevel.Seconds);
             } else
             {
