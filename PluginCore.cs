@@ -288,18 +288,12 @@ namespace FellowshipManager
 
         private void Calculate_XpLast5()
         {
-            ICollection keys = rollingXpTracker.Keys;
             ICollection values = rollingXpTracker.Values;
-            DateTime[] times = new DateTime[rollingXpTracker.Count];
             long[] xpValues = new long[rollingXpTracker.Count];
-
-            keys.CopyTo(times, 0);
             values.CopyTo(xpValues, 0);
-
-            TimeSpan t = DateTime.Now - times[0];
-            long seconds = (long)t.TotalSeconds;
-            XpLast5Long = ( Globals.Core.CharacterFilter.TotalXP - xpValues[0] ) / seconds * 3600;
-            if (rollingXpTracker.Count == 300)
+            Util.WriteToChat("Latest: " + xpValues[xpValues.Length - 1] + " --- Earliest: " + xpValues[0] + " --- Count: " + rollingXpTracker.Count);
+            XpLast5Long = (xpValues[xpValues.Length - 1] - xpValues[0]) / rollingXpTracker.Count * 3600;
+            if (rollingXpTracker.Count >= 300) // 300 @ 1 second intervals = 5 minutes
             {
                 rollingXpTracker.RemoveAt(0);
             }
