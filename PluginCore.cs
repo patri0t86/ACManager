@@ -291,7 +291,6 @@ namespace FellowshipManager
             ICollection values = rollingXpTracker.Values;
             long[] xpValues = new long[rollingXpTracker.Count];
             values.CopyTo(xpValues, 0);
-            Util.WriteToChat("Latest: " + xpValues[xpValues.Length - 1] + " --- Earliest: " + xpValues[0] + " --- Count: " + rollingXpTracker.Count);
             XpLast5Long = (xpValues[xpValues.Length - 1] - xpValues[0]) / rollingXpTracker.Count * 3600;
             if (rollingXpTracker.Count >= 300) // 300 @ 1 second intervals = 5 minutes
             {
