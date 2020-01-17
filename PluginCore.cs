@@ -313,29 +313,32 @@ namespace FellowshipManager
         [MVControlEvent("xpFellow", "Click")]
         void XpFellow_Clicked(object sender, MVControlEventArgs e)
         {
-            TimeSpan t = DateTime.Now - startTime;
-            string time = String.Format("{0}h {1}m {2}s", String.Format("{0:00}", t.Hours), String.Format("{0:00}", t.Minutes), String.Format("{0:00}", t.Seconds));
-            Globals.Host.Actions.InvokeChatParser(
-                String.Format("/f You have earned {0} XP in {3} for {1} XP/hour ({2} XP/hour based on the last 5 minutes). At this rate, you'll hit your next level in {4}.",
-                String.Format("{0:n0}", Globals.Core.CharacterFilter.TotalXP - XpAtReset),
-                String.Format("{0:n0}", XpPerHourLong),
-                String.Format("{0:n0}", XpLast5Long),
-                time,
-                String.Format("{0:D2}h {1:D2}m {2:D2}s", timeLeftToLevel.Hours, timeLeftToLevel.Minutes, timeLeftToLevel.Seconds)));
+            ReportXp("/f");
         }
 
         [MVControlEvent("xpAlleg", "Click")]
         void XpAlleg_Clicked(object sender, MVControlEventArgs e)
         {
+            ReportXp("/a");
+        }
+
+        private void ReportXp(string targetChat)
+        {
             TimeSpan t = DateTime.Now - startTime;
-            string time = String.Format("{0}h {1}m {2}s", String.Format("{0:00}", t.Hours), String.Format("{0:00}", t.Minutes), String.Format("{0:00}", t.Seconds));
             Globals.Host.Actions.InvokeChatParser(
-                String.Format("/a You have earned {0} XP for {1} XP/hour ({2} XP in the last 5 minutes). At this rate, you'll hit your next level in {4}.",
+                String.Format("{0} You have earned {1} XP in {2} for {3} XP/hour ({4} XP in the last 5 minutes). At this rate, you'll hit your next level in {5}.",
+                targetChat,
                 String.Format("{0:n0}", Globals.Core.CharacterFilter.TotalXP - XpAtReset),
+                String.Format("{0}h {1}m {2}s", 
+                    String.Format("{0:00}", t.Hours), 
+                    String.Format("{0:00}", t.Minutes), 
+                    String.Format("{0:00}", t.Seconds)),
                 String.Format("{0:n0}", XpPerHourLong),
                 String.Format("{0:n0}", XpLast5Long),
-                time,
-                String.Format("{0:D2}h {1:D2}m {2:D2}s", timeLeftToLevel.Hours, timeLeftToLevel.Minutes, timeLeftToLevel.Seconds)));
+                String.Format("{0:D2}h {1:D2}m {2:D2}s", 
+                    timeLeftToLevel.Hours, 
+                    timeLeftToLevel.Minutes, 
+                    timeLeftToLevel.Seconds)));
         }
     }
 }
