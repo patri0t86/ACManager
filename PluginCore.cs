@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Timers;
-using System.Collections;
-using System.Collections.Specialized;
 using System.Text.RegularExpressions;
 
 using Decal.Adapter;
 using Decal.Adapter.Wrappers;
 using MyClasses.MetaViewWrappers;
+
+using FellowshipManager.XPTracker;
 
 // Feature requests
 // Failure checking on fellowship join
@@ -23,11 +23,8 @@ namespace FellowshipManager
     [FriendlyName("Fellowship Manager")]
     public class PluginCore : PluginBase
     {
-        DateTime loginDateTime, startTime;
-        long TotalXpAtLogon, XpAtReset, XpPerHourLong, XpLast5Long;
-        Timer XpIntervalTimer;
-        OrderedDictionary rollingXpTracker;
-        TimeSpan timeLeftToLevel;
+        private ExpTracker ExpTracker;
+        private Timer XpTimer;
 
         [MVControlReference("SecretPassword")]
         private ITextBox SecretPassword = null;
@@ -56,7 +53,6 @@ namespace FellowshipManager
         {
             try
             {
-                rollingXpTracker = new OrderedDictionary();
                 Globals.Init("Fellowship Manager", Host, Core);
                 //Initialize the view.
                 MVWireupHelper.WireupStart(this, Host);
@@ -79,11 +75,40 @@ namespace FellowshipManager
         {
             try
             {
+                // give a checkbox for this to enable it?
+                StartXP();
                 // Subscribe to events here
-                loginDateTime = DateTime.Now;
-                StartXpTracking();
             }
             catch (Exception ex) { Util.LogError(ex); }
+        }
+
+        void StartXP()
+        {
+            ExpTracker = new ExpTracker(Globals.Core);
+            XpTimer = new Timer(1000);
+            XpTimer.AutoReset = true;
+            XpTimer.Elapsed += UpdateXpUi;
+            XpTimer.Enabled = true;
+        }
+
+        private void UpdateXpUi(object sender, ElapsedEventArgs e)
+        {
+            XpAtLogon.Text = String.Format("{0:n0}", ExpTracker.TotalXpAtLogon);
+            xpSinceLogon.Text = String.Format("{0:n0}", ExpTracker.XpEarnedSinceLogin);
+            xpSinceReset.Text = String.Format("{0:n0}", ExpTracker.XpEarnedSinceReset);
+            xpPerHour.Text = String.Format("{0:n0}", ExpTracker.XpPerHourLong);
+            xpLast5.Text = String.Format("{0:n0}", ExpTracker.XpLast5Long);
+            loginTime.Text = String.Format("{0}h {1}m {2}s", String.Format("{0:00}", ExpTracker.TimeLoggedIn.Hours), String.Format("{0:00}", ExpTracker.TimeLoggedIn.Minutes), String.Format("{0:00}", ExpTracker.TimeLoggedIn.Seconds));
+            timeSinceReset.Text = String.Format("{0}h {1}m {2}s", String.Format("{0:00}", ExpTracker.TimeSinceReset.Hours), String.Format("{0:00}", ExpTracker.TimeSinceReset.Minutes), String.Format("{0:00}", ExpTracker.TimeSinceReset.Seconds));
+            if (ExpTracker.XpPerHourLong > 0)
+            {
+                timeToNextLevel.Text = String.Format("{0:D2}h {1:D2}m {2:D2}s", ExpTracker.TimeLeftToLevel.Hours, ExpTracker.TimeLeftToLevel.Minutes, ExpTracker.TimeLeftToLevel.Seconds);
+            }
+            else
+            {
+                timeToNextLevel.Text = "Eternity!";
+            }
+            // update UI with values - setup listeners?
         }
 
         [BaseEvent("Logoff", "CharacterFilter")]
@@ -93,12 +118,6 @@ namespace FellowshipManager
             {
                 Globals.Core.ChatBoxMessage -= new EventHandler<ChatTextInterceptEventArgs>(AutoFellow_ChatBoxMessage_Watcher);
                 Globals.Core.ChatBoxMessage -= new EventHandler<ChatTextInterceptEventArgs>(AutoResponder_ChatBoxMessage_Watcher);
-                TotalXpAtLogon = 0;
-                XpAtReset = 0;
-                XpPerHourLong = 0;
-                XpLast5Long = 0;
-                XpIntervalTimer.Stop();
-                rollingXpTracker.Clear();
             }
             catch (Exception ex) { Util.LogError(ex); }
         }
@@ -239,75 +258,15 @@ namespace FellowshipManager
             }
         }
 
-        private void StartXpTracking()
-        {
-            startTime = DateTime.Now;
-            TotalXpAtLogon = Globals.Core.CharacterFilter.TotalXP;
-            XpAtLogon.Text = String.Format("{0:n0}", TotalXpAtLogon);
-            XpAtReset = TotalXpAtLogon;
-            XpIntervalTimer = new Timer(1000);
-            XpIntervalTimer.Elapsed += UpdateXpOnInterval;
-            XpIntervalTimer.AutoReset = true;
-            XpIntervalTimer.Enabled = true;
-        }
-
-        private void UpdateXpOnInterval(object sender, ElapsedEventArgs e)
-        {
-            rollingXpTracker.Add(DateTime.Now, Globals.Core.CharacterFilter.TotalXP);
-            xpSinceLogon.Text = String.Format("{0:n0}", Globals.Core.CharacterFilter.TotalXP - TotalXpAtLogon);
-            xpSinceReset.Text = String.Format("{0:n0}", Globals.Core.CharacterFilter.TotalXP - XpAtReset);
-            Calculate_XpPerHour();
-            Calculate_XpLast5();
-            UpdateUI();
-        }
-
-        private void UpdateUI()
-        {
-            xpPerHour.Text = String.Format("{0:n0}", XpPerHourLong);
-            xpLast5.Text = String.Format("{0:n0}", XpLast5Long);
-            TimeSpan t = DateTime.Now - loginDateTime;
-            loginTime.Text = String.Format("{0}h {1}m {2}s", String.Format("{0:00}", t.Hours), String.Format("{0:00}", t.Minutes), String.Format("{0:00}", t.Seconds));
-            t = DateTime.Now - startTime;
-            timeSinceReset.Text = String.Format("{0}h {1}m {2}s", String.Format("{0:00}", t.Hours), String.Format("{0:00}", t.Minutes), String.Format("{0:00}", t.Seconds));
-            if (XpPerHourLong > 0)
-            {
-                timeLeftToLevel = TimeSpan.FromSeconds((double)((decimal)Globals.Core.CharacterFilter.XPToNextLevel / (decimal)XpLast5Long * 3600));
-                timeToNextLevel.Text = String.Format("{0:D2}h {1:D2}m {2:D2}s", timeLeftToLevel.Hours, timeLeftToLevel.Minutes, timeLeftToLevel.Seconds);
-            } else
-            {
-                timeToNextLevel.Text = "Never, earn some XP!";
-            }
-        }
-
-        private void Calculate_XpPerHour()
-        {
-            TimeSpan t = DateTime.Now - startTime;
-            long seconds = (long)t.TotalSeconds;
-            XpPerHourLong = (Globals.Core.CharacterFilter.TotalXP - XpAtReset) / seconds * 3600;
-        }
-
-        private void Calculate_XpLast5()
-        {
-            ICollection values = rollingXpTracker.Values;
-            long[] xpValues = new long[rollingXpTracker.Count];
-            values.CopyTo(xpValues, 0);
-            XpLast5Long = (xpValues[xpValues.Length - 1] - xpValues[0]) / rollingXpTracker.Count * 3600;
-            if (rollingXpTracker.Count >= 300) // 300 @ 1 second intervals = 5 minutes
-            {
-                rollingXpTracker.RemoveAt(0);
-            }
-        }
 
         [MVControlEvent("xpReset", "Click")]
         void XpReset_Clicked(object sender, MVControlEventArgs e)
         {
-            rollingXpTracker.Clear();
+            ExpTracker.Reset();
             xpLast5.Text = "0";
             xpPerHour.Text = "0";
             xpSinceReset.Text = "0";
-            timeToNextLevel.Text = "";
-            XpAtReset = Globals.Core.CharacterFilter.TotalXP;
-            startTime = DateTime.Now;
+            timeSinceReset.Text = String.Format("{0}h {1}m {2}s", String.Format("{0:00}", 0), String.Format("{0:00}", 0), String.Format("{0:00}", 0));
         }
 
         [MVControlEvent("xpFellow", "Click")]
@@ -324,21 +283,21 @@ namespace FellowshipManager
 
         private void ReportXp(string targetChat)
         {
-            TimeSpan t = DateTime.Now - startTime;
+            //TimeSpan t = DateTime.Now - startTime;
             Globals.Host.Actions.InvokeChatParser(
                 String.Format("{0} You have earned {1} XP in {2} for {3} XP/hour ({4} XP in the last 5 minutes). At this rate, you'll hit your next level in {5}.",
                 targetChat,
-                String.Format("{0:n0}", Globals.Core.CharacterFilter.TotalXP - XpAtReset),
-                String.Format("{0}h {1}m {2}s", 
-                    String.Format("{0:00}", t.Hours), 
-                    String.Format("{0:00}", t.Minutes), 
-                    String.Format("{0:00}", t.Seconds)),
-                String.Format("{0:n0}", XpPerHourLong),
-                String.Format("{0:n0}", XpLast5Long),
-                String.Format("{0:D2}h {1:D2}m {2:D2}s", 
-                    timeLeftToLevel.Hours, 
-                    timeLeftToLevel.Minutes, 
-                    timeLeftToLevel.Seconds)));
+                String.Format("{0:n0}", Globals.Core.CharacterFilter.TotalXP - ExpTracker.XpAtReset),
+                String.Format("{0}h {1}m {2}s",
+                    String.Format("{0:00}", ExpTracker.TimeSinceReset.Hours),
+                    String.Format("{0:00}", ExpTracker.TimeSinceReset.Minutes),
+                    String.Format("{0:00}", ExpTracker.TimeSinceReset.Seconds)),
+                String.Format("{0:n0}", ExpTracker.XpPerHourLong),
+                String.Format("{0:n0}", ExpTracker.XpLast5Long),
+                String.Format("{0:D2}h {1:D2}m {2:D2}s",
+                    ExpTracker.TimeLeftToLevel.Hours,
+                    ExpTracker.TimeLeftToLevel.Minutes,
+                    ExpTracker.TimeLeftToLevel.Seconds)));
         }
     }
 }
