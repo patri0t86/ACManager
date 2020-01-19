@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Timers;
 using System.Text.RegularExpressions;
 
 using Decal.Adapter;
@@ -24,30 +23,29 @@ namespace FellowshipManager
     public class PluginCore : PluginBase
     {
         private ExpTracker ExpTracker;
-        private Timer XpTimer;
 
         [MVControlReference("SecretPassword")]
-        private ITextBox SecretPassword = null;
+        private ITextBox SecretPasswordTextBox = null;
         [MVControlReference("AutoFellow")]
-        private ICheckBox AutoFellow = null;
+        private ICheckBox AutoFellowCheckBox = null;
         [MVControlReference("AutoRespond")]
-        private ICheckBox AutoRespond = null;
+        private ICheckBox AutoRespondCheckBox = null;
         [MVControlReference("XpAtLogon")]
-        private IStaticText XpAtLogon = null;
-        [MVControlReference("xpSinceLogon")]
-        private IStaticText xpSinceLogon = null;
-        [MVControlReference("xpSinceReset")]
-        private IStaticText xpSinceReset = null;
-        [MVControlReference("xpPerHour")]
-        private IStaticText xpPerHour = null;
-        [MVControlReference("xpLast5")]
-        private IStaticText xpLast5 = null;
-        [MVControlReference("loginTime")]
-        private IStaticText loginTime = null;
-        [MVControlReference("timeSinceReset")]
-        private IStaticText timeSinceReset = null;
-        [MVControlReference("timeToNextLevel")]
-        private IStaticText timeToNextLevel = null;
+        private IStaticText XpAtLogonText = null;
+        [MVControlReference("XpSinceLogon")]
+        private IStaticText XpSinceLogonText = null;
+        [MVControlReference("XpSinceReset")]
+        private IStaticText XpSinceResetText = null;
+        [MVControlReference("XpPerHour")]
+        private IStaticText XpPerHourText = null;
+        [MVControlReference("XpLast5")]
+        private IStaticText XpLast5Text = null;
+        [MVControlReference("LoginTime")]
+        private IStaticText TimeLoggedInText = null;
+        [MVControlReference("TimeSinceReset")]
+        private IStaticText TimeSinceResetText = null;
+        [MVControlReference("TimeToNextLevel")]
+        private IStaticText TimeToNextLevelText = null;
 
         protected override void Startup()
         {
@@ -75,9 +73,7 @@ namespace FellowshipManager
         {
             try
             {
-                // give a checkbox for this to enable it?
                 StartXP();
-                // Subscribe to events here
             }
             catch (Exception ex) { Util.LogError(ex); }
         }
@@ -85,30 +81,61 @@ namespace FellowshipManager
         void StartXP()
         {
             ExpTracker = new ExpTracker(Globals.Core);
-            XpTimer = new Timer(1000);
-            XpTimer.AutoReset = true;
-            XpTimer.Elapsed += UpdateXpUi;
-            XpTimer.Enabled = true;
+
+            #region Do Only Once
+            XpAtLogonText.Text = String.Format("{0:n0}", ExpTracker.TotalXpAtLogon);
+            #endregion
+
+            #region ExpTracker Subscriptions
+            ExpTracker.RaiseXpPerHour += Update_XpPerHour;
+            ExpTracker.RaiseXpLast5 += Update_XpLast5;
+            ExpTracker.RaiseXpEarnedSinceLogon += Update_XpEarnedSinceLogon;
+            ExpTracker.RaiseXpEarnedSinceReset += Update_XpEarnedSinceReset;
+            ExpTracker.RaiseTimeLoggedIn += Update_TimeLoggedIn;
+            ExpTracker.RaiseTimeSinceReset += Update_TimeSinceReset;
+            ExpTracker.RaiseTimeToLevel += Update_TimeToLevel;
+            #endregion
         }
 
-        private void UpdateXpUi(object sender, ElapsedEventArgs e)
+        private void Update_XpPerHour(object sender, XpEventArgs e)
         {
-            XpAtLogon.Text = String.Format("{0:n0}", ExpTracker.TotalXpAtLogon);
-            xpSinceLogon.Text = String.Format("{0:n0}", ExpTracker.XpEarnedSinceLogin);
-            xpSinceReset.Text = String.Format("{0:n0}", ExpTracker.XpEarnedSinceReset);
-            xpPerHour.Text = String.Format("{0:n0}", ExpTracker.XpPerHourLong);
-            xpLast5.Text = String.Format("{0:n0}", ExpTracker.XpLast5Long);
-            loginTime.Text = String.Format("{0}h {1}m {2}s", String.Format("{0:00}", ExpTracker.TimeLoggedIn.Hours), String.Format("{0:00}", ExpTracker.TimeLoggedIn.Minutes), String.Format("{0:00}", ExpTracker.TimeLoggedIn.Seconds));
-            timeSinceReset.Text = String.Format("{0}h {1}m {2}s", String.Format("{0:00}", ExpTracker.TimeSinceReset.Hours), String.Format("{0:00}", ExpTracker.TimeSinceReset.Minutes), String.Format("{0:00}", ExpTracker.TimeSinceReset.Seconds));
-            if (ExpTracker.XpPerHourLong > 0)
+            XpPerHourText.Text = String.Format("{0:n0}", e.Value);
+        }
+
+        private void Update_XpLast5(object sender, XpEventArgs e)
+        {
+            XpLast5Text.Text = String.Format("{0:n0}", e.Value);
+        }
+
+        private void Update_XpEarnedSinceLogon(object sender, XpEventArgs e)
+        {
+            XpSinceLogonText.Text = String.Format("{0:n0}", e.Value);
+        }
+
+        private void Update_XpEarnedSinceReset(object sender, XpEventArgs e)
+        {
+            XpSinceResetText.Text = String.Format("{0:n0}", e.Value);
+        }
+
+        private void Update_TimeLoggedIn(object sender, XpEventArgs e)
+        {
+            TimeSpan t = TimeSpan.FromSeconds(e.Value);
+            TimeLoggedInText.Text = String.Format("{0:D2}h {1:D2}m {2:d2}s", t.Hours, t.Minutes, t.Seconds);
+        }
+
+        private void Update_TimeSinceReset(object sender, XpEventArgs e)
+        {
+            TimeSpan t = TimeSpan.FromSeconds(e.Value);
+            TimeSinceResetText.Text = String.Format("{0:D2}h {1:D2}m {2:D2}s", t.Hours, t.Minutes, t.Seconds);
+        }
+
+        private void Update_TimeToLevel(object sender, XpEventArgs e)
+        {
+            TimeSpan t = TimeSpan.FromSeconds(e.Value);
+            if (e.Value > 0)
             {
-                timeToNextLevel.Text = String.Format("{0:D2}h {1:D2}m {2:D2}s", ExpTracker.TimeLeftToLevel.Hours, ExpTracker.TimeLeftToLevel.Minutes, ExpTracker.TimeLeftToLevel.Seconds);
+                TimeToNextLevelText.Text = String.Format("{0:D2}h {1:D2}m {2:D2}s", t.Hours, t.Minutes, t.Seconds);
             }
-            else
-            {
-                timeToNextLevel.Text = "Eternity!";
-            }
-            // update UI with values - setup listeners?
         }
 
         [BaseEvent("Logoff", "CharacterFilter")]
@@ -127,7 +154,7 @@ namespace FellowshipManager
         {
             try
             {
-                if (AutoRespond.Checked)
+                if (AutoRespondCheckBox.Checked)
                 {
                     Globals.Core.ChatBoxMessage += new EventHandler<ChatTextInterceptEventArgs>(AutoResponder_ChatBoxMessage_Watcher);
                     Util.WriteToChat("To get your current component counts from another character, simply /tell 'comps' to this character.");
@@ -189,7 +216,7 @@ namespace FellowshipManager
         {
             try
             {
-                if (AutoFellow.Checked)
+                if (AutoFellowCheckBox.Checked)
                 {
                     Globals.Core.ChatBoxMessage += new EventHandler<ChatTextInterceptEventArgs>(AutoFellow_ChatBoxMessage_Watcher);
                     Globals.Host.Actions.FellowshipSetOpen(true);
@@ -243,12 +270,12 @@ namespace FellowshipManager
             }
 
             // Someone sends you a tell, checking for secret password
-            string fellowshipPattern = string.Format(@"(?<guid>\d+):(?<dupleName>.+?)Tell\s(?<msg>tells).+?(?<secret>{0})", SecretPassword.Text);
+            string fellowshipPattern = string.Format(@"(?<guid>\d+):(?<dupleName>.+?)Tell\s(?<msg>tells).+?(?<secret>{0})", SecretPasswordTextBox.Text);
             regex = new Regex(fellowshipPattern);
             match = regex.Match(input);
             if (match.Success)
             {
-                if (match.Groups["msg"].Value.Equals("tells") && match.Groups["secret"].Value.Equals(SecretPassword.Text))
+                if (match.Groups["msg"].Value.Equals("tells") && match.Groups["secret"].Value.Equals(SecretPasswordTextBox.Text))
                 {
                     string recruitName = match.Groups["dupleName"].Value.Substring(0, match.Groups["dupleName"].Value.Length / 2);
                     Globals.Host.Actions.InvokeChatParser(string.Format("/t {0}, <{1}> Please stand near me, I'm going to try and recruit you into the fellowship.", recruitName, Globals.PluginName));
@@ -259,23 +286,24 @@ namespace FellowshipManager
         }
 
 
-        [MVControlEvent("xpReset", "Click")]
+        [MVControlEvent("XpReset", "Click")]
         void XpReset_Clicked(object sender, MVControlEventArgs e)
         {
             ExpTracker.Reset();
-            xpLast5.Text = "0";
-            xpPerHour.Text = "0";
-            xpSinceReset.Text = "0";
-            timeSinceReset.Text = String.Format("{0}h {1}m {2}s", String.Format("{0:00}", 0), String.Format("{0:00}", 0), String.Format("{0:00}", 0));
+            XpLast5Text.Text = "0";
+            XpPerHourText.Text = "0";
+            XpSinceResetText.Text = "0";
+            TimeToNextLevelText.Text = "";
+            TimeSinceResetText.Text = String.Format("{0:D2}h {1:D2}m {2:D2}s", 0, 0, 0);
         }
 
-        [MVControlEvent("xpFellow", "Click")]
+        [MVControlEvent("XpFellow", "Click")]
         void XpFellow_Clicked(object sender, MVControlEventArgs e)
         {
             ReportXp("/f");
         }
 
-        [MVControlEvent("xpAlleg", "Click")]
+        [MVControlEvent("XpAlleg", "Click")]
         void XpAlleg_Clicked(object sender, MVControlEventArgs e)
         {
             ReportXp("/a");

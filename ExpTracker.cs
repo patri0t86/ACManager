@@ -11,7 +11,15 @@ namespace FellowshipManager.XPTracker
         private CoreManager Core;
         private Timer CalcXpTimer;
         private List<long> Rolling5Min;
-        private DateTime Now, LoginTime, LastResetTime;
+        private DateTime LoginTime, LastResetTime;
+
+        public EventHandler<XpEventArgs> RaiseXpPerHour;
+        public EventHandler<XpEventArgs> RaiseXpLast5;
+        public EventHandler<XpEventArgs> RaiseXpEarnedSinceLogon;
+        public EventHandler<XpEventArgs> RaiseXpEarnedSinceReset;
+        public EventHandler<XpEventArgs> RaiseTimeLoggedIn;
+        public EventHandler<XpEventArgs> RaiseTimeSinceReset;
+        public EventHandler<XpEventArgs> RaiseTimeToLevel;
 
         public long XpAtReset { get; private set; }
         public long TotalXpAtLogon { get; private set; }
@@ -20,7 +28,7 @@ namespace FellowshipManager.XPTracker
         public long XpPerHourLong { get; private set; }
         public long XpLast5Long { get; private set; }
         public TimeSpan TimeLeftToLevel { get; private set; }
-        public TimeSpan TimeLoggedIn { get; private set; }
+        //public TimeSpan TimeLoggedIn { get; private set; }
         public TimeSpan TimeSinceReset { get; private set; }
 
         public ExpTracker (CoreManager core)
@@ -35,7 +43,6 @@ namespace FellowshipManager.XPTracker
         {
             Rolling5Min.Clear();
             XpAtReset = Core.CharacterFilter.TotalXP;
-            XpPerHourLong = 0;
             XpLast5Long = 0;
             XpEarnedSinceReset = 0;
             LastResetTime = DateTime.Now;
@@ -45,8 +52,11 @@ namespace FellowshipManager.XPTracker
 
         private void StartTracking()
         {
+            #region Do_Only_Once
             TotalXpAtLogon = XpAtReset = Core.CharacterFilter.TotalXP;
             LastResetTime = DateTime.Now;
+            #endregion
+
             CalcXpTimer = CreateTimer(1000);
         }
 
@@ -61,55 +71,83 @@ namespace FellowshipManager.XPTracker
 
         private void UpdateXpOnInterval(object sender, ElapsedEventArgs e)
         {
-            Now = DateTime.Now;
-            TimeLoggedIn = Now - LoginTime;
-            TimeSinceReset = Now - LastResetTime;
-            XpEarnedSinceLogin = Core.CharacterFilter.TotalXP - TotalXpAtLogon;
-            XpEarnedSinceReset = Core.CharacterFilter.TotalXP - XpAtReset;
+            DateTime Now = DateTime.Now;
+            TimeSinceReset = (Now - LastResetTime);
+            long XpEarnedSinceReset = Core.CharacterFilter.TotalXP - XpAtReset;
+
+            #region XP Event Triggers
+            XpPerHourLong = XpEarnedSinceReset / (long)TimeSinceReset.TotalSeconds * 3600;
+            XpPerHourEvent(new XpEventArgs(XpPerHourLong));
+
             Rolling5Min.Add(Core.CharacterFilter.TotalXP);
             if (Rolling5Min.Count > 300) Rolling5Min.RemoveAt(0);
-            XpPerHourLong = XpPerHour();
-            XpLast5Long = XpLast5();
-            TimeLeftToLevel = TimeToLevel();
+
+            XpLast5Long = (Core.CharacterFilter.TotalXP - Rolling5Min[0]) / Rolling5Min.Count * 3600;
+            XpLast5Event(new XpEventArgs(XpLast5Long));
+
+            XpEarnedSinceLogonEvent(new XpEventArgs(Core.CharacterFilter.TotalXP - TotalXpAtLogon));
+
+            XpEarnedSinceResetEvent(new XpEventArgs(XpEarnedSinceReset));
+            #endregion
+
+            #region Time Event Triggers
+            TimeLoggedInEvent(new XpEventArgs((long)(Now - LoginTime).TotalSeconds));
+
+            TimeSinceResetEvent(new XpEventArgs((long)TimeSinceReset.TotalSeconds));
+
+            TimeLeftToLevel = TimeSpan.FromSeconds((double)Core.CharacterFilter.XPToNextLevel / XpLast5Long * 3600);
+            TimeToLevelEvent(new XpEventArgs((long)TimeLeftToLevel.TotalSeconds));
+            #endregion
         }
 
-        private long XpPerHour()
+        protected virtual void XpPerHourEvent(XpEventArgs e)
         {
-            try
-            {
-                return XpEarnedSinceReset / (long)TimeSinceReset.TotalSeconds * 3600;
-            }
-            catch (Exception)
-            {
-                throw;
-            }
-            
+            RaiseXpPerHour?.Invoke(this, e);
         }
 
-        private long XpLast5()
+        protected virtual void XpLast5Event(XpEventArgs e)
         {
-            try
-            {
-                return (Core.CharacterFilter.TotalXP - Rolling5Min[0]) / Rolling5Min.Count * 3600;
-            }
-            catch (Exception)
-            {
-
-                throw;
-            }
+            RaiseXpLast5?.Invoke(this, e);
         }
 
-        private TimeSpan TimeToLevel()
+        protected virtual void XpEarnedSinceLogonEvent(XpEventArgs e)
         {
-            try
-            {
-                return TimeSpan.FromSeconds((double)Core.CharacterFilter.XPToNextLevel / XpLast5Long * 3600);
-            }
-            catch (Exception)
-            {
+            RaiseXpEarnedSinceLogon?.Invoke(this, e);
+        }
 
-                throw;
-            }
+        protected virtual void XpEarnedSinceResetEvent(XpEventArgs e)
+        {
+            RaiseXpEarnedSinceReset?.Invoke(this, e);
+        }
+
+        protected virtual void TimeLoggedInEvent(XpEventArgs e)
+        {
+            RaiseTimeLoggedIn?.Invoke(this, e);
+        }
+
+        protected virtual void TimeSinceResetEvent(XpEventArgs e)
+        {
+            RaiseTimeSinceReset?.Invoke(this, e);
+        }
+
+        protected virtual void TimeToLevelEvent(XpEventArgs e)
+        {
+            RaiseTimeToLevel?.Invoke(this, e);
+        }
+
+    }
+
+    public class XpEventArgs : EventArgs
+    {
+        private long value;
+        public XpEventArgs(long s)
+        {
+            value = s;
+        }
+        public long Value
+        {
+            get { return value; }
+            set { this.value = value; }
         }
     }
 }
