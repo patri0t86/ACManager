@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 using Decal.Adapter;
 
-namespace FellowshipManager.XPTracker
+namespace FellowshipManager
 {
     public class ExpTracker
     {

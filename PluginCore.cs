@@ -5,11 +5,8 @@ using Decal.Adapter;
 using Decal.Adapter.Wrappers;
 using MyClasses.MetaViewWrappers;
 
-using FellowshipManager.XPTracker;
-
 // Feature requests
 // Failure checking on fellowship join
-// Time left until next level is reached - DONE!!
 
 namespace FellowshipManager
 {
@@ -22,7 +19,13 @@ namespace FellowshipManager
     [FriendlyName("Fellowship Manager")]
     public class PluginCore : PluginBase
     {
+        private readonly string PluginName = "Fellowship Manager";
         private ExpTracker ExpTracker;
+        private Utility Utility;
+
+        public EventHandler<ConfigEventArgs> RaiseAutoFellowEvent;
+        public EventHandler<ConfigEventArgs> RaiseAutoResponderEvent;
+        public EventHandler<ConfigEventArgs> RaiseSecretPasswordEvent;
 
         [MVControlReference("SecretPassword")]
         private ITextBox SecretPasswordTextBox = null;
@@ -51,11 +54,11 @@ namespace FellowshipManager
         {
             try
             {
-                Globals.Init("Fellowship Manager", Host, Core);
+                Utility = new Utility(this, Host, Core, PluginName);
                 //Initialize the view.
                 MVWireupHelper.WireupStart(this, Host);
             }
-            catch (Exception ex) { Util.LogError(ex); }
+            catch (Exception ex) { Utility.LogError(ex); }
         }
 
         protected override void Shutdown()
@@ -65,22 +68,58 @@ namespace FellowshipManager
                 //Destroy the view.
                 MVWireupHelper.WireupEnd(this);
             }
-            catch (Exception ex) { Util.LogError(ex); }
+            catch (Exception ex) { Utility.LogError(ex); }
         }
 
         [BaseEvent("LoginComplete", "CharacterFilter")]
-        private void CharacterFilter_LoginComplete(object sender, EventArgs e)
+        private void LoginComplete(object sender, EventArgs e)
         {
             try
             {
+                Utility.LoadSettingsFromFile();
                 StartXP();
+                LoadSettings();
             }
-            catch (Exception ex) { Util.LogError(ex); }
+            catch (Exception ex) { Utility.LogError(ex); }
+        }
+
+        private void LoadSettings()
+        {
+            if (!Utility.SecretPassword.Equals(""))
+            {
+                SecretPasswordTextBox.Text = Utility.SecretPassword;
+            }
+            if (Utility.AutoFellow.Equals("True"))
+            {
+                AutoFellowCheckBox.Checked = true;
+                Core.ChatBoxMessage += new EventHandler<ChatTextInterceptEventArgs>(AutoFellow_ChatBoxMessage_Watcher);
+            }
+            if (Utility.AutoResponder.Equals("True"))
+            {
+                AutoRespondCheckBox.Checked = true;
+                Core.ChatBoxMessage += new EventHandler<ChatTextInterceptEventArgs>(AutoResponder_ChatBoxMessage_Watcher);
+            }
+        }
+
+        [BaseEvent("Logoff", "CharacterFilter")]
+        private void Logoff(object sender, LogoffEventArgs e)
+        {
+            try
+            {
+                SecretPasswordChanged(new ConfigEventArgs(SecretPasswordTextBox.Text));
+                AutoResponderChanged(new ConfigEventArgs(AutoRespondCheckBox.Checked.ToString()));
+                AutoFellowChanged(new ConfigEventArgs(AutoFellowCheckBox.Checked.ToString()));
+                Utility.SaveSettings();
+            }
+            catch (Exception ex)
+            {
+                Utility.LogError(ex);
+            }
         }
 
         void StartXP()
         {
-            ExpTracker = new ExpTracker(Globals.Core);
+            ExpTracker = new ExpTracker(Core);
 
             #region Do Only Once
             XpAtLogonText.Text = String.Format("{0:n0}", ExpTracker.TotalXpAtLogon);
@@ -143,10 +182,23 @@ namespace FellowshipManager
         {
             try
             {
-                Globals.Core.ChatBoxMessage -= new EventHandler<ChatTextInterceptEventArgs>(AutoFellow_ChatBoxMessage_Watcher);
-                Globals.Core.ChatBoxMessage -= new EventHandler<ChatTextInterceptEventArgs>(AutoResponder_ChatBoxMessage_Watcher);
+                Core.ChatBoxMessage -= new EventHandler<ChatTextInterceptEventArgs>(AutoFellow_ChatBoxMessage_Watcher);
+                Core.ChatBoxMessage -= new EventHandler<ChatTextInterceptEventArgs>(AutoResponder_ChatBoxMessage_Watcher);
             }
-            catch (Exception ex) { Util.LogError(ex); }
+            catch (Exception ex) { Utility.LogError(ex); }
+        }
+
+        [MVControlEvent("SecretPassword", "Change")]
+        void SecretPassword_Change(object sender, MVTextBoxChangeEventArgs e)
+        {
+            try
+            {
+                SecretPasswordChanged(new ConfigEventArgs(SecretPasswordTextBox.Text));
+            }
+            catch (Exception ex)
+            {
+                Utility.LogError(ex);
+            }
         }
 
         [MVControlEvent("AutoRespond", "Change")]
@@ -154,19 +206,20 @@ namespace FellowshipManager
         {
             try
             {
+                AutoResponderChanged(new ConfigEventArgs(AutoRespondCheckBox.Checked.ToString()));
                 if (AutoRespondCheckBox.Checked)
                 {
-                    Globals.Core.ChatBoxMessage += new EventHandler<ChatTextInterceptEventArgs>(AutoResponder_ChatBoxMessage_Watcher);
-                    Util.WriteToChat("To get your current component counts from another character, simply /tell 'comps' to this character.");
+                    Core.ChatBoxMessage += new EventHandler<ChatTextInterceptEventArgs>(AutoResponder_ChatBoxMessage_Watcher);
+                    Utility.WriteToChat("To get your current component counts from another character, simply /tell 'comps' to this character.");
                 }
                 else
                 {
-                    Globals.Core.ChatBoxMessage -= new EventHandler<ChatTextInterceptEventArgs>(AutoResponder_ChatBoxMessage_Watcher);
+                    Core.ChatBoxMessage -= new EventHandler<ChatTextInterceptEventArgs>(AutoResponder_ChatBoxMessage_Watcher);
                 }
             }
             catch (Exception ex)
             {
-                Util.LogError(ex);
+                Utility.LogError(ex);
             }
         }
 
@@ -174,7 +227,7 @@ namespace FellowshipManager
         {
             string sanitizedInput = Regex.Replace(e.Text, @"[^\w:/ ']", string.Empty);
             AutoRespondParser(sanitizedInput);
-            //Util.WriteToChat(sanitizedInput);
+            //Utility.WriteToChat(sanitizedInput);
         }
 
         void AutoRespondParser(string input)
@@ -203,10 +256,10 @@ namespace FellowshipManager
                 string name = match.Groups["dupleName"].Value.Substring(0, match.Groups["dupleName"].Value.Length / 2);
                 foreach (string comp in s)
                 {
-                    WorldObjectCollection collection = Globals.Core.WorldFilter.GetInventory();
+                    WorldObjectCollection collection = Core.WorldFilter.GetInventory();
                     collection.SetFilter(new ByNameFilter(comp));
                     if (collection.Quantity == 0) continue;
-                    Globals.Host.Actions.InvokeChatParser(collection.Quantity == 1 ? string.Format(singleCompResponse, name, collection.Quantity.ToString(), collection.First.Name) : string.Format(pluralCompResponse, name, collection.Quantity.ToString(), collection.First.Name));
+                    Host.Actions.InvokeChatParser(collection.Quantity == 1 ? string.Format(singleCompResponse, name, collection.Quantity.ToString(), collection.First.Name) : string.Format(pluralCompResponse, name, collection.Quantity.ToString(), collection.First.Name));
                 }
             }
         }
@@ -216,24 +269,25 @@ namespace FellowshipManager
         {
             try
             {
+                AutoFellowChanged(new ConfigEventArgs(AutoFellowCheckBox.Checked.ToString()));
                 if (AutoFellowCheckBox.Checked)
                 {
-                    Globals.Core.ChatBoxMessage += new EventHandler<ChatTextInterceptEventArgs>(AutoFellow_ChatBoxMessage_Watcher);
-                    Globals.Host.Actions.FellowshipSetOpen(true);
+                    Core.ChatBoxMessage += new EventHandler<ChatTextInterceptEventArgs>(AutoFellow_ChatBoxMessage_Watcher);
+                    Host.Actions.FellowshipSetOpen(true);
                 }
                 else
                 {
-                    Globals.Core.ChatBoxMessage -= new EventHandler<ChatTextInterceptEventArgs>(AutoFellow_ChatBoxMessage_Watcher);
+                    Core.ChatBoxMessage -= new EventHandler<ChatTextInterceptEventArgs>(AutoFellow_ChatBoxMessage_Watcher);
                 }
             }
-            catch (Exception ex) { Util.LogError(ex); }
+            catch (Exception ex) { Utility.LogError(ex); }
         }
 
         void AutoFellow_ChatBoxMessage_Watcher(object sender, ChatTextInterceptEventArgs e)
         {
             string sanitizedInput = Regex.Replace(e.Text, @"[^\w:/ ']", string.Empty);
             AutoFellowParser(sanitizedInput);
-            //Util.WriteToChat(sanitizedInput);
+            //Utility.WriteToChat(sanitizedInput);
         }
 
         void AutoFellowParser(string input)
@@ -247,7 +301,7 @@ namespace FellowshipManager
             match = regex.Match(input);
             if(match.Success)
             {
-                Globals.Host.Actions.InvokeChatParser(string.Format("/t {0}, <{1}> You are not accepting fellowship requests!", match.Groups["name"].Value, Globals.PluginName));
+                Host.Actions.InvokeChatParser(string.Format("/t {0}, <{1}> You are not accepting fellowship requests!", match.Groups["name"].Value, PluginName));
                 return;
             }
 
@@ -270,21 +324,22 @@ namespace FellowshipManager
             }
 
             // Someone sends you a tell, checking for secret password
-            string fellowshipPattern = string.Format(@"(?<guid>\d+):(?<dupleName>.+?)Tell\s(?<msg>tells).+?(?<secret>{0})", SecretPasswordTextBox.Text);
+            string fellowshipPattern = string.Format(@"(?<guid>\d+):(?<dupleName>.+?)Tell\s(?<msg>tells).+?(?<secret>{0})", Utility.SecretPassword);
             regex = new Regex(fellowshipPattern);
             match = regex.Match(input);
             if (match.Success)
             {
-                if (match.Groups["msg"].Value.Equals("tells") && match.Groups["secret"].Value.Equals(SecretPasswordTextBox.Text))
+                if (match.Groups["msg"].Value.Equals("tells") && match.Groups["secret"].Value.Equals(Utility.SecretPassword))
                 {
                     string recruitName = match.Groups["dupleName"].Value.Substring(0, match.Groups["dupleName"].Value.Length / 2);
-                    Globals.Host.Actions.InvokeChatParser(string.Format("/t {0}, <{1}> Please stand near me, I'm going to try and recruit you into the fellowship.", recruitName, Globals.PluginName));
-                    Globals.Host.Actions.FellowshipRecruit(Int32.Parse(match.Groups["guid"].Value));
+                    Host.Actions.InvokeChatParser(string.Format("/t {0}, <{1}> Please stand near me, I'm going to try and recruit you into the fellowship.", recruitName, PluginName));
+                    Host.Actions.FellowshipRecruit(Int32.Parse(match.Groups["guid"].Value));
                     return;
                 }
             }
-        }
 
+            // Testerstwo is already in a fellowship
+        }
 
         [MVControlEvent("XpReset", "Click")]
         void XpReset_Clicked(object sender, MVControlEventArgs e)
@@ -312,10 +367,10 @@ namespace FellowshipManager
         private void ReportXp(string targetChat)
         {
             //TimeSpan t = DateTime.Now - startTime;
-            Globals.Host.Actions.InvokeChatParser(
+            Host.Actions.InvokeChatParser(
                 String.Format("{0} You have earned {1} XP in {2} for {3} XP/hour ({4} XP in the last 5 minutes). At this rate, you'll hit your next level in {5}.",
                 targetChat,
-                String.Format("{0:n0}", Globals.Core.CharacterFilter.TotalXP - ExpTracker.XpAtReset),
+                String.Format("{0:n0}", Core.CharacterFilter.TotalXP - ExpTracker.XpAtReset),
                 String.Format("{0}h {1}m {2}s",
                     String.Format("{0:00}", ExpTracker.TimeSinceReset.Hours),
                     String.Format("{0:00}", ExpTracker.TimeSinceReset.Minutes),
@@ -327,5 +382,29 @@ namespace FellowshipManager
                     ExpTracker.TimeLeftToLevel.Minutes,
                     ExpTracker.TimeLeftToLevel.Seconds)));
         }
+
+        protected virtual void SecretPasswordChanged(ConfigEventArgs e)
+        {
+            RaiseSecretPasswordEvent?.Invoke(this, e);
+        }
+
+        protected virtual void AutoFellowChanged(ConfigEventArgs e)
+        {
+            RaiseAutoFellowEvent?.Invoke(this, e);
+        }
+
+        protected virtual void AutoResponderChanged(ConfigEventArgs e)
+        {
+            RaiseAutoResponderEvent?.Invoke(this, e);
+        }
+    }
+
+    public class ConfigEventArgs : EventArgs
+    {
+        public ConfigEventArgs(string s)
+        {
+            Value = s;
+        }
+        public string Value { get; set; }
     }
 }

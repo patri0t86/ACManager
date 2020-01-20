@@ -46,10 +46,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ExpTracker.cs" />
-    <Compile Include="Globals.cs" />
     <Compile Include="PluginCore.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Util.cs" />
+    <Compile Include="Utility.cs" />
     <Compile Include="VirindiViews\ViewSystemSelector.cs" />
     <Compile Include="VirindiViews\Wrapper.cs" />
     <Compile Include="VirindiViews\Wrapper_Decal.cs" />
