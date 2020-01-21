@@ -10,7 +10,6 @@ namespace FellowshipManager
 {
 	public class Utility
 	{
-		private PluginCore Parent;
 		private PluginHost Host;
 		private CoreManager Core;
 		private string PluginName, SettingsFile = "C:\\Turbine\\test.xml";
@@ -20,7 +19,6 @@ namespace FellowshipManager
 
 		public Utility(PluginCore parent, PluginHost host, CoreManager core, string PluginName)
 		{
-			Parent = parent;
 			Host = host;
 			Core = core;
 			this.PluginName = PluginName;
