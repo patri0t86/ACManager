@@ -79,8 +79,8 @@ namespace FellowshipManager
         {
             try
             {
-                Utility.LoadSettingsFromFile();
                 StartXP();
+                Utility.LoadSettingsFromFile();
                 LoadSettings();
             }
             catch (Exception ex) { Utility.LogError(ex); }
