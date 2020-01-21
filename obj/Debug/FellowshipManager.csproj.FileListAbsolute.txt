@@ -2,3 +2,4 @@ C:\Turbine\FellowshipManager\dll\FellowshipManager.dll
 C:\Turbine\FellowshipManager\dll\FellowshipManager.pdb
 C:\Turbine\FellowshipManager\obj\Debug\FellowshipManager.dll
 C:\Turbine\FellowshipManager\obj\Debug\FellowshipManager.pdb
+C:\Turbine\FellowshipManager\obj\Debug\FellowshipManager.csprojAssemblyReference.cache
