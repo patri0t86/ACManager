@@ -218,7 +218,6 @@ namespace FellowshipManager
         {
             string sanitizedInput = Regex.Replace(e.Text, @"[^\w:/ ']", string.Empty);
             AutoRespondParser(sanitizedInput);
-            //Utility.WriteToChat(sanitizedInput);
         }
 
         void AutoRespondParser(string input)
@@ -272,7 +271,6 @@ namespace FellowshipManager
         {
             string sanitizedInput = Regex.Replace(e.Text, @"[^\w:/ ']", string.Empty);
             AutoFellowParser(sanitizedInput);
-            //Utility.WriteToChat(sanitizedInput);
         }
 
         void AutoFellowParser(string input)
@@ -370,7 +368,7 @@ namespace FellowshipManager
             Host.Actions.InvokeChatParser(
                 String.Format("{0} You have earned {1} XP in {2} for {3} XP/hour ({4} XP in the last 5 minutes). At this rate, you'll hit your next level in {5}.",
                 targetChat,
-                String.Format("{0:n0}", Core.CharacterFilter.TotalXP - ExpTracker.XpAtReset),
+                String.Format("{0:n0}", ExpTracker.XpEarnedSinceReset),
                 String.Format("{0}h {1}m {2}s",
                     String.Format("{0:00}", ExpTracker.TimeSinceReset.Hours),
                     String.Format("{0:00}", ExpTracker.TimeSinceReset.Minutes),

@@ -105,35 +105,40 @@ namespace FellowshipManager
 
 		public void LoadSettingsFromFile()
 		{
-			XmlReader XmlReader = XmlReader.Create(SettingsFile, SetupXmlReader());
-			while (XmlReader.Read())
+			if (File.Exists(SettingsFile))
 			{
-				if (XmlReader.IsStartElement())
+				XmlReader reader = XmlReader.Create(SettingsFile, SetupXmlReader());
+				while (reader.Read())
 				{
-					if(XmlReader.Name.Equals("secret_password"))
+					if (reader.IsStartElement())
 					{
-						XmlReader.Read();
-						SecretPassword = XmlReader.ReadString();
-					}
-					if (XmlReader.Name.Equals("auto_fellowship"))
-					{
-						XmlReader.Read();
-						AutoFellow = XmlReader.ReadString();
-					}
-					if (XmlReader.Name.Equals("auto_responder"))
-					{
-						XmlReader.Read();
-						AutoResponder = XmlReader.ReadString();
+						if (reader.Name.Equals("secret_password"))
+						{
+							reader.Read();
+							SecretPassword = reader.ReadString();
+						}
+						if (reader.Name.Equals("auto_fellowship"))
+						{
+							reader.Read();
+							AutoFellow = reader.ReadString();
+						}
+						if (reader.Name.Equals("auto_responder"))
+						{
+							reader.Read();
+							AutoResponder = reader.ReadString();
+						}
 					}
 				}
+				reader.Close();
 			}
-			XmlReader.Close();
 		}
 
 		private XmlWriterSettings SetupXmlWriter()
 		{
-			XmlWriterSettings settings = new XmlWriterSettings();
-			settings.Indent = true;
+			XmlWriterSettings settings = new XmlWriterSettings
+			{
+				Indent = true
+			};
 			return settings;
 		}
 
