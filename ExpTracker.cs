@@ -73,7 +73,7 @@ namespace FellowshipManager
         {
             DateTime Now = DateTime.Now;
             TimeSinceReset = (Now - LastResetTime);
-            long XpEarnedSinceReset = Core.CharacterFilter.TotalXP - XpAtReset;
+            XpEarnedSinceReset = Core.CharacterFilter.TotalXP - XpAtReset;
 
             #region XP Event Triggers
             XpPerHourLong = XpEarnedSinceReset / (long)TimeSinceReset.TotalSeconds * 3600;

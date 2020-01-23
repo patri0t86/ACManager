@@ -5,10 +5,6 @@ using Decal.Adapter;
 using Decal.Adapter.Wrappers;
 using MyClasses.MetaViewWrappers;
 
-// Feature requests
-// Failure checking on fellowship join
-// TODO - refactor fellowship management to its own module
-
 namespace FellowshipManager
 {
     //Attaches events from core
@@ -25,6 +21,7 @@ namespace FellowshipManager
         private Utility Utility;
         private string targetRecruit;
         private int targetGuid;
+        private bool properLogoff = false;
 
         public EventHandler<ConfigEventArgs> RaiseAutoFellowEvent;
         public EventHandler<ConfigEventArgs> RaiseAutoResponderEvent;
@@ -68,6 +65,7 @@ namespace FellowshipManager
         {
             try
             {
+                if(!properLogoff) Crash.Notify(Core.CharacterFilter.Name);
                 //Destroy the view.
                 MVWireupHelper.WireupEnd(this);
             }
@@ -91,6 +89,7 @@ namespace FellowshipManager
         {
             try
             {
+                properLogoff = true;
                 Core.ChatBoxMessage -= new EventHandler<ChatTextInterceptEventArgs>(AutoFellow_ChatBoxMessage_Watcher);
                 Core.ChatBoxMessage -= new EventHandler<ChatTextInterceptEventArgs>(AutoResponder_ChatBoxMessage_Watcher);
                 SecretPasswordChanged(new ConfigEventArgs(SecretPasswordTextBox.Text));
@@ -364,7 +363,6 @@ namespace FellowshipManager
 
         private void ReportXp(string targetChat)
         {
-            //TimeSpan t = DateTime.Now - startTime;
             Host.Actions.InvokeChatParser(
                 String.Format("{0} You have earned {1} XP in {2} for {3} XP/hour ({4} XP in the last 5 minutes). At this rate, you'll hit your next level in {5}.",
                 targetChat,
