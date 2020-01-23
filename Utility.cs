@@ -12,7 +12,7 @@ namespace FellowshipManager
 	{
 		private PluginHost Host;
 		private CoreManager Core;
-		private string PluginName, SettingsFile = "C:\\Turbine\\test.xml";
+		private string PluginName, SettingsFile = Environment.GetFolderPath(Environment.SpecialFolder.Personal) + @"\Asheron's Call\" + "FMsettings.xml";
 		public string SecretPassword { get; set; }
 		public string AutoFellow { get; set; }
 		public string AutoResponder { get; set; }
