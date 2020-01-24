@@ -2,6 +2,7 @@
 using Decal.Adapter.Wrappers;
 using MyClasses.MetaViewWrappers;
 using System;
+using System.Reflection;
 using System.Text.RegularExpressions;
 
 namespace FellowshipManager

@@ -11,7 +11,7 @@ namespace FellowshipManager
             {
                 using (StreamWriter writer = new StreamWriter(Environment.GetFolderPath(Environment.SpecialFolder.Personal) + @"\Asheron's Call\" + "Crash_Errors.txt", true))
                 {
-                    writer.WriteLine(DateTime.Now.ToString() + " - " + characterName + Environment.NewLine);
+                    writer.WriteLine(DateTime.Now.ToString() + " - " + characterName);
                     writer.Close();
                 }
             }

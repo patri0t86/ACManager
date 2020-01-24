@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<view icon="28187" title="Fellowship Manager" width="180" height="380">
+<view icon="28187" title="Fellowship Manager v0.0.3.0" width="250" height="380">
   <control progid="DecalControls.Notebook" name="nbMain">
     
     <page label="Setup">
