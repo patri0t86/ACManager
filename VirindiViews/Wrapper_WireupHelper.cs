@@ -31,7 +31,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Text;
 using System.Reflection;
 
 #if METAVIEW_PUBLIC_NS

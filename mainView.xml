@@ -8,6 +8,7 @@
         <control progid="DecalControls.Edit" name="SecretPassword" left="5" top="23" width="130" height="19" text="XP" />
         <control progid="DecalControls.CheckBox" name="AutoFellow" left="5" top="45" width="130" height="16" text="Auto Management" />
         <control progid="DecalControls.CheckBox" name="AutoRespond" left="5" top="63" width="130" height="16" text="Auto Respond" />
+        <!-- <control progid="DecalControls.PushButton" name="Debug" left="5" top="100" width="60" height="16" text="Debug" /> -->
       </control>
     </page>
 

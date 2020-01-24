@@ -33,8 +33,6 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Reflection;
 
 #if METAVIEW_PUBLIC_NS
@@ -118,7 +116,7 @@ namespace MyClasses.MetaViewWrappers
             return false;
 #endif
         }
-		
+
 #if VVS_REFERENCED
         static bool Curtain_VVS_Running()
         {
@@ -224,7 +222,7 @@ namespace MyClasses.MetaViewWrappers
             if (pHost.Actions.ChatState) return true;
             return false;
         }
-        
+
         static bool HasChatOpen_VirindiViews()
         {
 #if VVS_REFERENCED

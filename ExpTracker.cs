@@ -1,8 +1,7 @@
-﻿using System;
-using System.Timers;
+﻿using Decal.Adapter;
+using System;
 using System.Collections.Generic;
-
-using Decal.Adapter;
+using System.Timers;
 
 namespace FellowshipManager
 {
@@ -31,7 +30,7 @@ namespace FellowshipManager
         //public TimeSpan TimeLoggedIn { get; private set; }
         public TimeSpan TimeSinceReset { get; private set; }
 
-        public ExpTracker (CoreManager core)
+        public ExpTracker(CoreManager core)
         {
             Core = core;
             Rolling5Min = new List<long>();

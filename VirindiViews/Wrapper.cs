@@ -28,8 +28,6 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 using System;
-using System.Collections.Generic;
-using System.Text;
 
 #if METAVIEW_PUBLIC_NS
 namespace MetaViewWrappers
@@ -44,7 +42,7 @@ namespace MyClasses.MetaViewWrappers
 #endif
     delegate void dClickedList(object sender, int row, int col);
 
-    
+
     #region EventArgs Classes
 
 #if VVS_WRAPPERS_PUBLIC
@@ -189,7 +187,7 @@ namespace MyClasses.MetaViewWrappers
 #else
     internal
 #endif
-    interface IView: IDisposable
+    interface IView : IDisposable
     {
         void Initialize(Decal.Adapter.Wrappers.PluginHost p, string pXML);
         void InitializeRawXML(Decal.Adapter.Wrappers.PluginHost p, string pXML);
@@ -229,7 +227,7 @@ namespace MyClasses.MetaViewWrappers
     {
         string Name { get; }
         bool Visible { get; set; }
-        string TooltipText { get; set;}
+        string TooltipText { get; set; }
         int Id { get; }
         System.Drawing.Rectangle LayoutPosition { get; set; }
     }
@@ -348,7 +346,7 @@ namespace MyClasses.MetaViewWrappers
         void RemoveRow(int index);
         void Delete(int index);
         int ColCount { get; }
-        int ScrollPosition { get; set;}
+        int ScrollPosition { get; set; }
     }
 
 #if VVS_WRAPPERS_PUBLIC

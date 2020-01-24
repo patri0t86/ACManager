@@ -1,9 +1,8 @@
-﻿using System;
-using System.Text.RegularExpressions;
-using System.Timers;
-using Decal.Adapter;
+﻿using Decal.Adapter;
 using Decal.Adapter.Wrappers;
 using MyClasses.MetaViewWrappers;
+using System;
+using System.Text.RegularExpressions;
 
 namespace FellowshipManager
 {
@@ -16,6 +15,7 @@ namespace FellowshipManager
     [FriendlyName("Fellowship Manager")]
     public class PluginCore : PluginBase
     {
+        const string Module = "FellowshipManager";
         private readonly string PluginName = "Fellowship Manager";
         private ExpTracker ExpTracker;
         private Utility Utility;
@@ -65,7 +65,7 @@ namespace FellowshipManager
         {
             try
             {
-                if(!properLogoff) Crash.Notify(Core.CharacterFilter.Name);
+                if (!properLogoff) Crash.Notify(Utility.CharacterName);
                 //Destroy the view.
                 MVWireupHelper.WireupEnd(this);
             }
@@ -77,8 +77,8 @@ namespace FellowshipManager
         {
             try
             {
+                Utility.CharacterName = Core.CharacterFilter.Name;
                 StartXP();
-                Utility.LoadSettingsFromFile();
                 LoadSettings();
             }
             catch (Exception ex) { Utility.LogError(ex); }
@@ -92,29 +92,32 @@ namespace FellowshipManager
                 properLogoff = true;
                 Core.ChatBoxMessage -= new EventHandler<ChatTextInterceptEventArgs>(AutoFellow_ChatBoxMessage_Watcher);
                 Core.ChatBoxMessage -= new EventHandler<ChatTextInterceptEventArgs>(AutoResponder_ChatBoxMessage_Watcher);
-                SecretPasswordChanged(new ConfigEventArgs(SecretPasswordTextBox.Text));
-                AutoResponderChanged(new ConfigEventArgs(AutoRespondCheckBox.Checked.ToString()));
-                AutoFellowChanged(new ConfigEventArgs(AutoFellowCheckBox.Checked.ToString()));
-                Utility.SaveSettings();
             }
             catch (Exception ex) { Utility.LogError(ex); }
         }
 
         private void LoadSettings()
         {
-            if (!Utility.SecretPassword.Equals(""))
+            try
             {
-                SecretPasswordTextBox.Text = Utility.SecretPassword;
+                Utility.LoadCharacterSettings();
+                if (!Utility.SecretPassword.Equals(""))
+                {
+                    SecretPasswordTextBox.Text = Utility.SecretPassword;
+                }
+                if (Utility.AutoFellow.Equals("True"))
+                {
+                    AutoFellowCheckBox.Checked = true;
+                    Core.ChatBoxMessage += new EventHandler<ChatTextInterceptEventArgs>(AutoFellow_ChatBoxMessage_Watcher);
+                }
+                if (Utility.AutoResponder.Equals("True"))
+                {
+                    AutoRespondCheckBox.Checked = true;
+                    Core.ChatBoxMessage += new EventHandler<ChatTextInterceptEventArgs>(AutoResponder_ChatBoxMessage_Watcher);
+                }
             }
-            if (Utility.AutoFellow.Equals("True"))
+            catch (Exception)
             {
-                AutoFellowCheckBox.Checked = true;
-                Core.ChatBoxMessage += new EventHandler<ChatTextInterceptEventArgs>(AutoFellow_ChatBoxMessage_Watcher);
-            }
-            if (Utility.AutoResponder.Equals("True"))
-            {
-                AutoRespondCheckBox.Checked = true;
-                Core.ChatBoxMessage += new EventHandler<ChatTextInterceptEventArgs>(AutoResponder_ChatBoxMessage_Watcher);
             }
         }
 
@@ -183,7 +186,7 @@ namespace FellowshipManager
         {
             try
             {
-                SecretPasswordChanged(new ConfigEventArgs(SecretPasswordTextBox.Text));
+                SecretPasswordChanged(new ConfigEventArgs(e.Text, SecretPasswordTextBox.Name, Module));
             }
             catch (Exception ex)
             {
@@ -196,7 +199,7 @@ namespace FellowshipManager
         {
             try
             {
-                AutoResponderChanged(new ConfigEventArgs(e.Checked.ToString()));
+                AutoResponderChanged(new ConfigEventArgs(e.Checked.ToString(), AutoRespondCheckBox.Name, Module));
                 if (e.Checked)
                 {
                     Core.ChatBoxMessage += new EventHandler<ChatTextInterceptEventArgs>(AutoResponder_ChatBoxMessage_Watcher);
@@ -252,7 +255,7 @@ namespace FellowshipManager
         {
             try
             {
-                AutoFellowChanged(new ConfigEventArgs(e.Checked.ToString()));
+                AutoFellowChanged(new ConfigEventArgs(e.Checked.ToString(), AutoFellowCheckBox.Name, Module));
                 if (e.Checked)
                 {
                     Core.ChatBoxMessage += new EventHandler<ChatTextInterceptEventArgs>(AutoFellow_ChatBoxMessage_Watcher);
@@ -349,6 +352,12 @@ namespace FellowshipManager
             TimeSinceResetText.Text = String.Format("{0:D2}h {1:D2}m {2:D2}s", 0, 0, 0);
         }
 
+        [MVControlEvent("Debug", "Click")]
+        void Debug_Clicked(object sender, MVControlEventArgs e)
+        {
+            //Utility.SaveSetting();
+        }
+
         [MVControlEvent("XpFellow", "Click")]
         void XpFellow_Clicked(object sender, MVControlEventArgs e)
         {
@@ -397,10 +406,16 @@ namespace FellowshipManager
 
     public class ConfigEventArgs : EventArgs
     {
-        public ConfigEventArgs(string s)
-        {
-            Value = s;
-        }
+        public string Module { get; set; }
+        public string Setting { get; set; }
         public string Value { get; set; }
+
+        public ConfigEventArgs(string value, string setting, string module)
+        {
+            Value = value;
+            Setting = setting;
+            Module = module;
+        }
+
     }
 }

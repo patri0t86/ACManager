@@ -30,7 +30,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Text;
 
 #if METAVIEW_PUBLIC_NS
 namespace MetaViewWrappers.DecalControls
@@ -166,7 +165,8 @@ namespace MyClasses.MetaViewWrappers.DecalControls
 #else
         public
 #endif
-        ViewSystemSelector.eViewSystem ViewType { get { return ViewSystemSelector.eViewSystem.DecalInject; } }
+        ViewSystemSelector.eViewSystem ViewType
+        { get { return ViewSystemSelector.eViewSystem.DecalInject; } }
         Dictionary<string, Control> CreatedControlsByName = new Dictionary<string, Control>();
 
         public IControl this[string id]
@@ -618,7 +618,7 @@ namespace MyClasses.MetaViewWrappers.DecalControls
 
         #endregion
 
-        internal class ComboIndexer: IComboIndexer
+        internal class ComboIndexer : IComboIndexer
         {
             Combo myCombo;
             internal ComboIndexer(Combo c)

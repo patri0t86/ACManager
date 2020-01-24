@@ -33,7 +33,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Text;
 using VirindiViewService;
 
 #if METAVIEW_PUBLIC_NS
@@ -184,7 +183,8 @@ namespace MyClasses.MetaViewWrappers.VirindiViewServiceHudControls
 #else
         public
 #endif
-        ViewSystemSelector.eViewSystem ViewType { get { return ViewSystemSelector.eViewSystem.VirindiViewService; } }
+        ViewSystemSelector.eViewSystem ViewType
+        { get { return ViewSystemSelector.eViewSystem.VirindiViewService; } }
         Dictionary<string, Control> CreatedControlsByName = new Dictionary<string, Control>();
 
         public IControl this[string id]

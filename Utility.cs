@@ -1,10 +1,8 @@
-﻿using System;
-using System.IO;
-using System.Security.Permissions;
-using System.Xml;
-
-using Decal.Adapter;
+﻿using Decal.Adapter;
 using Decal.Adapter.Wrappers;
+using System;
+using System.IO;
+using System.Xml;
 
 namespace FellowshipManager
 {
@@ -12,10 +10,13 @@ namespace FellowshipManager
 	{
 		private PluginHost Host;
 		private CoreManager Core;
-		private string PluginName, SettingsFile = Environment.GetFolderPath(Environment.SpecialFolder.Personal) + @"\Asheron's Call\" + "FMsettings.xml";
+		private string PluginName;
+		private readonly string SettingsFile = Environment.GetFolderPath(Environment.SpecialFolder.Personal) + @"\Asheron's Call\" + "FMsettings.xml";
+
 		public string SecretPassword { get; set; }
 		public string AutoFellow { get; set; }
 		public string AutoResponder { get; set; }
+		public string CharacterName { get; set; }
 
 		public Utility(PluginCore parent, PluginHost host, CoreManager core, string PluginName)
 		{
@@ -27,125 +28,159 @@ namespace FellowshipManager
 			parent.RaiseSecretPasswordEvent += SecretPasswordHandler;
 			parent.RaiseAutoFellowEvent += AutoFellowHandler;
 			parent.RaiseAutoResponderEvent += AutoResponderHandler;
-            #endregion
-        }
+			#endregion
+		}
 
-        private void SecretPasswordHandler(object sender, ConfigEventArgs e)
+		private void SecretPasswordHandler(object sender, ConfigEventArgs e)
 		{
 			SecretPassword = e.Value;
+			SaveSetting(e.Module, e.Setting, e.Value);
 		}
 
 		private void AutoFellowHandler(object sender, ConfigEventArgs e)
 		{
 			AutoFellow = e.Value;
+			SaveSetting(e.Module, e.Setting, e.Value);
 		}
 
 		private void AutoResponderHandler(object sender, ConfigEventArgs e)
 		{
 			AutoResponder = e.Value;
+			SaveSetting(e.Module, e.Setting, e.Value);
 		}
 
-		public void SaveSettings()
+		public void SaveSetting(string module, string setting, string value)
+		{
+			try
+			{
+				if (File.Exists(SettingsFile))
+				{
+					XmlDocument doc = new XmlDocument();
+					doc.Load(SettingsFile);
+
+					XmlNode node = doc.SelectSingleNode(String.Format(@"/Settings/{0}", module));
+
+					if (node != null)
+					{
+						// module exists
+						node = doc.SelectSingleNode(String.Format(@"/Settings/{0}/Characters/{1}", module, CharacterName));
+						if (node != null)
+						{
+							// character exists
+							node = doc.SelectSingleNode(String.Format(@"/Settings/{0}/Characters/{1}/{2}", module, CharacterName, setting));
+							if (node != null)
+							{
+								// setting exists
+								node.InnerText = value;
+							}
+							else
+							{
+								// setting does not exist
+								node = doc.SelectSingleNode(String.Format(@"/Settings/{0}/Characters/{1}", module, CharacterName));
+								XmlNode newSetting = doc.CreateNode(XmlNodeType.Element, setting, string.Empty);
+								newSetting.InnerText = value;
+								node.AppendChild(newSetting);
+							}
+						}
+						else
+						{
+							// character does not exist
+							node = doc.SelectSingleNode(String.Format(@"/Settings/{0}/Characters", module));
+							XmlNode newCharacterNode = doc.CreateNode(XmlNodeType.Element, CharacterName, string.Empty);
+							XmlNode newSetting = doc.CreateNode(XmlNodeType.Element, setting, string.Empty);
+							newSetting.InnerText = value;
+							newCharacterNode.AppendChild(newSetting);
+							node.AppendChild(newCharacterNode);
+						}
+					}
+					else
+					{
+						// module does not exist
+						node = doc.SelectSingleNode("/Settings");
+						XmlNode newModule = doc.CreateNode(XmlNodeType.Element, module, string.Empty);
+						XmlNode newCharacters = doc.CreateNode(XmlNodeType.Element, "Characters", string.Empty);
+						XmlNode newCharacterNode = doc.CreateNode(XmlNodeType.Element, CharacterName, string.Empty);
+						XmlNode newSetting = doc.CreateNode(XmlNodeType.Element, setting, string.Empty);
+						newSetting.InnerText = value;
+						newCharacterNode.AppendChild(newSetting);
+						newCharacters.AppendChild(newCharacterNode);
+						newModule.AppendChild(newCharacters);
+						node.AppendChild(newModule);
+					}
+
+					doc.Save(SettingsFile);
+				}
+				else
+				{
+					// file does not exist
+					XmlWriter writer = XmlWriter.Create(SettingsFile, SetupXmlWriter());
+					writer.WriteStartDocument();
+					writer.WriteStartElement("Settings");
+
+					writer.WriteStartElement(module);
+					writer.WriteStartElement("Characters");
+
+					writer.WriteStartElement(CharacterName);
+
+					writer.WriteStartElement(setting);
+					writer.WriteString(value);
+
+					writer.WriteEndDocument();
+					writer.Close();
+				}
+			}
+			catch (Exception)
+			{
+			}
+		}
+
+		public void LoadCharacterSettings()
 		{
 			if (File.Exists(SettingsFile))
 			{
-				File.SetAttributes(SettingsFile, FileAttributes.Normal);
-				FileIOPermission filePermission =
-							  new FileIOPermission(FileIOPermissionAccess.AllAccess, SettingsFile);
-				using (FileStream fs = new FileStream(SettingsFile, FileMode.Create))
+				XmlDocument doc = new XmlDocument();
+				doc.Load(SettingsFile);
+
+				#region Fellowship Manager Settings
+				XmlNode characterNode = doc.SelectSingleNode(String.Format(@"/Settings/FellowshipManager/Characters/{0}", CharacterName));
+				if (characterNode != null)
 				{
-					using (XmlWriter writer = XmlWriter.Create(fs, SetupXmlWriter()))
+					// character exists
+					XmlNodeList settingNodes = characterNode.ChildNodes;
+					if (settingNodes.Count > 0)
 					{
-						writer.WriteStartDocument();
-						writer.WriteStartElement("settings");
-
-						writer.WriteStartElement("secret_password");
-						writer.WriteString(SecretPassword);
-						writer.WriteEndElement();
-
-						writer.WriteStartElement("auto_fellowship");
-						writer.WriteString(AutoFellow);
-						writer.WriteEndElement();
-
-						writer.WriteStartElement("auto_responder");
-						writer.WriteString(AutoResponder);
-						writer.WriteEndElement();
-
-						writer.WriteEndDocument();
-						writer.Flush();
-						writer.Close();
-					}
-					fs.Flush();
-					fs.Close();
-				}
-			}
-			else
-			{
-				XmlWriter writer = XmlWriter.Create(SettingsFile, SetupXmlWriter());
-				writer.WriteStartDocument();
-				writer.WriteStartElement("settings");
-
-				writer.WriteStartElement("secret_password");
-				writer.WriteString(SecretPassword);
-				writer.WriteEndElement();
-
-				writer.WriteStartElement("auto_fellowship");
-				writer.WriteString(AutoFellow);
-				writer.WriteEndElement();
-
-				writer.WriteStartElement("auto_responder");
-				writer.WriteString(AutoResponder);
-				writer.WriteEndElement();
-
-				writer.WriteEndDocument();
-				writer.Flush();
-				writer.Close();
-			}
-		}
-
-		public void LoadSettingsFromFile()
-		{
-			if (File.Exists(SettingsFile))
-			{
-				XmlReader reader = XmlReader.Create(SettingsFile, SetupXmlReader());
-				while (reader.Read())
-				{
-					if (reader.IsStartElement())
-					{
-						if (reader.Name.Equals("secret_password"))
+						foreach (XmlNode node in settingNodes)
 						{
-							reader.Read();
-							SecretPassword = reader.ReadString();
-						}
-						if (reader.Name.Equals("auto_fellowship"))
-						{
-							reader.Read();
-							AutoFellow = reader.ReadString();
-						}
-						if (reader.Name.Equals("auto_responder"))
-						{
-							reader.Read();
-							AutoResponder = reader.ReadString();
+							switch (node.Name)
+							{
+								case "SecretPassword":
+									SecretPassword = node.InnerText;
+									break;
+								case "AutoFellow":
+									AutoFellow = node.InnerText;
+									break;
+								case "AutoRespond":
+									AutoResponder = node.InnerText;
+									break;
+							}
 						}
 					}
 				}
-				reader.Close();
+				#endregion
 			}
 		}
 
 		private XmlWriterSettings SetupXmlWriter()
 		{
-			XmlWriterSettings settings = new XmlWriterSettings
+			return new XmlWriterSettings
 			{
 				Indent = true
 			};
-			return settings;
 		}
 
 		private XmlReaderSettings SetupXmlReader()
 		{
-			XmlReaderSettings settings = new XmlReaderSettings();
-			return settings;
+			return new XmlReaderSettings();
 		}
 
 		public void WriteToChat(string message)
