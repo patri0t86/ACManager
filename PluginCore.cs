@@ -353,12 +353,6 @@ namespace FellowshipManager
             TimeSinceResetText.Text = String.Format("{0:D2}h {1:D2}m {2:D2}s", 0, 0, 0);
         }
 
-        [MVControlEvent("Debug", "Click")]
-        void Debug_Clicked(object sender, MVControlEventArgs e)
-        {
-            //Utility.SaveSetting();
-        }
-
         [MVControlEvent("XpFellow", "Click")]
         void XpFellow_Clicked(object sender, MVControlEventArgs e)
         {
@@ -388,6 +382,12 @@ namespace FellowshipManager
                     ExpTracker.TimeLeftToLevel.Minutes,
                     ExpTracker.TimeLeftToLevel.Seconds)));
         }
+
+        //[MVControlEvent("Debug", "Click")]
+        //void Debug_Clicked(object sender, MVControlEventArgs e)
+        //{
+        //    Utility.SaveSetting();
+        //}
 
         protected virtual void SecretPasswordChanged(ConfigEventArgs e)
         {
