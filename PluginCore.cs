@@ -22,7 +22,7 @@ namespace FellowshipManager
         private Utility Utility;
         private string targetRecruit;
         private int targetGuid;
-        private bool properLogoff = false;
+        private LogoffEventType LogoffType;
 
         public EventHandler<ConfigEventArgs> RaiseAutoFellowEvent;
         public EventHandler<ConfigEventArgs> RaiseAutoResponderEvent;
@@ -66,7 +66,7 @@ namespace FellowshipManager
         {
             try
             {
-                if (!properLogoff) Crash.Notify(Utility.CharacterName);
+                if (LogoffType != LogoffEventType.Authorized) Crash.Notify(Utility.CharacterName);
                 //Destroy the view.
                 MVWireupHelper.WireupEnd(this);
             }
@@ -90,7 +90,7 @@ namespace FellowshipManager
         {
             try
             {
-                properLogoff = true;
+                LogoffType = e.Type;
                 Core.ChatBoxMessage -= new EventHandler<ChatTextInterceptEventArgs>(AutoFellow_ChatBoxMessage_Watcher);
                 Core.ChatBoxMessage -= new EventHandler<ChatTextInterceptEventArgs>(AutoResponder_ChatBoxMessage_Watcher);
             }
@@ -164,13 +164,13 @@ namespace FellowshipManager
         private void Update_TimeLoggedIn(object sender, XpEventArgs e)
         {
             TimeSpan t = TimeSpan.FromSeconds(e.Value);
-            TimeLoggedInText.Text = String.Format("{0:D2}h {1:D2}m {2:d2}s", t.Hours, t.Minutes, t.Seconds);
+            TimeLoggedInText.Text = String.Format("{0:D2}d {1:D2}h {2:D2}m {3:d2}s", t.Days, t.Hours, t.Minutes, t.Seconds);
         }
 
         private void Update_TimeSinceReset(object sender, XpEventArgs e)
         {
             TimeSpan t = TimeSpan.FromSeconds(e.Value);
-            TimeSinceResetText.Text = String.Format("{0:D2}h {1:D2}m {2:D2}s", t.Hours, t.Minutes, t.Seconds);
+            TimeSinceResetText.Text = String.Format("{0:D2}d {1:D2}h {2:D2}m {3:D2}s", t.Days, t.Hours, t.Minutes, t.Seconds);
         }
 
         private void Update_TimeToLevel(object sender, XpEventArgs e)
@@ -178,7 +178,7 @@ namespace FellowshipManager
             TimeSpan t = TimeSpan.FromSeconds(e.Value);
             if (e.Value > 0)
             {
-                TimeToNextLevelText.Text = String.Format("{0:D2}h {1:D2}m {2:D2}s", t.Hours, t.Minutes, t.Seconds);
+                TimeToNextLevelText.Text = String.Format("{0:D2} {1:D2}h {2:D2}m {3:D2}s", t.Days, t.Hours, t.Minutes, t.Seconds);
             }
         }
 
