@@ -178,7 +178,7 @@ namespace FellowshipManager
             TimeSpan t = TimeSpan.FromSeconds(e.Value);
             if (e.Value > 0)
             {
-                TimeToNextLevelText.Text = String.Format("{0:D2} {1:D2}h {2:D2}m {3:D2}s", t.Days, t.Hours, t.Minutes, t.Seconds);
+                TimeToNextLevelText.Text = String.Format("{0:D2}d {1:D2}h {2:D2}m {3:D2}s", t.Days, t.Hours, t.Minutes, t.Seconds);
             }
         }
 
@@ -371,13 +371,15 @@ namespace FellowshipManager
                 String.Format("{0} You have earned {1} XP in {2} for {3} XP/hour ({4} XP in the last 5 minutes). At this rate, you'll hit your next level in {5}.",
                 targetChat,
                 String.Format("{0:n0}", ExpTracker.XpEarnedSinceReset),
-                String.Format("{0}h {1}m {2}s",
-                    String.Format("{0:00}", ExpTracker.TimeSinceReset.Hours),
-                    String.Format("{0:00}", ExpTracker.TimeSinceReset.Minutes),
-                    String.Format("{0:00}", ExpTracker.TimeSinceReset.Seconds)),
+                String.Format("{0:D2}d {1:D2}h {2:D2}m {3:D2}s",
+                    ExpTracker.TimeSinceReset.Days,
+                    ExpTracker.TimeSinceReset.Hours,
+                    ExpTracker.TimeSinceReset.Minutes,
+                    ExpTracker.TimeSinceReset.Seconds),
                 String.Format("{0:n0}", ExpTracker.XpPerHourLong),
                 String.Format("{0:n0}", ExpTracker.XpLast5Long),
-                String.Format("{0:D2}h {1:D2}m {2:D2}s",
+                String.Format("{0:D2}d {1:D2}h {2:D2}m {3:D2}s",
+                    ExpTracker.TimeLeftToLevel.Days,
                     ExpTracker.TimeLeftToLevel.Hours,
                     ExpTracker.TimeLeftToLevel.Minutes,
                     ExpTracker.TimeLeftToLevel.Seconds)));
