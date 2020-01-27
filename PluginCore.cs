@@ -283,6 +283,15 @@ namespace FellowshipManager
 
             // make the regex patterns an array to iterate over?
 
+            // You have created the Fellowship
+            string createdFellow = @"^You have created the Fellowship";
+            regex = new Regex(createdFellow);
+            match = regex.Match(input);
+            if (match.Success)
+            {
+                Host.Actions.FellowshipSetOpen(true);
+            }
+
             // Not accepting fellowship requests
             string notAcceptingPattern = @"(?<name>.+?) is not accepting fellowing requests";
             regex = new Regex(notAcceptingPattern);
