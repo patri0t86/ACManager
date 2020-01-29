@@ -9,10 +9,13 @@ namespace FellowshipManager
         {
             try
             {
-                using (StreamWriter writer = new StreamWriter(Environment.GetFolderPath(Environment.SpecialFolder.Personal) + @"\Asheron's Call\" + "Crash_Errors.txt", true))
+                if (!characterName.Equals(""))
                 {
-                    writer.WriteLine(DateTime.Now.ToString() + " - " + characterName);
-                    writer.Close();
+                    using (StreamWriter writer = new StreamWriter(Environment.GetFolderPath(Environment.SpecialFolder.Personal) + @"\Asheron's Call\" + "Crash_Errors.txt", true))
+                    {
+                        writer.WriteLine(DateTime.Now.ToString() + " - " + characterName);
+                        writer.Close();
+                    }
                 }
             }
             catch
