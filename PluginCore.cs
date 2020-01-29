@@ -2,7 +2,8 @@
 using Decal.Adapter.Wrappers;
 using MyClasses.MetaViewWrappers;
 using System;
-using System.Reflection;
+using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Text.RegularExpressions;
 
 namespace FellowshipManager
@@ -235,13 +236,19 @@ namespace FellowshipManager
             match = new Regex(componentsPattern).Match(input);
             if (match.Success && match.Groups["secret"].Value.Equals("comps"))
             {
-                string[] s = {
+                string[] comps = {
+                    "Lead Scarab",
+                    "Iron Scarab",
+                    "Copper Scarab",
+                    "Silver Scarab",
+                    "Gold Scarab",
+                    "Pyreal Scarab",
                     "Platinum Scarab",
                     "Mana Scarab",
                     "Prismatic Taper"
                 };
                 string name = match.Groups["dupleName"].Value.Substring(0, match.Groups["dupleName"].Value.Length / 2);
-                foreach (string comp in s)
+                foreach (string comp in comps)
                 {
                     WorldObjectCollection collection = Core.WorldFilter.GetInventory();
                     collection.SetFilter(new ByNameFilter(comp));
@@ -278,71 +285,50 @@ namespace FellowshipManager
 
         void AutoFellowParser(string input)
         {
-            Regex regex;
+            Utility.WriteToChat(input);
             Match match;
 
-            // make the regex patterns an array to iterate over?
+            Dictionary<string, string> regexStrings = new Dictionary<string, string> {
+                ["CreatedFellow"] = @"^You have created the Fellowship",
+                ["NotAccepting"] = @"(?<name>.+?) is not accepting fellowing requests",
+                ["JoinedFellow"] = @"(?<name>.+?) joined the fellowship",
+                ["ElseLeftFellow"] = @"(?<name>.+?) left the fellowship",
+                ["RequestFellow"] = string.Format(@"(?<guid>\d+):(?<dupleName>.+?)Tell\s(?<msg>tells)\syou\s(?<secret>{0}$)", Utility.SecretPassword),
+                ["AlreadyFellow"] = @"(?<name>.+?) is already in a fellowship"
+            };
 
-            // You have created the Fellowship
-            string createdFellow = @"^You have created the Fellowship";
-            regex = new Regex(createdFellow);
-            match = regex.Match(input);
-            if (match.Success)
+            foreach (var item in regexStrings)
             {
-                Host.Actions.FellowshipSetOpen(true);
-            }
-
-            // Not accepting fellowship requests
-            string notAcceptingPattern = @"(?<name>.+?) is not accepting fellowing requests";
-            regex = new Regex(notAcceptingPattern);
-            match = regex.Match(input);
-            if (match.Success)
-            {
-                Host.Actions.InvokeChatParser(string.Format("/t {0}, <{1}> You are not accepting fellowship requests!", match.Groups["name"].Value, PluginName));
-                return;
-            }
-
-            // Someone joins the fellowship
-            string joinedFellowshipPattern = @"(?<name>.+?) joined the fellowship";
-            regex = new Regex(joinedFellowshipPattern);
-            match = regex.Match(input);
-            if (match.Success)
-            {
-                // do something when someone joins if you want to
-            }
-
-            // Someone leaves the fellowship
-            string leftFellowshipPattern = @"(?<name>.+?) left the fellowship";
-            regex = new Regex(leftFellowshipPattern);
-            match = regex.Match(input);
-            if (match.Success)
-            {
-                // do something when someone leaves if you want to
-            }
-
-            // Someone sends you a tell, checking for secret password
-            string fellowshipPattern = string.Format(@"(?<guid>\d+):(?<dupleName>.+?)Tell\s(?<msg>tells).+?(?<secret>{0})", Utility.SecretPassword);
-            regex = new Regex(fellowshipPattern);
-            match = regex.Match(input);
-            if (match.Success)
-            {
-                if (match.Groups["msg"].Value.Equals("tells") && match.Groups["secret"].Value.Equals(Utility.SecretPassword))
+                match = new Regex(item.Value).Match(input);
+                if (match.Success)
                 {
-                    targetRecruit = match.Groups["dupleName"].Value.Substring(0, match.Groups["dupleName"].Value.Length / 2);
-                    targetGuid = Int32.Parse(match.Groups["guid"].Value);
-                    Host.Actions.InvokeChatParser(string.Format("/t {0}, <{1}> Please stand near me, I'm going to try and recruit you into the fellowship.", targetRecruit, PluginName));
-                    RecruitTarget(targetGuid);
-                    return;
+                    switch (item.Key)
+                    {
+                        case "CreatedFellow": // You have created the Fellowship
+                            Host.Actions.FellowshipSetOpen(true);
+                            break;
+                        case "NotAccepting": // Target is not accepting fellowship requests
+                            Host.Actions.InvokeChatParser(string.Format("/t {0}, <{1}> You are not accepting fellowship requests!", match.Groups["name"].Value, PluginName));
+                            break;
+                        case "JoinedFellow": // Target joins the fellowship
+                            break;
+                        case "ElseLeftFellow": // Someone leaves the fellowship
+                            break;
+                        case "RequestFellow": // Someone sends you a tell, checking for secret password
+                            if (match.Groups["msg"].Value.Equals("tells") && match.Groups["secret"].Value.Equals(Utility.SecretPassword))
+                            {
+                                targetRecruit = match.Groups["dupleName"].Value.Substring(0, match.Groups["dupleName"].Value.Length / 2);
+                                targetGuid = Int32.Parse(match.Groups["guid"].Value);
+                                Host.Actions.InvokeChatParser(string.Format("/t {0}, <{1}> Please stand near me, I'm going to try and recruit you into the fellowship.", targetRecruit, PluginName));
+                                RecruitTarget(targetGuid);
+                            }
+                            break; 
+                        case "AlreadyFellow": // Target is already in a fellowship
+                            Host.Actions.InvokeChatParser(String.Format("/t {0}, <{1}>You're already in a fellowship.", match.Groups["name"].Value, PluginName));
+                            break;
+                    }
+                    break;
                 }
-            }
-
-            // Testerstwo is already in a fellowship
-            string alreadyFellowedPattern = @"(?<name>.+?) is already in a fellowship";
-            regex = new Regex(alreadyFellowedPattern);
-            match = regex.Match(input);
-            if (match.Success)
-            {
-                Host.Actions.InvokeChatParser(String.Format("/t {0}, <{1}>You're already in a fellowship.", match.Groups["name"].Value, PluginName));
             }
         }
 
