@@ -285,7 +285,6 @@ namespace FellowshipManager
 
         void AutoFellowParser(string input)
         {
-            Utility.WriteToChat(input);
             Match match;
 
             Dictionary<string, string> regexStrings = new Dictionary<string, string> {
