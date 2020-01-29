@@ -24,6 +24,7 @@ namespace FellowshipManager
         private string targetRecruit;
         private int targetGuid;
         private LogoffEventType LogoffType;
+        private bool inFellow = false;
 
         public EventHandler<ConfigEventArgs> RaiseAutoFellowEvent;
         public EventHandler<ConfigEventArgs> RaiseAutoResponderEvent;
@@ -231,30 +232,55 @@ namespace FellowshipManager
             string pluralCompResponse = "/t {0}, I currently have {1} {2}s.";
 
             // checking spell components
-            string componentsPattern = string.Format(@"(?<guid>\d+):(?<dupleName>.+?)Tell\s(?<msg>tells).+?(?<secret>comps)");
+            string componentsPattern = string.Format(@"(?<guid>\d+):(?<dupleName>.+?)Tell\s(?<msg>tells)\syou\s(?<secret>.*)");
 
             match = new Regex(componentsPattern).Match(input);
-            if (match.Success && match.Groups["secret"].Value.Equals("comps"))
+            if (match.Success)
             {
-                string[] comps = {
-                    "Lead Scarab",
-                    "Iron Scarab",
-                    "Copper Scarab",
-                    "Silver Scarab",
-                    "Gold Scarab",
-                    "Pyreal Scarab",
-                    "Platinum Scarab",
-                    "Mana Scarab",
-                    "Prismatic Taper"
-                };
                 string name = match.Groups["dupleName"].Value.Substring(0, match.Groups["dupleName"].Value.Length / 2);
-                foreach (string comp in comps)
+                if (match.Groups["secret"].Value.Equals("comps"))
+                {
+                    string[] comps = {
+                        "Lead Scarab",
+                        "Iron Scarab",
+                        "Copper Scarab",
+                        "Silver Scarab",
+                        "Gold Scarab",
+                        "Pyreal Scarab",
+                        "Platinum Scarab",
+                        "Mana Scarab",
+                        "Prismatic Taper"
+                        };
+                    foreach (string comp in comps)
+                    {
+                        WorldObjectCollection collection = Core.WorldFilter.GetInventory();
+                        collection.SetFilter(new ByNameFilter(comp));
+                        if (collection.Quantity == 0) continue;
+                        Host.Actions.InvokeChatParser(collection.Quantity == 1 ? string.Format(singleCompResponse, name, collection.Quantity.ToString(), collection.First.Name) : string.Format(pluralCompResponse, name, collection.Quantity.ToString(), collection.First.Name));
+                    }
+                }
+                else
                 {
                     WorldObjectCollection collection = Core.WorldFilter.GetInventory();
-                    collection.SetFilter(new ByNameFilter(comp));
-                    if (collection.Quantity == 0) continue;
+                    collection.SetFilter(new ByNameFilter(match.Groups["secret"].Value));
                     Host.Actions.InvokeChatParser(collection.Quantity == 1 ? string.Format(singleCompResponse, name, collection.Quantity.ToString(), collection.First.Name) : string.Format(pluralCompResponse, name, collection.Quantity.ToString(), collection.First.Name));
                 }
+
+            }
+
+
+        }
+
+        [BaseEvent("ChangeFellowship", "CharacterFilter")]
+        private void ChangeFellowship(object sender, ChangeFellowshipEventArgs e)
+        {
+            if(e.Type == FellowshipEventType.Create)
+            {
+                inFellow = true;
+            }
+            else if (e.Type == FellowshipEventType.Quit)
+            {
+                inFellow = false;
             }
         }
 
@@ -314,14 +340,18 @@ namespace FellowshipManager
                         case "ElseLeftFellow": // Someone leaves the fellowship
                             break;
                         case "RequestFellow": // Someone sends you a tell, checking for secret password
-                            if (match.Groups["msg"].Value.Equals("tells") && match.Groups["secret"].Value.Equals(Utility.SecretPassword))
+                            if (!inFellow)
+                            {
+                                Host.Actions.InvokeChatParser(string.Format("/r I'm not currently in a fellowship."));
+                            }
+                            else if (match.Groups["msg"].Value.Equals("tells") && match.Groups["secret"].Value.Equals(Utility.SecretPassword))
                             {
                                 targetRecruit = match.Groups["dupleName"].Value.Substring(0, match.Groups["dupleName"].Value.Length / 2);
                                 targetGuid = Int32.Parse(match.Groups["guid"].Value);
                                 Host.Actions.InvokeChatParser(string.Format("/t {0}, <{1}> Please stand near me, I'm going to try and recruit you into the fellowship.", targetRecruit, PluginName));
                                 RecruitTarget(targetGuid);
                             }
-                            break; 
+                            break;
                         case "AlreadyFellow": // Target is already in a fellowship
                             Host.Actions.InvokeChatParser(String.Format("/t {0}, <{1}>You're already in a fellowship.", match.Groups["name"].Value, PluginName));
                             break;
