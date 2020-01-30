@@ -4,6 +4,7 @@ using MyClasses.MetaViewWrappers;
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
+using System.Globalization;
 using System.Text.RegularExpressions;
 
 namespace FellowshipManager
@@ -230,6 +231,7 @@ namespace FellowshipManager
             Match match;
             string singleCompResponse = "/t {0}, I currently have {1} {2}.";
             string pluralCompResponse = "/t {0}, I currently have {1} {2}s.";
+            TextInfo textInfo = CultureInfo.CurrentCulture.TextInfo;
 
             // checking spell components
             string componentsPattern = string.Format(@"(?<guid>\d+):(?<dupleName>.+?)Tell\s(?<msg>tells)\syou\s(?<secret>.*)");
@@ -262,13 +264,10 @@ namespace FellowshipManager
                 else
                 {
                     WorldObjectCollection collection = Core.WorldFilter.GetInventory();
-                    collection.SetFilter(new ByNameFilter(match.Groups["secret"].Value));
+                    collection.SetFilter(new ByNameFilter(textInfo.ToTitleCase(match.Groups["secret"].Value)));
                     Host.Actions.InvokeChatParser(collection.Quantity == 1 ? string.Format(singleCompResponse, name, collection.Quantity.ToString(), collection.First.Name) : string.Format(pluralCompResponse, name, collection.Quantity.ToString(), collection.First.Name));
                 }
-
             }
-
-
         }
 
         [BaseEvent("ChangeFellowship", "CharacterFilter")]
