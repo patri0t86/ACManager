@@ -318,7 +318,8 @@ namespace FellowshipManager
                 ["JoinedFellow"] = @"(?<name>.+?) joined the fellowship",
                 ["ElseLeftFellow"] = @"(?<name>.+?) left the fellowship",
                 ["RequestFellow"] = string.Format(@"(?<guid>\d+):(?<dupleName>.+?)Tell\s(?<msg>tells)\syou\s(?<secret>{0}$)", Utility.SecretPassword),
-                ["AlreadyFellow"] = @"(?<name>.+?) is already in a fellowship"
+                ["AlreadyFellow"] = @"(?<name>.+?) is already in a fellowship",
+                ["FullFellow"] = @"^Fellowship is already full"
             };
 
             foreach (var item in regexStrings)
@@ -352,7 +353,10 @@ namespace FellowshipManager
                             }
                             break;
                         case "AlreadyFellow": // Target is already in a fellowship
-                            Host.Actions.InvokeChatParser(String.Format("/t {0}, <{1}>You're already in a fellowship.", match.Groups["name"].Value, PluginName));
+                            Host.Actions.InvokeChatParser(String.Format("/t {0}, <{1}> You're already in a fellowship.", match.Groups["name"].Value, PluginName));
+                            break;
+                        case "FullFellow":
+                            Host.Actions.InvokeChatParser(String.Format("/t {0}, <{1}> The fellowship is already full.", match.Groups["name"].Value, PluginName));
                             break;
                     }
                     break;
