@@ -3,7 +3,6 @@ using Decal.Adapter.Wrappers;
 using MyClasses.MetaViewWrappers;
 using System;
 using System.Collections.Generic;
-using System.Collections.Specialized;
 using System.Globalization;
 using System.Text.RegularExpressions;
 
@@ -26,17 +25,24 @@ namespace FellowshipManager
         private int targetGuid;
         private LogoffEventType LogoffType;
         private bool inFellow = false;
+        private InventoryTracker InventoryTracker;
 
         public EventHandler<ConfigEventArgs> RaiseAutoFellowEvent;
         public EventHandler<ConfigEventArgs> RaiseAutoResponderEvent;
         public EventHandler<ConfigEventArgs> RaiseSecretPasswordEvent;
 
+        #region UI Control References
+        #region Configuration
         [MVControlReference("SecretPassword")]
         private ITextBox SecretPasswordTextBox = null;
         [MVControlReference("AutoFellow")]
         private ICheckBox AutoFellowCheckBox = null;
         [MVControlReference("AutoRespond")]
         private ICheckBox AutoRespondCheckBox = null;
+        [MVControlReference("Components")]
+        private ICheckBox ComponentsCheckBox = null;
+        #endregion
+        #region XP Tracker Tab
         [MVControlReference("XpAtLogon")]
         private IStaticText XpAtLogonText = null;
         [MVControlReference("XpSinceLogon")]
@@ -53,6 +59,28 @@ namespace FellowshipManager
         private IStaticText TimeSinceResetText = null;
         [MVControlReference("TimeToNextLevel")]
         private IStaticText TimeToNextLevelText = null;
+        #endregion
+        #region Components Tab
+        [MVControlReference("LeadScarabCount")]
+        private ITextBox LeadScarabText = null;
+        [MVControlReference("IronScarabCount")]
+        private ITextBox IronScarabText = null;
+        [MVControlReference("CopperScarabCount")]
+        private ITextBox CopperScarabText = null;
+        [MVControlReference("SilverScarabCount")]
+        private ITextBox SilverScarabText = null;
+        [MVControlReference("GoldScarabCount")]
+        private ITextBox GoldScarabText = null;
+        [MVControlReference("PyrealScarabCount")]
+        private ITextBox PyrealScarabText = null;
+        [MVControlReference("PlatinumScarabCount")]
+        private ITextBox PlatinumScarabText = null;
+        [MVControlReference("ManaScarabCount")]
+        private ITextBox ManaScarabText = null;
+        [MVControlReference("TaperCount")]
+        private ITextBox TaperText = null;
+        #endregion
+        #endregion
 
         protected override void Startup()
         {
@@ -84,6 +112,7 @@ namespace FellowshipManager
                 Utility.CharacterName = Core.CharacterFilter.Name;
                 StartXP();
                 LoadSettings();
+                InventoryTracker = new InventoryTracker(Host, Core, Utility);
             }
             catch (Exception ex) { Utility.LogError(ex); }
         }
@@ -273,7 +302,7 @@ namespace FellowshipManager
         [BaseEvent("ChangeFellowship", "CharacterFilter")]
         private void ChangeFellowship(object sender, ChangeFellowshipEventArgs e)
         {
-            if(e.Type == FellowshipEventType.Create)
+            if (e.Type == FellowshipEventType.Create)
             {
                 inFellow = true;
             }
@@ -312,7 +341,8 @@ namespace FellowshipManager
         {
             Match match;
 
-            Dictionary<string, string> regexStrings = new Dictionary<string, string> {
+            Dictionary<string, string> regexStrings = new Dictionary<string, string>
+            {
                 ["CreatedFellow"] = @"^You have created the Fellowship",
                 ["NotAccepting"] = @"(?<name>.+?) is not accepting fellowing requests",
                 ["JoinedFellow"] = @"(?<name>.+?) joined the fellowship",
@@ -410,6 +440,120 @@ namespace FellowshipManager
                     ExpTracker.TimeLeftToLevel.Hours,
                     ExpTracker.TimeLeftToLevel.Minutes,
                     ExpTracker.TimeLeftToLevel.Seconds)));
+        }
+
+        [MVControlEvent("Components", "Change")]
+        private void Components_Change(object sender, MVCheckBoxChangeEventArgs e)
+        {
+            InventoryTracker.LogoffEnabled = e.Checked;
+        }
+
+        [MVControlEvent("LeadScarabCount", "Change")]
+        private void LeadScarabCountChanged(object sender, MVTextBoxChangeEventArgs e)
+        {
+            try
+            {
+                InventoryTracker.MinLead = int.Parse(e.Text);
+            }
+            catch (Exception)
+            {
+            }
+        }
+
+        [MVControlEvent("IronScarabCount", "Change")]
+        private void IronScarabCountChanged(object sender, MVTextBoxChangeEventArgs e)
+        {
+            try
+            {
+                InventoryTracker.MinIron = int.Parse(e.Text);
+            }
+            catch (Exception)
+            {
+            }
+        }
+
+        [MVControlEvent("CopperScarabCount", "Change")]
+        private void CopperScarabCountChanged(object sender, MVTextBoxChangeEventArgs e)
+        {
+            try
+            {
+                InventoryTracker.MinCopper = int.Parse(e.Text);
+            }
+            catch (Exception)
+            {
+            }
+        }
+
+        [MVControlEvent("SilverScarabCount", "Change")]
+        private void SilverScarabCountChanged(object sender, MVTextBoxChangeEventArgs e)
+        {
+            try
+            {
+                InventoryTracker.MinSilver = int.Parse(e.Text);
+            }
+            catch (Exception)
+            {
+            }
+        }
+
+        [MVControlEvent("GoldScarabCount", "Change")]
+        private void GoldScarabCountChanged(object sender, MVTextBoxChangeEventArgs e)
+        {
+            try
+            {
+                InventoryTracker.MinGold = int.Parse(e.Text);
+            }
+            catch (Exception)
+            {
+            }
+        }
+
+        [MVControlEvent("PyrealScarabCount", "Change")]
+        private void PyrealScarabCountChanged(object sender, MVTextBoxChangeEventArgs e)
+        {
+            try
+            {
+                InventoryTracker.MinPyreal = int.Parse(e.Text);
+            }
+            catch (Exception)
+            {
+            }
+        }
+
+        [MVControlEvent("PlatinumScarabCount", "Change")]
+        private void PlatinumScarabCountChanged(object sender, MVTextBoxChangeEventArgs e)
+        {
+            try
+            {
+                InventoryTracker.MinPlatinum = int.Parse(e.Text);
+            }
+            catch (Exception)
+            {
+            }
+        }
+
+        [MVControlEvent("ManaScarabCount", "Change")]
+        private void ManaScarabCountChanged(object sender, MVTextBoxChangeEventArgs e)
+        {
+            try
+            {
+                InventoryTracker.MinManaScarabs = int.Parse(e.Text);
+            }
+            catch (Exception)
+            {
+            }
+        }
+
+        [MVControlEvent("TaperCount", "Change")]
+        private void TaperCountChanged(object sender, MVTextBoxChangeEventArgs e)
+        {
+            try
+            {
+                InventoryTracker.MinTapers = int.Parse(e.Text);
+            }
+            catch (Exception)
+            {
+            }
         }
 
         //[MVControlEvent("Debug", "Click")]

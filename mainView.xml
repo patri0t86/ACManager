@@ -8,6 +8,7 @@
         <control progid="DecalControls.Edit" name="SecretPassword" left="5" top="23" width="130" height="19" text="XP" />
         <control progid="DecalControls.CheckBox" name="AutoFellow" left="5" top="45" width="130" height="16" text="Auto Management" />
         <control progid="DecalControls.CheckBox" name="AutoRespond" left="5" top="63" width="130" height="16" text="Auto Respond" />
+        <control progid="DecalControls.CheckBox" name="Components" left="5" top="81" width="130" height="16" text="Low Comp. Logoff" />
         <!-- <control progid="DecalControls.PushButton" name="Debug" left="5" top="100" width="60" height="16" text="Debug" /> -->
       </control>
     </page>
@@ -33,6 +34,30 @@
         <control progid="DecalControls.StaticText" name="TimeSinceReset" left="5" top="275" width="130" height="16" text="" />
         <control progid="DecalControls.StaticText" name="timeToNextLevelLabel" left="5" top="293" width="130" height="16" text="Time To Next Level" />
         <control progid="DecalControls.StaticText" name="TimeToNextLevel" left="5" top="311" width="130" height="16" text="" />
+      </control>
+    </page>
+
+    <page label="Low Comps">
+      <control progid="DecalControls.FixedLayout" clipped="">
+        <control progid="DecalControls.StaticText" name="leadScarabLabel" left="5" top="6" width="90" height="16" text="Lead Scarabs" />
+        <control progid="DecalControls.Edit" name="LeadScarabCount" left="97" top="5" width="30" height="19" text="10" />
+        <control progid="DecalControls.StaticText" name="ironScarabLabel" left="5" top="27" width="90" height="16" text="Iron Scarabs" />
+        <control progid="DecalControls.Edit" name="IronScarabCount" left="97" top="26" width="30" height="19" text="10" />
+        <control progid="DecalControls.StaticText" name="copperScarabLabel" left="5" top="48" width="90" height="16" text="Copper Scarabs" />
+        <control progid="DecalControls.Edit" name="CopperScarabCount" left="97" top="47" width="30" height="19" text="10" />
+        <control progid="DecalControls.StaticText" name="silverScarabLabel" left="5" top="69" width="90" height="16" text="Silver Scarabs" />
+        <control progid="DecalControls.Edit" name="SilverScarabCount" left="97" top="68" width="30" height="19" text="10" />
+        <control progid="DecalControls.StaticText" name="goldScarabLabel" left="5" top="90" width="90" height="16" text="Gold Scarabs" />
+        <control progid="DecalControls.Edit" name="GoldScarabCount" left="97" top="89" width="30" height="19" text="10" />
+        <control progid="DecalControls.StaticText" name="pyrealScarabLabel" left="5" top="111" width="90" height="16" text="Pyreal Scarabs" />
+        <control progid="DecalControls.Edit" name="PyrealScarabCount" left="97" top="110" width="30" height="19" text="10" />
+        <control progid="DecalControls.StaticText" name="platinumScarabLabel" left="5" top="132" width="90" height="16" text="Platinum Scarabs" />
+        <control progid="DecalControls.Edit" name="PlatinumScarabCount" left="97" top="131" width="30" height="19" text="10" />
+        <control progid="DecalControls.StaticText" name="manaScarabLabel" left="5" top="153" width="90" height="16" text="Mana Scarabs" />
+        <control progid="DecalControls.Edit" name="ManaScarabCount" left="97" top="152" width="30" height="19" text="10" />
+        <control progid="DecalControls.StaticText" name="taperLabel" left="5" top="174" width="90" height="16" text="Prismatic Tapers" />
+        <control progid="DecalControls.Edit" name="TaperCount" left="97" top="173" width="30" height="19" text="10" />
+        <control progid="DecalControls.StaticText" name="infoLabel" left="5" top="195" width="245" height="16" text="Enter -1 to disable a comp." />     
       </control>
     </page>
     

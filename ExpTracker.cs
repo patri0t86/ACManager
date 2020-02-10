@@ -27,7 +27,6 @@ namespace FellowshipManager
         public long XpPerHourLong { get; private set; }
         public long XpLast5Long { get; private set; }
         public TimeSpan TimeLeftToLevel { get; private set; }
-        //public TimeSpan TimeLoggedIn { get; private set; }
         public TimeSpan TimeSinceReset { get; private set; }
 
         public ExpTracker(CoreManager core)
