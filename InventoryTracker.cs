@@ -26,15 +26,15 @@ namespace FellowshipManager
                         "Prismatic Taper"
                         };
 
-        public int MinLead { get; set; }
-        public int MinIron { get; set; }
-        public int MinCopper { get; set; }
-        public int MinSilver { get; set; }
-        public int MinGold { get; set; }
-        public int MinPyreal { get; set; }
-        public int MinPlatinum { get; set; }
-        public int MinManaScarabs { get; set; }
-        public int MinTapers { get; set; }
+        public int MinLead { get; set; } = -1;
+        public int MinIron { get; set; } = -1;
+        public int MinCopper { get; set; } = -1;
+        public int MinSilver { get; set; } = -1;
+        public int MinGold { get; set; } = -1;
+        public int MinPyreal { get; set; } = -1;
+        public int MinPlatinum { get; set; } = -1;
+        public int MinManaScarabs { get; set; } = -1;
+        public int MinTapers { get; set; } = -1;
 
         public int CurLead { get; set; }
         public int CurIron { get; set; }
@@ -65,36 +65,37 @@ namespace FellowshipManager
         {
             foreach (string comp in Comps)
             {
+                Utility.WriteToChat("Trying " + comp);
                 WorldObjectCollection collection = Core.WorldFilter.GetInventory();
                 collection.SetFilter(new ByNameFilter(comp));
                 switch (comp)
                 {
                     case "Lead Scarab":
-                        CurLead = collection.Count;
+                        CurLead = collection.Quantity;
                         break;
                     case "Iron Scarab":
-                        CurIron = collection.Count;
+                        CurIron = collection.Quantity;
                         break;
                     case "Copper Scarab":
-                        CurCopper = collection.Count;
+                        CurCopper = collection.Quantity;
                         break;
                     case "Silver Scarab":
-                        CurSilver = collection.Count;
+                        CurSilver = collection.Quantity;
                         break;
                     case "Gold Scarab":
-                        CurGold = collection.Count;
+                        CurGold = collection.Quantity;
                         break;
                     case "Pyreal Scarab":
-                        CurPyreal = collection.Count;
+                        CurPyreal = collection.Quantity;
                         break;
                     case "Platinum Scarab":
-                        CurPlatinum = collection.Count;
+                        CurPlatinum = collection.Quantity;
                         break;
                     case "Mana Scarab":
-                        CurManaScarabs = collection.Count;
+                        CurManaScarabs = collection.Quantity;
                         break;
                     case "Prismatic Taper":
-                        CurTapers = collection.Count;
+                        CurTapers = collection.Quantity;
                         break;
                 }
                 collection = null;
@@ -151,7 +152,7 @@ namespace FellowshipManager
 
         private void StartWatcher()
         {
-            ComponentTimer = new Timer(1000);
+            ComponentTimer = new Timer(10000);
             ComponentTimer.AutoReset = true;
             ComponentTimer.Elapsed += CheckComps;
             ComponentTimer.Start();
