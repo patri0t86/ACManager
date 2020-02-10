@@ -65,7 +65,6 @@ namespace FellowshipManager
         {
             foreach (string comp in Comps)
             {
-                Utility.WriteToChat("Trying " + comp);
                 WorldObjectCollection collection = Core.WorldFilter.GetInventory();
                 collection.SetFilter(new ByNameFilter(comp));
                 switch (comp)
