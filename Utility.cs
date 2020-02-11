@@ -11,45 +11,18 @@ namespace FellowshipManager
         private PluginHost Host;
         private CoreManager Core;
         private string PluginName;
-        private readonly string SettingsFile = Environment.GetFolderPath(Environment.SpecialFolder.Personal) + @"\Asheron's Call\" + "FMsettings.xml";
+        private static readonly string SettingsFile = Environment.GetFolderPath(Environment.SpecialFolder.Personal) + @"\Asheron's Call\" + "FMsettings.xml";
 
-        public string SecretPassword { get; set; }
-        public string AutoFellow { get; set; }
-        public string AutoResponder { get; set; }
-        public string CharacterName { get; set; }
+        public static string CharacterName { get; set; }
 
-        public Utility(PluginCore parent, PluginHost host, CoreManager core, string PluginName)
+        public Utility(PluginHost host, CoreManager core, string PluginName)
         {
             Host = host;
             Core = core;
             this.PluginName = PluginName;
-
-            #region Settings Subscriptions
-            parent.RaiseSecretPasswordEvent += SecretPasswordHandler;
-            parent.RaiseAutoFellowEvent += AutoFellowHandler;
-            parent.RaiseAutoResponderEvent += AutoResponderHandler;
-            #endregion
         }
 
-        private void SecretPasswordHandler(object sender, ConfigEventArgs e)
-        {
-            SecretPassword = e.Value;
-            SaveSetting(e.Module, e.Setting, e.Value);
-        }
-
-        private void AutoFellowHandler(object sender, ConfigEventArgs e)
-        {
-            AutoFellow = e.Value;
-            SaveSetting(e.Module, e.Setting, e.Value);
-        }
-
-        private void AutoResponderHandler(object sender, ConfigEventArgs e)
-        {
-            AutoResponder = e.Value;
-            SaveSetting(e.Module, e.Setting, e.Value);
-        }
-
-        public void SaveSetting(string module, string setting, string value)
+        public static void SaveSetting(string module, string setting, string value)
         {
             try
             {
@@ -134,53 +107,32 @@ namespace FellowshipManager
             }
         }
 
-        public void LoadCharacterSettings()
+        public static XmlNode LoadCharacterSettings(string module)
         {
+            XmlNode node = null;
             if (File.Exists(SettingsFile))
             {
                 XmlDocument doc = new XmlDocument();
                 doc.Load(SettingsFile);
-
-                #region Fellowship Manager Settings
-                XmlNode characterNode = doc.SelectSingleNode(String.Format(@"/Settings/FellowshipManager/Characters/{0}", CharacterName));
-                if (characterNode != null)
+                switch (module)
                 {
-                    // character exists
-                    XmlNodeList settingNodes = characterNode.ChildNodes;
-                    if (settingNodes.Count > 0)
-                    {
-                        foreach (XmlNode node in settingNodes)
-                        {
-                            switch (node.Name)
-                            {
-                                case "SecretPassword":
-                                    SecretPassword = node.InnerText;
-                                    break;
-                                case "AutoFellow":
-                                    AutoFellow = node.InnerText;
-                                    break;
-                                case "AutoRespond":
-                                    AutoResponder = node.InnerText;
-                                    break;
-                            }
-                        }
-                    }
+                    case "FellowshipManager":
+                        node = doc.SelectSingleNode(String.Format(@"/Settings/{0}/Characters/{1}", module, CharacterName));
+                        break;
+                    case "InventoryTracker":
+                        node = doc.SelectSingleNode(String.Format(@"/Settings/{0}/Characters/{1}", module, CharacterName));
+                        break;
                 }
-                #endregion
             }
+            return node;
         }
 
-        private XmlWriterSettings SetupXmlWriter()
+        private static XmlWriterSettings SetupXmlWriter()
         {
             return new XmlWriterSettings
             {
                 Indent = true
             };
-        }
-
-        private XmlReaderSettings SetupXmlReader()
-        {
-            return new XmlReaderSettings();
         }
 
         public void WriteToChat(string message)

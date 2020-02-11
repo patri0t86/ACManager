@@ -5,13 +5,11 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Text.RegularExpressions;
+using System.Xml;
 
 namespace FellowshipManager
 {
-    //Attaches events from core
     [WireUpBaseEvents]
-
-    //View (UI) handling
     [MVView("FellowshipManager.mainView.xml")]
     [MVWireUpControlEvents]
     [FriendlyName("Fellowship Manager")]
@@ -21,15 +19,12 @@ namespace FellowshipManager
         private readonly string PluginName = "Fellowship Manager";
         private ExpTracker ExpTracker;
         private Utility Utility;
+        private InventoryTracker InventoryTracker;
+
         private string targetRecruit;
         private int targetGuid;
         private LogoffEventType LogoffType;
         private bool inFellow = false;
-        private InventoryTracker InventoryTracker;
-
-        public EventHandler<ConfigEventArgs> RaiseAutoFellowEvent;
-        public EventHandler<ConfigEventArgs> RaiseAutoResponderEvent;
-        public EventHandler<ConfigEventArgs> RaiseSecretPasswordEvent;
 
         #region UI Control References
         #region Configuration
@@ -41,6 +36,8 @@ namespace FellowshipManager
         private ICheckBox AutoRespondCheckBox = null;
         [MVControlReference("Components")]
         private ICheckBox ComponentsCheckBox = null;
+        [MVControlReference("AnnounceLogoff")]
+        private ICheckBox AnnounceLogoff = null;
         #endregion
         #region XP Tracker Tab
         [MVControlReference("XpAtLogon")]
@@ -86,8 +83,7 @@ namespace FellowshipManager
         {
             try
             {
-                Utility = new Utility(this, Host, Core, PluginName);
-                //Initialize the view.
+                Utility = new Utility(Host, Core, PluginName);
                 MVWireupHelper.WireupStart(this, Host);
             }
             catch (Exception ex) { Utility.LogError(ex); }
@@ -98,7 +94,6 @@ namespace FellowshipManager
             try
             {
                 if (LogoffType != LogoffEventType.Authorized) Crash.Notify(Utility.CharacterName);
-                //Destroy the view.
                 MVWireupHelper.WireupEnd(this);
             }
             catch (Exception ex) { Utility.LogError(ex); }
@@ -112,7 +107,7 @@ namespace FellowshipManager
                 Utility.CharacterName = Core.CharacterFilter.Name;
                 StartXP();
                 LoadSettings();
-                InventoryTracker = new InventoryTracker(Host, Core, Utility);
+                InventoryTracker = new InventoryTracker(this, Host, Core, Utility);
             }
             catch (Exception ex) { Utility.LogError(ex); }
         }
@@ -133,20 +128,39 @@ namespace FellowshipManager
         {
             try
             {
-                Utility.LoadCharacterSettings();
-                if (!Utility.SecretPassword.Equals(""))
+                XmlNode node = Utility.LoadCharacterSettings(Module);
+                if (node != null)
                 {
-                    SecretPasswordTextBox.Text = Utility.SecretPassword;
-                }
-                if (Utility.AutoFellow.Equals("True"))
-                {
-                    AutoFellowCheckBox.Checked = true;
-                    Core.ChatBoxMessage += new EventHandler<ChatTextInterceptEventArgs>(AutoFellow_ChatBoxMessage_Watcher);
-                }
-                if (Utility.AutoResponder.Equals("True"))
-                {
-                    AutoRespondCheckBox.Checked = true;
-                    Core.ChatBoxMessage += new EventHandler<ChatTextInterceptEventArgs>(AutoResponder_ChatBoxMessage_Watcher);
+                    XmlNodeList settingNodes = node.ChildNodes;
+                    if (settingNodes.Count > 0)
+                    {
+                        foreach (XmlNode aNode in settingNodes)
+                        {
+                            switch (aNode.Name)
+                            {
+                                case "SecretPassword":
+                                    if (!string.IsNullOrEmpty(aNode.InnerText))
+                                    {
+                                        SecretPasswordTextBox.Text = aNode.InnerText;
+                                    }
+                                    break;
+                                case "AutoFellow":
+                                    if (aNode.InnerText.Equals("True"))
+                                    {
+                                        AutoFellowCheckBox.Checked = true;
+                                        Core.ChatBoxMessage += new EventHandler<ChatTextInterceptEventArgs>(AutoFellow_ChatBoxMessage_Watcher);
+                                    }
+                                    break;
+                                case "AutoRespond":
+                                    if (aNode.InnerText.Equals("True"))
+                                    {
+                                        AutoRespondCheckBox.Checked = true;
+                                        Core.ChatBoxMessage += new EventHandler<ChatTextInterceptEventArgs>(AutoResponder_ChatBoxMessage_Watcher);
+                                    }
+                                    break;
+                            }
+                        }
+                    }
                 }
             }
             catch (Exception)
@@ -219,7 +233,7 @@ namespace FellowshipManager
         {
             try
             {
-                SecretPasswordChanged(new ConfigEventArgs(e.Text, SecretPasswordTextBox.Name, Module));
+                Utility.SaveSetting(Module, SecretPasswordTextBox.Name, e.Text);
             }
             catch (Exception ex)
             {
@@ -232,7 +246,7 @@ namespace FellowshipManager
         {
             try
             {
-                AutoResponderChanged(new ConfigEventArgs(e.Checked.ToString(), AutoRespondCheckBox.Name, Module));
+                Utility.SaveSetting(Module, AutoRespondCheckBox.Name, e.Checked.ToString());
                 if (e.Checked)
                 {
                     Core.ChatBoxMessage += new EventHandler<ChatTextInterceptEventArgs>(AutoResponder_ChatBoxMessage_Watcher);
@@ -287,14 +301,22 @@ namespace FellowshipManager
                         WorldObjectCollection collection = Core.WorldFilter.GetInventory();
                         collection.SetFilter(new ByNameFilter(comp));
                         if (collection.Quantity == 0) continue;
-                        Host.Actions.InvokeChatParser(collection.Quantity == 1 ? string.Format(singleCompResponse, name, collection.Quantity.ToString(), collection.First.Name) : string.Format(pluralCompResponse, name, collection.Quantity.ToString(), collection.First.Name));
+                        Host.Actions.InvokeChatParser(
+                            collection.Quantity == 1 ?
+                            string.Format(singleCompResponse, name, collection.Quantity.ToString(), collection.First.Name) :
+                            string.Format(pluralCompResponse, name, collection.Quantity.ToString(), collection.First.Name)
+                        );
                     }
                 }
                 else
                 {
                     WorldObjectCollection collection = Core.WorldFilter.GetInventory();
                     collection.SetFilter(new ByNameFilter(textInfo.ToTitleCase(match.Groups["secret"].Value)));
-                    Host.Actions.InvokeChatParser(collection.Quantity == 1 ? string.Format(singleCompResponse, name, collection.Quantity.ToString(), collection.First.Name) : string.Format(pluralCompResponse, name, collection.Quantity.ToString(), collection.First.Name));
+                    Host.Actions.InvokeChatParser(
+                        collection.Quantity == 1 ?
+                        string.Format(singleCompResponse, name, collection.Quantity.ToString(), collection.First.Name) :
+                        string.Format(pluralCompResponse, name, collection.Quantity.ToString(), collection.First.Name)
+                    );
                 }
             }
         }
@@ -317,7 +339,7 @@ namespace FellowshipManager
         {
             try
             {
-                AutoFellowChanged(new ConfigEventArgs(e.Checked.ToString(), AutoFellowCheckBox.Name, Module));
+                Utility.SaveSetting(Module, AutoFellowCheckBox.Name, e.Checked.ToString());
                 if (e.Checked)
                 {
                     Core.ChatBoxMessage += new EventHandler<ChatTextInterceptEventArgs>(AutoFellow_ChatBoxMessage_Watcher);
@@ -347,7 +369,7 @@ namespace FellowshipManager
                 ["NotAccepting"] = @"(?<name>.+?) is not accepting fellowing requests",
                 ["JoinedFellow"] = @"(?<name>.+?) joined the fellowship",
                 ["ElseLeftFellow"] = @"(?<name>.+?) left the fellowship",
-                ["RequestFellow"] = string.Format(@"(?<guid>\d+):(?<dupleName>.+?)Tell\s(?<msg>tells)\syou\s(?<secret>{0}$)", Utility.SecretPassword),
+                ["RequestFellow"] = string.Format(@"(?<guid>\d+):(?<dupleName>.+?)Tell\s(?<msg>tells)\syou\s(?<secret>{0}$)", SecretPasswordTextBox.Text),
                 ["AlreadyFellow"] = @"(?<name>.+?) is already in a fellowship",
                 ["FullFellow"] = @"^Fellowship is already full"
             };
@@ -374,7 +396,7 @@ namespace FellowshipManager
                             {
                                 Host.Actions.InvokeChatParser(string.Format("/r I'm not currently in a fellowship."));
                             }
-                            else if (match.Groups["msg"].Value.Equals("tells") && match.Groups["secret"].Value.Equals(Utility.SecretPassword))
+                            else if (match.Groups["msg"].Value.Equals("tells") && match.Groups["secret"].Value.Equals(SecretPasswordTextBox.Text))
                             {
                                 targetRecruit = match.Groups["dupleName"].Value.Substring(0, match.Groups["dupleName"].Value.Length / 2);
                                 targetGuid = Int32.Parse(match.Groups["guid"].Value);
@@ -453,11 +475,16 @@ namespace FellowshipManager
         {
             try
             {
-                InventoryTracker.MinLead = int.Parse(e.Text);
+                InventoryTracker.SetMinLead(LeadScarabText.Name, e.Text);
             }
             catch (Exception)
             {
             }
+        }
+
+        public void SetLeadCount(string value)
+        {
+            LeadScarabText.Text = value;
         }
 
         [MVControlEvent("IronScarabCount", "Change")]
@@ -465,11 +492,16 @@ namespace FellowshipManager
         {
             try
             {
-                InventoryTracker.MinIron = int.Parse(e.Text);
+                InventoryTracker.SetMinIron(IronScarabText.Name, e.Text);
             }
             catch (Exception)
             {
             }
+        }
+
+        public void SetIronCount(string value)
+        {
+            IronScarabText.Text = value;
         }
 
         [MVControlEvent("CopperScarabCount", "Change")]
@@ -477,11 +509,16 @@ namespace FellowshipManager
         {
             try
             {
-                InventoryTracker.MinCopper = int.Parse(e.Text);
+                InventoryTracker.SetMinCopper(CopperScarabText.Name, e.Text);
             }
             catch (Exception)
             {
             }
+        }
+
+        public void SetCopperCount(string value)
+        {
+            CopperScarabText.Text = value;
         }
 
         [MVControlEvent("SilverScarabCount", "Change")]
@@ -489,11 +526,16 @@ namespace FellowshipManager
         {
             try
             {
-                InventoryTracker.MinSilver = int.Parse(e.Text);
+                InventoryTracker.SetMinSilver(SilverScarabText.Name, e.Text);
             }
             catch (Exception)
             {
             }
+        }
+
+        public void SetSilverCount(string value)
+        {
+            SilverScarabText.Text = value;
         }
 
         [MVControlEvent("GoldScarabCount", "Change")]
@@ -501,11 +543,16 @@ namespace FellowshipManager
         {
             try
             {
-                InventoryTracker.MinGold = int.Parse(e.Text);
+                InventoryTracker.SetMinGold(GoldScarabText.Name, e.Text);
             }
             catch (Exception)
             {
             }
+        }
+
+        public void SetGoldCount(string value)
+        {
+            GoldScarabText.Text = value;
         }
 
         [MVControlEvent("PyrealScarabCount", "Change")]
@@ -513,11 +560,16 @@ namespace FellowshipManager
         {
             try
             {
-                InventoryTracker.MinPyreal = int.Parse(e.Text);
+                InventoryTracker.SetMinPyreal(PyrealScarabText.Name, e.Text);
             }
             catch (Exception)
             {
             }
+        }
+
+        public void SetPyrealCount(string value)
+        {
+            PyrealScarabText.Text = value;
         }
 
         [MVControlEvent("PlatinumScarabCount", "Change")]
@@ -525,11 +577,16 @@ namespace FellowshipManager
         {
             try
             {
-                InventoryTracker.MinPlatinum = int.Parse(e.Text);
+                InventoryTracker.SetMinPlatinum(PlatinumScarabText.Name, e.Text);
             }
             catch (Exception)
             {
             }
+        }
+
+        public void SetPlatinumCount(string value)
+        {
+            PlatinumScarabText.Text = value;
         }
 
         [MVControlEvent("ManaScarabCount", "Change")]
@@ -537,11 +594,16 @@ namespace FellowshipManager
         {
             try
             {
-                InventoryTracker.MinManaScarabs = int.Parse(e.Text);
+                InventoryTracker.SetMinMana(ManaScarabText.Name, e.Text);
             }
             catch (Exception)
             {
             }
+        }
+
+        public void SetManaCount(string value)
+        {
+            ManaScarabText.Text = value;
         }
 
         [MVControlEvent("TaperCount", "Change")]
@@ -549,47 +611,27 @@ namespace FellowshipManager
         {
             try
             {
-                InventoryTracker.MinTapers = int.Parse(e.Text);
+                InventoryTracker.SetMinTapers(TaperText.Name, e.Text);
             }
             catch (Exception)
             {
             }
         }
 
-        //[MVControlEvent("Debug", "Click")]
-        //void Debug_Clicked(object sender, MVControlEventArgs e)
-        //{
-        //    Utility.SaveSetting();
-        //}
-
-        protected virtual void SecretPasswordChanged(ConfigEventArgs e)
+        public void SetTaperCount(string value)
         {
-            RaiseSecretPasswordEvent?.Invoke(this, e);
+            TaperText.Text = value;
         }
 
-        protected virtual void AutoFellowChanged(ConfigEventArgs e)
+        [MVControlEvent("AnnounceLogoff", "Change")]
+        private void AnnounceLogoffChange(object sender, MVCheckBoxChangeEventArgs e)
         {
-            RaiseAutoFellowEvent?.Invoke(this, e);
+            InventoryTracker.SetAnnounce(AnnounceLogoff.Name, e.Checked);
         }
 
-        protected virtual void AutoResponderChanged(ConfigEventArgs e)
+        public void SetAnnounceCheckBox(bool value)
         {
-            RaiseAutoResponderEvent?.Invoke(this, e);
+            AnnounceLogoff.Checked = value;
         }
-    }
-
-    public class ConfigEventArgs : EventArgs
-    {
-        public string Module { get; set; }
-        public string Setting { get; set; }
-        public string Value { get; set; }
-
-        public ConfigEventArgs(string value, string setting, string module)
-        {
-            Value = value;
-            Setting = setting;
-            Module = module;
-        }
-
     }
 }

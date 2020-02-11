@@ -2,19 +2,19 @@
 using Decal.Adapter.Wrappers;
 using System;
 using System.Timers;
+using System.Xml;
 
 namespace FellowshipManager
 {
     class InventoryTracker
     {
+        private const string Module = "InventoryTracker";
+        private PluginCore Parent;
         private PluginHost Host;
         private CoreManager Core;
         private Utility Utility;
         private Timer ComponentTimer;
-
-        public bool LogoffEnabled { get; set; }
-
-        private string[] Comps = {
+        private readonly string[] Comps = {
                         "Lead Scarab",
                         "Iron Scarab",
                         "Copper Scarab",
@@ -25,17 +25,17 @@ namespace FellowshipManager
                         "Mana Scarab",
                         "Prismatic Taper"
                         };
-
-        public int MinLead { get; set; } = -1;
-        public int MinIron { get; set; } = -1;
-        public int MinCopper { get; set; } = -1;
-        public int MinSilver { get; set; } = -1;
-        public int MinGold { get; set; } = -1;
-        public int MinPyreal { get; set; } = -1;
-        public int MinPlatinum { get; set; } = -1;
-        public int MinManaScarabs { get; set; } = -1;
-        public int MinTapers { get; set; } = -1;
-
+        private int MinLead = -1;
+        private int MinIron = -1;
+        private int MinCopper = -1;
+        private int MinSilver = -1;
+        private int MinGold = -1;
+        private int MinPyreal = -1;
+        private int MinPlatinum = -1;
+        private int MinManaScarabs = -1;
+        private int MinTapers = -1;
+        public bool LogoffEnabled { get; set; }
+        public bool AnnounceLogoff { get; set; }
         public int CurLead { get; set; }
         public int CurIron { get; set; }
         public int CurCopper { get; set; }
@@ -46,13 +46,141 @@ namespace FellowshipManager
         public int CurManaScarabs { get; set; }
         public int CurTapers { get; set; }
 
-
-        public InventoryTracker(PluginHost host, CoreManager core, Utility utility)
+        public InventoryTracker(PluginCore parent, PluginHost host, CoreManager core, Utility utility)
         {
+            Parent = parent;
             Host = host;
             Core = core;
             Utility = utility;
+            LoadSettings();
             StartWatcher();
+        }
+
+        private void LoadSettings()
+        {
+            try
+            {
+                XmlNode node = Utility.LoadCharacterSettings(Module);
+                if (node != null)
+                {
+                    XmlNodeList settingNodes = node.ChildNodes;
+                    if (settingNodes.Count > 0)
+                    {
+                        foreach (XmlNode aNode in settingNodes)
+                        {
+                            switch (aNode.Name)
+                            {
+                                case "LeadScarabCount":
+                                    MinLead = int.Parse(aNode.InnerText);
+                                    Parent.SetLeadCount(aNode.InnerText);
+                                    break;
+                                case "IronScarabCount":
+                                    MinIron = int.Parse(aNode.InnerText);
+                                    Parent.SetIronCount(aNode.InnerText);
+                                    break;
+                                case "CopperScarabCount":
+                                    MinCopper = int.Parse(aNode.InnerText);
+                                    Parent.SetCopperCount(aNode.InnerText);
+                                    break;
+                                case "SilverScarabCount":
+                                    MinSilver = int.Parse(aNode.InnerText);
+                                    Parent.SetSilverCount(aNode.InnerText);
+                                    break;
+                                case "GoldScarabCount":
+                                    MinGold = int.Parse(aNode.InnerText);
+                                    Parent.SetGoldCount(aNode.InnerText);
+                                    break;
+                                case "PyrealScarabCount":
+                                    MinPyreal = int.Parse(aNode.InnerText);
+                                    Parent.SetPyrealCount(aNode.InnerText);
+                                    break;
+                                case "PlatinumScarabCount":
+                                    MinPlatinum = int.Parse(aNode.InnerText);
+                                    Parent.SetPlatinumCount(aNode.InnerText);
+                                    break;
+                                case "ManaScarabCount":
+                                    MinManaScarabs = int.Parse(aNode.InnerText);
+                                    Parent.SetManaCount(aNode.InnerText);
+                                    break;
+                                case "TaperCount":
+                                    MinTapers = int.Parse(aNode.InnerText);
+                                    Parent.SetTaperCount(aNode.InnerText);
+                                    break;
+                                case "AnnounceLogoff":
+                                    if (aNode.InnerText.Equals("True")) 
+                                    { 
+                                        AnnounceLogoff = true;
+                                        Parent.SetAnnounceCheckBox(AnnounceLogoff);
+                                    }
+                                    break;
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception)
+            {
+            }
+        }
+
+        public void SetMinLead(string setting, string value)
+        {
+            MinLead = int.Parse(value);
+            Utility.SaveSetting(Module, setting, value);
+        }
+
+        public void SetMinIron(string setting, string value)
+        {
+            MinIron = int.Parse(value);
+            Utility.SaveSetting(Module, setting, value);
+        }
+
+        public void SetMinCopper(string setting, string value)
+        {
+            MinCopper = int.Parse(value);
+            Utility.SaveSetting(Module, setting, value);
+        }
+
+        public void SetMinSilver(string setting, string value)
+        {
+            MinSilver = int.Parse(value);
+            Utility.SaveSetting(Module, setting, value);
+        }
+
+        public void SetMinGold(string setting, string value)
+        {
+            MinGold = int.Parse(value);
+            Utility.SaveSetting(Module, setting, value);
+        }
+
+        public void SetMinPyreal(string setting, string value)
+        {
+            MinPyreal = int.Parse(value);
+            Utility.SaveSetting(Module, setting, value);
+        }
+
+        public void SetMinPlatinum(string setting, string value)
+        {
+            MinPlatinum = int.Parse(value);
+            Utility.SaveSetting(Module, setting, value);
+        }
+
+        public void SetMinMana(string setting, string value)
+        {
+            MinManaScarabs = int.Parse(value);
+            Utility.SaveSetting(Module, setting, value);
+        }
+
+        public void SetMinTapers(string setting, string value)
+        {
+            MinTapers = int.Parse(value);
+            Utility.SaveSetting(Module, setting, value);
+        }
+
+        public void SetAnnounce(string setting, bool value)
+        {
+            AnnounceLogoff = value;
+            Utility.SaveSetting(Module, setting, value.ToString());
         }
 
         private void CheckComps(object sender, ElapsedEventArgs e)
@@ -151,7 +279,7 @@ namespace FellowshipManager
 
         private void StartWatcher()
         {
-            ComponentTimer = new Timer(10000);
+            ComponentTimer = new Timer(1000);
             ComponentTimer.AutoReset = true;
             ComponentTimer.Elapsed += CheckComps;
             ComponentTimer.Start();
@@ -160,8 +288,12 @@ namespace FellowshipManager
         private void Logout(string comp)
         {
             ComponentTimer.Stop();
-            string message = String.Format("Logging off for low component count: {0}", comp);
+            string message = String.Format("/f Logging off for low component count: {0}", comp);
             Utility.WriteToChat(message);
+            if(AnnounceLogoff)
+            {
+                Host.Actions.InvokeChatParser(message);
+            }
             Core.Actions.Logout();
         }
     }
