@@ -116,12 +116,13 @@ namespace ACManager
                                 FellowshipControl.StopTimer();
                                 break;
                             case "JoinedFellow": // Target joins the fellowship
-                                    FellowshipControl.StopTimer();
+                                FellowshipControl.StopTimer();
                                 break;
                             case "ElseLeftFellow": // Someone leaves the fellowship
                                 break;
                             case "FullFellow": // Fellowship is currently full
-                                Host.Actions.InvokeChatParser(String.Format("/t {0}, The fellowship is already full.", match.Groups["name"].Value));
+                                //Host.Actions.InvokeChatParser(string.Format("/t {0}, You are not accepting fellowship requests!", match.Groups["name"].Value));
+                                Host.Actions.InvokeChatParser(string.Format("/r The fellowship is already full."));
                                 FellowshipControl.StopTimer();
                                 break;
                             case "RequestFellow": // Someone /tells you the fellowship password

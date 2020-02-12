@@ -24,6 +24,9 @@ namespace ACManager
             Parent = parent;
             Host = host;
             Core = core;
+            InviteTimer = new Timer(1000);
+            InviteTimer.Elapsed += Recruit;
+            InviteTimer.AutoReset = true;
             LoadSettings();
         }
 
@@ -47,9 +50,6 @@ namespace ACManager
 
         private void StartRecruiting()
         {
-            InviteTimer = new Timer(1000);
-            InviteTimer.Elapsed += Recruit;
-            InviteTimer.AutoReset = true;
             InviteTimer.Start();
         }
 
