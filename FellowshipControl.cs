@@ -81,7 +81,7 @@ namespace ACManager
         {
             Utility.SaveSetting(Module, setting, value.ToString());
             ChatParser.AutoFellow = value;
-            if (value)
+            if (value && FellowStatus == FellowshipEventType.Create)
             {
                 Host.Actions.FellowshipSetOpen(true);
             }
