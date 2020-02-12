@@ -29,6 +29,9 @@ namespace ACManager
 
         public void InviteRequested(int GUID, string name)
         {
+            targetName = "";
+            targetGUID = 0;
+            RecruitAttempts = 0;
             Utility.WriteToChat("Made it to FellowshipControl...");
             if (FellowStatus == FellowshipEventType.Quit)
             {
