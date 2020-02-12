@@ -32,15 +32,12 @@ namespace ACManager
             targetName = "";
             targetGUID = 0;
             RecruitAttempts = 0;
-            Utility.WriteToChat("Made it to FellowshipControl...");
             if (FellowStatus == FellowshipEventType.Quit)
             {
-                Utility.WriteToChat("Not in a fellowship response.");
                 Host.Actions.InvokeChatParser(string.Format("/t {0}, I'm not currently in a fellowship.", name));
             }
             else
             {
-                Utility.WriteToChat("Inviting...");
                 Host.Actions.InvokeChatParser(string.Format("/t {0}, Please stand near me, I'm going to try and recruit you into the fellowship.", name));
                 targetName = name;
                 targetGUID = GUID;
@@ -61,7 +58,7 @@ namespace ACManager
             RecruitAttempts++;
             if (RecruitAttempts == 10)
             {
-                Host.Actions.InvokeChatParser(string.Format("/t {0}, I haven't been able to recruit you, or you haven't accepted my invite. Please get closer and I'll make a few more attempts.", targetName));
+                Host.Actions.InvokeChatParser(string.Format("/t {0}, I haven't been able to recruit you, or you haven't accepted my invite. Please get closer and I'll attempt to recruit you for another 10 seconds.", targetName));
             }
             if (RecruitAttempts <= 20) {
                 Host.Actions.FellowshipRecruit(targetGUID);
@@ -75,9 +72,6 @@ namespace ACManager
 
         public void StopTimer()
         {
-            targetName = "";
-            targetGUID = 0;
-            RecruitAttempts = 0;
             InviteTimer.Stop();
         }
         
