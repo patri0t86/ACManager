@@ -26,7 +26,7 @@ namespace ACManager
         public static void Parse(object sender, ChatTextInterceptEventArgs e)
         {
             string sanitizedInput = Regex.Replace(e.Text, @"[^\w:/ ']", string.Empty);
-
+            Utility.WriteToChat(sanitizedInput + AutoFellow);
             if (AutoRespond)
             {
                 // refactor to go to InventoryTracker
@@ -84,6 +84,7 @@ namespace ACManager
             
             if (AutoFellow)
             {
+                Utility.WriteToChat("Autofellow parsing...");
                 Dictionary<string, string> AutoFellowStrings = new Dictionary<string, string>
                 {
                     ["CreatedFellow"] = @"^You have created the Fellowship",
@@ -128,6 +129,7 @@ namespace ACManager
                             case "RequestFellow": // Someone /tells you the fellowship password
                                 if (match.Groups["msg"].Value.Equals("tells") && match.Groups["secret"].Value.Equals(FellowshipControl.Password))
                                 {
+                                    Utility.WriteToChat("Sending to FellowshipContorl...");
                                     string targetRecruit = match.Groups["dupleName"].Value.Substring(0, match.Groups["dupleName"].Value.Length / 2);
                                     int targetGuid = int.Parse(match.Groups["guid"].Value);
                                     FellowshipControl.InviteRequested(targetGuid, targetRecruit);

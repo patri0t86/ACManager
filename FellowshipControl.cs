@@ -29,18 +29,19 @@ namespace ACManager
 
         public void InviteRequested(int GUID, string name)
         {
+            Utility.WriteToChat("Made it to FellowshipControl...");
             if (FellowStatus == FellowshipEventType.Quit)
             {
+                Utility.WriteToChat("Not in a fellowship response.");
                 Host.Actions.InvokeChatParser(string.Format("/t {0}, I'm not currently in a fellowship.", name));
             }
-            else if (FellowStatus == FellowshipEventType.Create)
+            else
             {
+                Utility.WriteToChat("Inviting...");
                 Host.Actions.InvokeChatParser(string.Format("/t {0}, Please stand near me, I'm going to try and recruit you into the fellowship.", name));
                 targetName = name;
                 targetGUID = GUID;
-                //RecruitAttempts = 0;
                 StartRecruiting();
-                //Host.Actions.FellowshipRecruit(GUID);
             }
         }
 
