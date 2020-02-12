@@ -1,9 +1,9 @@
 ﻿using System;
 using System.IO;
 
-namespace FellowshipManager
+namespace ACManager
 {
-    public static class Crash
+    public static class Notifications
     {
         public static void Notify(string characterName)
         {
@@ -18,9 +18,7 @@ namespace FellowshipManager
                     }
                 }
             }
-            catch
-            {
-            }
+            catch (Exception ex) { Utility.LogError(ex); }
         }
     }
 }

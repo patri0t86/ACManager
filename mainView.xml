@@ -1,14 +1,13 @@
 <?xml version="1.0"?>
-<view icon="28187" title="Fellowship Manager v0.0.3.0" width="250" height="380">
+<view icon="28187" title="AC Manager" width="250" height="380">
   <control progid="DecalControls.Notebook" name="nbMain">
     
-    <page label="Setup">
+    <page label="Fellowship">
       <control progid="DecalControls.FixedLayout" clipped="">
         <control progid="DecalControls.StaticText" name="secretLabel" left="5" top="5" width="130" height="16" text="Recruit Command" />
         <control progid="DecalControls.Edit" name="SecretPassword" left="5" top="23" width="130" height="19" text="XP" />
         <control progid="DecalControls.CheckBox" name="AutoFellow" left="5" top="45" width="130" height="16" text="Auto Management" />
         <control progid="DecalControls.CheckBox" name="AutoRespond" left="5" top="63" width="130" height="16" text="Auto Respond" />
-        <control progid="DecalControls.CheckBox" name="Components" left="5" top="81" width="130" height="16" text="Low Comp. Logoff" />
       </control>
     </page>
 
@@ -57,7 +56,8 @@
         <control progid="DecalControls.StaticText" name="taperLabel" left="5" top="174" width="90" height="16" text="Prismatic Tapers" />
         <control progid="DecalControls.Edit" name="TaperCount" left="97" top="173" width="30" height="19" text="-1" />
         <control progid="DecalControls.StaticText" name="infoLabel" left="5" top="195" width="245" height="16" text="Enter -1 to disable a comp." />
-        <control progid="DecalControls.CheckBox" name="AnnounceLogoff" left="5" top="213" width="245" height="16" text="Announce Logoff to Fellows" />
+        <control progid="DecalControls.CheckBox" name="Components" left="5" top="213" width="245" height="16" text="Low Comp. Logoff" />
+        <control progid="DecalControls.CheckBox" name="AnnounceLogoff" left="5" top="231" width="245" height="16" text="Announce Logoff to Fellows" />
       </control>
     </page>
     

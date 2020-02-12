@@ -4,23 +4,15 @@ using System;
 using System.IO;
 using System.Xml;
 
-namespace FellowshipManager
+namespace ACManager
 {
-    public class Utility
+    public static class Utility
     {
-        private PluginHost Host;
-        private CoreManager Core;
-        private string PluginName;
         private static readonly string SettingsFile = Environment.GetFolderPath(Environment.SpecialFolder.Personal) + @"\Asheron's Call\" + "FMsettings.xml";
-
+        public static PluginHost Host { get; set; }
+        public static CoreManager Core { get; set; }
+        public static string PluginName { get; set; }
         public static string CharacterName { get; set; }
-
-        public Utility(PluginHost host, CoreManager core, string PluginName)
-        {
-            Host = host;
-            Core = core;
-            this.PluginName = PluginName;
-        }
 
         public static void SaveSetting(string module, string setting, string value)
         {
@@ -116,6 +108,9 @@ namespace FellowshipManager
                 doc.Load(SettingsFile);
                 switch (module)
                 {
+                    case "General":
+                        node = doc.SelectSingleNode(String.Format(@"/Settings/{0}/Characters/{1}", module, CharacterName));
+                        break;
                     case "FellowshipManager":
                         node = doc.SelectSingleNode(String.Format(@"/Settings/{0}/Characters/{1}", module, CharacterName));
                         break;
@@ -135,7 +130,7 @@ namespace FellowshipManager
             };
         }
 
-        public void WriteToChat(string message)
+        public static void WriteToChat(string message)
         {
             try
             {
@@ -144,7 +139,7 @@ namespace FellowshipManager
             catch (Exception ex) { LogError(ex); }
         }
 
-        public void LogError(Exception ex)
+        public static void LogError(Exception ex)
         {
             try
             {

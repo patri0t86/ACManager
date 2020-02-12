@@ -4,11 +4,11 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("FellowshipManager")]
-[assembly: AssemblyDescription("Fellowship management plugin for Asheron's Call.")]
+[assembly: AssemblyTitle("ACManager")]
+[assembly: AssemblyDescription("Gameplay management plugin for Asheron's Call.")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Alford Technologies, LLC")]
-[assembly: AssemblyProduct("FellowshipManager")]
+[assembly: AssemblyProduct("ACManager")]
 [assembly: AssemblyCopyright("Alford Technologies, LLC")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
@@ -31,5 +31,5 @@ using System.Runtime.InteropServices;
 // You can specify all the values or you can default the Build and Revision Numbers 
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("0.0.3.49")]
-[assembly: AssemblyFileVersion("0.0.3.49")]
+[assembly: AssemblyVersion("0.0.4.1")]
+[assembly: AssemblyFileVersion("0.0.4.1")]

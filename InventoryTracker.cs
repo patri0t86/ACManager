@@ -4,7 +4,7 @@ using System;
 using System.Timers;
 using System.Xml;
 
-namespace FellowshipManager
+namespace ACManager
 {
     class InventoryTracker
     {
@@ -12,7 +12,6 @@ namespace FellowshipManager
         private PluginCore Parent;
         private PluginHost Host;
         private CoreManager Core;
-        private Utility Utility;
         private Timer ComponentTimer;
         private readonly string[] Comps = {
                         "Lead Scarab",
@@ -46,12 +45,11 @@ namespace FellowshipManager
         public int CurManaScarabs { get; set; }
         public int CurTapers { get; set; }
 
-        public InventoryTracker(PluginCore parent, PluginHost host, CoreManager core, Utility utility)
+        public InventoryTracker(PluginCore parent, PluginHost host, CoreManager core)
         {
             Parent = parent;
             Host = host;
             Core = core;
-            Utility = utility;
             LoadSettings();
             StartWatcher();
         }

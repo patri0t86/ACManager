@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.29613.14
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FellowshipManager", "FellowshipManager.csproj", "{C2880823-67E7-4B3D-A481-9ADC9847C39C}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ACManager", "ACManager.csproj", "{C2880823-67E7-4B3D-A481-9ADC9847C39C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,17 +21,5 @@ Global
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {ECC1C99F-4C7B-4BC7-8772-015A5979EBDF}
-	EndGlobalSection
-	GlobalSection(AutomaticVersions) = postSolution
-		UpdateAssemblyVersion = True
-		UpdateAssemblyFileVersion = True
-		UpdateAssemblyInfoVersion = True
-		AdvancedSettingsExpanded = True
-		AssemblyVersionSettings = None.None.None.Increment
-		AssemblyFileVersionSettings = None.None.None.Increment
-		AssemblyInfoVersionSettings = None.None.None.Increment
-		UpdatePackageVersion = False
-		AssemblyInfoVersionType = SettingsVersion
-		InheritWinAppVersionFrom = None
 	EndGlobalSection
 EndGlobal

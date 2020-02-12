@@ -1,3 +1,5 @@
 .vs/*
 *.cache
 obj/*
+*.user
+*.csproj
