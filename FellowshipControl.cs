@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Timers;
 using System.Xml;
 using Decal.Adapter;
 using Decal.Adapter.Wrappers;
@@ -12,6 +13,10 @@ namespace ACManager
         private CoreManager Core;
         private const string Module = "FellowshipManager";
         public string Password = "XP";
+        private Timer InviteTimer;
+        private int RecruitAttempts = 0;
+        private int targetGUID = 0;
+        public string targetName;
         public FellowshipEventType FellowStatus { get; set; } = FellowshipEventType.Quit;
 
         public FellowshipControl(PluginCore parent, PluginHost host, CoreManager core)
@@ -31,8 +36,45 @@ namespace ACManager
             else if (FellowStatus == FellowshipEventType.Create)
             {
                 Host.Actions.InvokeChatParser(string.Format("/t {0}, Please stand near me, I'm going to try and recruit you into the fellowship.", name));
-                Host.Actions.FellowshipRecruit(GUID);
+                targetName = name;
+                targetGUID = GUID;
+                //RecruitAttempts = 0;
+                StartRecruiting();
+                //Host.Actions.FellowshipRecruit(GUID);
             }
+        }
+
+        private void StartRecruiting()
+        {
+            InviteTimer = new Timer(1000);
+            InviteTimer.Elapsed += Recruit;
+            InviteTimer.AutoReset = true;
+            InviteTimer.Start();
+        }
+
+        private void Recruit(object sender, ElapsedEventArgs e)
+        {
+            RecruitAttempts++;
+            if (RecruitAttempts == 10)
+            {
+                Host.Actions.InvokeChatParser(string.Format("/t {0}, I haven't been able to recruit you, or you haven't accepted my invite. Please get closer and I'll make a few more attempts.", targetName));
+            }
+            if (RecruitAttempts <= 20) {
+                Host.Actions.FellowshipRecruit(targetGUID);
+            }
+            if (RecruitAttempts >= 20)
+            {
+                Host.Actions.InvokeChatParser(string.Format("/t {0}, I wasn't able to recruit you into the fellowship. Please try again.", targetName));
+                InviteTimer.Stop();
+            }
+        }
+
+        public void StopTimer()
+        {
+            targetName = "";
+            targetGUID = 0;
+            RecruitAttempts = 0;
+            InviteTimer.Stop();
         }
         
         private void LoadSettings()

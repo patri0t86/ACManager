@@ -92,6 +92,7 @@ namespace ACManager
                     ["JoinedFellow"] = @"(?<name>.+?) joined the fellowship",
                     ["ElseLeftFellow"] = @"(?<name>.+?) left the fellowship",
                     ["RequestFellow"] = string.Format(@"(?<guid>\d+):(?<dupleName>.+?)Tell\s(?<msg>tells)\syou\s(?<secret>{0}$)", FellowshipControl.Password),
+                    ["DeclinedFellow"] = @"(?<name>.+?) declines your invite",
                     ["AlreadyFellow"] = @"(?<name>.+?) is already in a fellowship",
                     ["FullFellow"] = @"^Fellowship is already full"
                 };
@@ -113,10 +114,16 @@ namespace ACManager
                                 break;
                             case "NotAccepting": // Target is not accepting fellowship requests
                                 Host.Actions.InvokeChatParser(string.Format("/t {0}, You are not accepting fellowship requests!", match.Groups["name"].Value));
+                                FellowshipControl.StopTimer();
                                 break;
                             case "JoinedFellow": // Target joins the fellowship
+                                    FellowshipControl.StopTimer();
                                 break;
                             case "ElseLeftFellow": // Someone leaves the fellowship
+                                break;
+                            case "FullFellow": // Fellowship is currently full
+                                Host.Actions.InvokeChatParser(String.Format("/t {0}, The fellowship is already full.", match.Groups["name"].Value));
+                                FellowshipControl.StopTimer();
                                 break;
                             case "RequestFellow": // Someone /tells you the fellowship password
                                 if (match.Groups["msg"].Value.Equals("tells") && match.Groups["secret"].Value.Equals(FellowshipControl.Password))
@@ -126,11 +133,12 @@ namespace ACManager
                                     FellowshipControl.InviteRequested(targetGuid, targetRecruit);
                                 }
                                 break;
+                            case "DeclinedFellow": // Declines fellowship invite
+                                    FellowshipControl.StopTimer();
+                                break;
                             case "AlreadyFellow": // Target is already in a fellowship
                                 Host.Actions.InvokeChatParser(String.Format("/t {0}, You're already in a fellowship.", match.Groups["name"].Value));
-                                break;
-                            case "FullFellow":
-                                Host.Actions.InvokeChatParser(String.Format("/t {0}, The fellowship is already full.", match.Groups["name"].Value));
+                                FellowshipControl.StopTimer();
                                 break;
                         }
                         break;
