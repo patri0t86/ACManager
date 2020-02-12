@@ -2,4 +2,3 @@
 *.cache
 obj/*
 *.user
-*.csproj
