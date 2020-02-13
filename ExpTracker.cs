@@ -1,4 +1,5 @@
 ﻿using Decal.Adapter;
+using Decal.Adapter.Wrappers;
 using System;
 using System.Collections.Generic;
 using System.Timers;
@@ -7,6 +8,7 @@ namespace ACManager
 {
     public class ExpTracker
     {
+        private PluginHost Host;
         private CoreManager Core;
         private Timer CalcXpTimer;
         private List<long> Rolling5Min;
@@ -29,12 +31,38 @@ namespace ACManager
         public TimeSpan TimeLeftToLevel { get; private set; }
         public TimeSpan TimeSinceReset { get; private set; }
 
-        public ExpTracker(CoreManager core)
+        public ExpTracker(PluginHost host, CoreManager core)
         {
+            Host = host;
             Core = core;
             Rolling5Min = new List<long>();
             LoginTime = DateTime.Now;
             StartTracking();
+        }
+
+        public void Report(string targetChat)
+        {
+            string xpSinceReset = String.Format("{0:n0}", XpEarnedSinceReset);
+            string timeSinceReset = String.Format("{0:D2}d {1:D2}h {2:D2}m {3:D2}s",
+                TimeSinceReset.Days,
+                TimeSinceReset.Hours,
+                TimeSinceReset.Minutes,
+                TimeSinceReset.Seconds);
+            string xpPerHour = String.Format("{0:n0}", XpPerHourLong);
+            string xpPer5 = String.Format("{0:n0}", XpLast5Long);
+            string timeToLevel = String.Format("{0:D2}d {1:D2}h {2:D2}m {3:D2}s",
+                    TimeLeftToLevel.Days,
+                    TimeLeftToLevel.Hours,
+                    TimeLeftToLevel.Minutes,
+                    TimeLeftToLevel.Seconds);
+            Host.Actions.InvokeChatParser(String.Format("{0} You have earned {1} XP in {2} for {3} XP/hour ({4} XP in the last 5 minutes). At this rate, you'll hit your next level in {5}.",
+                targetChat,
+                xpSinceReset,
+                timeSinceReset,
+                xpPerHour,
+                xpPer5,
+                timeToLevel)
+            );
         }
 
         public void Reset()

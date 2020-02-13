@@ -33,19 +33,18 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Decal.Adapter">
-      <HintPath>..\Decal\Decal.Adapter.dll</HintPath>
+      <HintPath>..\..\Program Files (x86)\Decal 3.0\Decal.Adapter.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.Xml" />
     <Reference Include="VirindiViewService">
-      <HintPath>..\VirindiViewService\VirindiViewService.dll</HintPath>
+      <HintPath>..\VirindiPlugins\VirindiViewService\VirindiViewService.dll</HintPath>
       <Private>False</Private>
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ChatParser.cs" />
     <Compile Include="FellowshipControl.cs" />
     <Compile Include="InventoryTracker.cs" />
     <Compile Include="Notifications.cs" />

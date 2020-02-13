@@ -2,6 +2,8 @@
 using Decal.Adapter.Wrappers;
 using MyClasses.MetaViewWrappers;
 using System;
+using System.Globalization;
+using System.Text.RegularExpressions;
 using System.Xml;
 
 namespace ACManager
@@ -17,6 +19,7 @@ namespace ACManager
         private FellowshipControl FellowshipControl;
         private ExpTracker ExpTracker;
         private InventoryTracker InventoryTracker;
+        private bool AutoRespondEnabled;
 
         private LogoffEventType LogoffType;
 
@@ -104,13 +107,12 @@ namespace ACManager
                 Utility.CharacterName = Core.CharacterFilter.Name;
                 InventoryTracker = new InventoryTracker(this, Host, Core);
                 FellowshipControl = new FellowshipControl(this, Host, Core);
-                ChatParser.Initialize(Host, Core, FellowshipControl);
+                ExpTracker = new ExpTracker(Host, Core);
                 LoadSettings();
                 StartXPTracking();
 
                 // Start listening to all chat and parsing if enabled
-                Core.ChatBoxMessage += new EventHandler<ChatTextInterceptEventArgs>(ChatParser.Parse);
-
+                Core.ChatBoxMessage += new EventHandler<ChatTextInterceptEventArgs>(ParseChat);
             }
             catch (Exception ex) { Utility.LogError(ex); }
         }
@@ -121,7 +123,7 @@ namespace ACManager
             try
             {
                 LogoffType = e.Type;
-                Core.ChatBoxMessage -= new EventHandler<ChatTextInterceptEventArgs>(ChatParser.Parse);
+                Core.ChatBoxMessage -= new EventHandler<ChatTextInterceptEventArgs>(ParseChat);
             }
             catch (Exception ex) { Utility.LogError(ex); }
         }
@@ -144,7 +146,7 @@ namespace ACManager
                                     if (aNode.InnerText.Equals("True"))
                                     {
                                         AutoRespondCheckBox.Checked = true;
-                                        ChatParser.AutoRespond = true;
+                                        AutoRespondEnabled = true;
                                     }
                                     break;
                             }
@@ -160,8 +162,6 @@ namespace ACManager
 
         private void StartXPTracking()
         {
-            ExpTracker = new ExpTracker(Core);
-
             #region Do Only Once
             XpAtLogonText.Text = String.Format("{0:n0}", ExpTracker.TotalXpAtLogon);
             #endregion
@@ -225,13 +225,75 @@ namespace ACManager
             }
         }
 
+        private void ParseChat(object sender, ChatTextInterceptEventArgs e)
+        {
+            string sanitizedInput = Regex.Replace(e.Text, @"[^\w:/ ']", string.Empty);
+
+            FellowshipControl.ChatActions(sanitizedInput);
+
+            if (AutoRespondEnabled)
+            {
+                // refactor to go to InventoryTracker
+                Match match;
+                string singleCompResponse = "/t {0}, I currently have {1} {2}.";
+                string pluralCompResponse = "/t {0}, I currently have {1} {2}s.";
+                TextInfo textInfo = CultureInfo.CurrentCulture.TextInfo;
+
+                // checking spell components
+                string componentsPattern = string.Format(@"(?<guid>\d+):(?<dupleName>.+?)Tell\s(?<msg>tells)\syou\s(?<secret>.*)");
+
+                match = new Regex(componentsPattern).Match(sanitizedInput);
+                if (match.Success)
+                {
+                    string name = match.Groups["dupleName"].Value.Substring(0, match.Groups["dupleName"].Value.Length / 2);
+                    if (match.Groups["secret"].Value.Equals("comps"))
+                    {
+                        string[] comps = {
+                            "Lead Scarab",
+                            "Iron Scarab",
+                            "Copper Scarab",
+                            "Silver Scarab",
+                            "Gold Scarab",
+                            "Pyreal Scarab",
+                            "Platinum Scarab",
+                            "Mana Scarab",
+                            "Prismatic Taper"
+                            };
+                        foreach (string comp in comps)
+                        {
+                            WorldObjectCollection collection = Core.WorldFilter.GetInventory();
+                            collection.SetFilter(new ByNameFilter(comp));
+                            if (collection.Quantity == 0) continue;
+                            Host.Actions.InvokeChatParser(
+                                collection.Quantity == 1 ?
+                                string.Format(singleCompResponse, name, collection.Quantity.ToString(), collection.First.Name) :
+                                string.Format(pluralCompResponse, name, collection.Quantity.ToString(), collection.First.Name)
+                            );
+                        }
+                    }
+                    else
+                    {
+                        WorldObjectCollection collection = Core.WorldFilter.GetInventory();
+                        collection.SetFilter(new ByNameFilter(textInfo.ToTitleCase(match.Groups["secret"].Value)));
+                        if (collection.Count > 0)
+                        {
+                            Host.Actions.InvokeChatParser(collection.Quantity == 1 ?
+                                string.Format(singleCompResponse, name, collection.Quantity.ToString(), collection.First.Name) :
+                                string.Format(pluralCompResponse, name, collection.Quantity.ToString(), collection.First.Name)
+                            );
+                        }
+                    }
+                }
+            }
+        }
+
         [MVControlEvent("AutoRespond", "Change")]
         void AutoRespond_Change(object sender, MVCheckBoxChangeEventArgs e)
         {
             try
             {
                 Utility.SaveSetting(Module, AutoRespondCheckBox.Name, e.Checked.ToString());
-                ChatParser.AutoRespond = e.Checked;
+                AutoRespondEnabled = e.Checked;
             }
             catch (Exception ex)
             {
@@ -279,44 +341,23 @@ namespace ACManager
         void XpReset_Clicked(object sender, MVControlEventArgs e)
         {
             ExpTracker.Reset();
-            //XpLast5Text.Text = "0";
-            //XpPerHourText.Text = "0";
-            //XpSinceResetText.Text = "0";
-            //TimeToNextLevelText.Text = "";
-            //TimeSinceResetText.Text = String.Format("{0:D2}h {1:D2}m {2:D2}s", 0, 0, 0);
+            XpLast5Text.Text = "0";
+            XpPerHourText.Text = "0";
+            XpSinceResetText.Text = "0";
+            TimeToNextLevelText.Text = String.Format("{0:D2}d {1:D2}h {2:D2}m {3:D2}s", 0, 0, 0, 0);
+            TimeSinceResetText.Text = String.Format("{0:D2}d {1:D2}h {2:D2}m {3:D2}s", 0, 0, 0, 0);
         }
 
         [MVControlEvent("XpFellow", "Click")]
         void XpFellow_Clicked(object sender, MVControlEventArgs e)
         {
-            ReportXp("/f");
+            ExpTracker.Report("/f");
         }
 
         [MVControlEvent("XpAlleg", "Click")]
         void XpAlleg_Clicked(object sender, MVControlEventArgs e)
         {
-            ReportXp("/a");
-        }
-
-        private void ReportXp(string targetChat)
-        {
-            // refactor to a method in ExpTracker
-            Host.Actions.InvokeChatParser(
-                String.Format("{0} You have earned {1} XP in {2} for {3} XP/hour ({4} XP in the last 5 minutes). At this rate, you'll hit your next level in {5}.",
-                targetChat,
-                String.Format("{0:n0}", ExpTracker.XpEarnedSinceReset),
-                String.Format("{0:D2}d {1:D2}h {2:D2}m {3:D2}s",
-                    ExpTracker.TimeSinceReset.Days,
-                    ExpTracker.TimeSinceReset.Hours,
-                    ExpTracker.TimeSinceReset.Minutes,
-                    ExpTracker.TimeSinceReset.Seconds),
-                String.Format("{0:n0}", ExpTracker.XpPerHourLong),
-                String.Format("{0:n0}", ExpTracker.XpLast5Long),
-                String.Format("{0:D2}d {1:D2}h {2:D2}m {3:D2}s",
-                    ExpTracker.TimeLeftToLevel.Days,
-                    ExpTracker.TimeLeftToLevel.Hours,
-                    ExpTracker.TimeLeftToLevel.Minutes,
-                    ExpTracker.TimeLeftToLevel.Seconds)));
+            ExpTracker.Report("/a");
         }
 
         public void SetPassword(string value)
