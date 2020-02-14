@@ -15,11 +15,8 @@ namespace ACManager
         private CoreManager Core;
         private const string Module = "FellowshipManager";
         public string Password = "XP";
-        private Timer InviteTimer;
-        private int RecruitAttempts = 0;
-        private int targetGUID = 0;
-        public string targetName;
         public bool AutoFellowEnabled = false;
+        private static List<NewRecruit> RecruitList;
         public FellowshipEventType FellowStatus { get; set; } = FellowshipEventType.Quit;
 
         public FellowshipControl(PluginCore parent, PluginHost host, CoreManager core)
@@ -27,15 +24,12 @@ namespace ACManager
             Parent = parent;
             Host = host;
             Core = core;
-            InviteTimer = new Timer(1000);
-            InviteTimer.Elapsed += Recruit;
-            InviteTimer.AutoReset = true;
+            RecruitList = new List<NewRecruit>();
             LoadSettings();
         }
 
         public void ChatActions(string parsedMessage)
         {
-            //string sanitizedInput = Regex.Replace(message, @"[^\w:/ ']", string.Empty);
             if (AutoFellowEnabled)
             {
                 Dictionary<string, string> AutoFellowStrings = new Dictionary<string, string>
@@ -68,34 +62,36 @@ namespace ACManager
                                 break;
                             case "NotAccepting": // Target is not accepting fellowship requests
                                 Host.Actions.InvokeChatParser(string.Format("/t {0}, You are not accepting fellowship requests!", match.Groups["name"].Value));
-                                StopTimer();
+                                RemoveRecruit(match.Groups["name"].Value);
                                 break;
                             case "JoinedFellow": // Target joins the fellowship
-                                if (match.Groups["name"].Value.Equals(targetName)) 
-                                { 
-                                    StopTimer(); 
-                                }
+                                RemoveRecruit(match.Groups["name"].Value);
                                 break;
                             case "ElseLeftFellow": // Someone leaves the fellowship
                                 break;
                             case "FullFellow": // Fellowship is currently full
                                 Host.Actions.InvokeChatParser(string.Format("/r The fellowship is already full."));
-                                StopTimer();
+                                RemoveRecruit(match.Groups["name"].Value);
                                 break;
                             case "RequestFellow": // Someone /tells you the fellowship password
+                                string name = match.Groups["dupleName"].Value.Substring(0, match.Groups["dupleName"].Value.Length / 2);
+                                if (FellowStatus == FellowshipEventType.Quit)
+                                {
+                                    Host.Actions.InvokeChatParser(string.Format("/t {0}, I'm not currently in a fellowship.", name));
+                                }
                                 if (match.Groups["msg"].Value.Equals("tells") && match.Groups["secret"].Value.Equals(Password))
                                 {
-                                    string targetRecruit = match.Groups["dupleName"].Value.Substring(0, match.Groups["dupleName"].Value.Length / 2);
                                     int targetGuid = int.Parse(match.Groups["guid"].Value);
-                                    InviteRequested(targetGuid, targetRecruit);
+                                    NewRecruit recruit = new NewRecruit(Host, name, targetGuid);
+                                    RecruitList.Add(recruit);
                                 }
                                 break;
                             case "DeclinedFellow": // Declines fellowship invite
-                                StopTimer();
+                                RemoveRecruit(match.Groups["name"].Value);
                                 break;
                             case "AlreadyFellow": // Target is already in a fellowship
                                 Host.Actions.InvokeChatParser(String.Format("/t {0}, You're already in a fellowship.", match.Groups["name"].Value));
-                                StopTimer();
+                                RemoveRecruit(match.Groups["name"].Value);
                                 break;
                         }
                         break;
@@ -103,52 +99,20 @@ namespace ACManager
                 }
             }
         }
-        
-        public void InviteRequested(int GUID, string name)
+
+        private void RemoveRecruit(string name)
         {
-            targetName = "";
-            targetGUID = 0;
-            RecruitAttempts = 0;
-            if (FellowStatus == FellowshipEventType.Quit)
+            for (int i = 0; i < RecruitList.Count; i++)
             {
-                Host.Actions.InvokeChatParser(string.Format("/t {0}, I'm not currently in a fellowship.", name));
-            }
-            else
-            {
-                Host.Actions.InvokeChatParser(string.Format("/t {0}, Please stand near me, I'm going to try and recruit you into the fellowship.", name));
-                targetName = name;
-                targetGUID = GUID;
-                StartRecruiting();
+                if (RecruitList[i].Name.Equals(name))
+                {
+                    RecruitList[i].Stop();
+                    RecruitList.RemoveAt(i);
+                    break;
+                }
             }
         }
 
-        private void StartRecruiting()
-        {
-            InviteTimer.Start();
-        }
-
-        private void Recruit(object sender, ElapsedEventArgs e)
-        {
-            RecruitAttempts++;
-            if (RecruitAttempts == 10)
-            {
-                Host.Actions.InvokeChatParser(string.Format("/t {0}, I haven't been able to recruit you, or you haven't accepted my invite. Please get closer and I'll attempt to recruit you for another 10 seconds.", targetName));
-            }
-            if (RecruitAttempts <= 20) {
-                Host.Actions.FellowshipRecruit(targetGUID);
-            }
-            if (RecruitAttempts >= 20)
-            {
-                Host.Actions.InvokeChatParser(string.Format("/t {0}, I wasn't able to recruit you into the fellowship. Please try again.", targetName));
-                InviteTimer.Stop();
-            }
-        }
-
-        public void StopTimer()
-        {
-            InviteTimer.Stop();
-        }
-        
         private void LoadSettings()
         {
             try
@@ -200,5 +164,61 @@ namespace ACManager
                 Host.Actions.FellowshipSetOpen(true);
             }
         }
+
+        private class NewRecruit
+        {
+            private PluginHost Host;
+            private Timer Timer;
+            public string Name { get; set; }
+            private int Id, Attempts;
+            public NewRecruit(PluginHost host, string target, int guid)
+            {
+                Host = host;
+                Name = target;
+                Id = guid;
+                Start();
+            }
+            
+            private void Start()
+            {
+                Host.Actions.InvokeChatParser(string.Format("/t {0}, Please stand near me, I'm going to try and recruit you into the fellowship.", Name));
+                Timer = new Timer(1000);
+                Timer.Elapsed += AttemptRecruit;
+                Timer.AutoReset = true;
+                Timer.Start();
+            }
+
+            private void AttemptRecruit(object sender, ElapsedEventArgs e)
+            {
+                Attempts++;
+                if (Attempts == 10)
+                {
+                    Host.Actions.InvokeChatParser(string.Format("/t {0}, I haven't been able to recruit you, or you haven't accepted my invite. " +
+                        "Please get closer and I'll attempt to recruit you for another 10 seconds.", Name));
+                }
+                if (Attempts <= 20)
+                {
+                    Host.Actions.FellowshipRecruit(Id);
+                }
+                if (Attempts >= 20)
+                {
+                    Host.Actions.InvokeChatParser(string.Format("/t {0}, I wasn't able to recruit you into the fellowship. Please try again.", Name));
+                    Stop();
+                }
+            }
+
+            public void Stop()
+            { 
+                Timer.Stop();
+                Host = null;
+                Timer = null;
+                Name = null;
+                Id = 0;
+                Attempts = 0;
+                FellowshipControl.RecruitList.Remove(this);
+            }
+
+        }
+
     }
 }
