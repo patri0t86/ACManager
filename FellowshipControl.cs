@@ -81,9 +81,21 @@ namespace ACManager
                                 }
                                 if (match.Groups["msg"].Value.Equals("tells") && match.Groups["secret"].Value.Equals(Password))
                                 {
-                                    int targetGuid = int.Parse(match.Groups["guid"].Value);
-                                    NewRecruit recruit = new NewRecruit(Host, name, targetGuid);
-                                    RecruitList.Add(recruit);
+                                    bool exists = false;
+                                    for (int i = 0; i < RecruitList.Count; i++)
+                                    {
+                                        if (RecruitList[i].Name.Equals(name))
+                                        {
+                                            exists = true;
+                                            Host.Actions.InvokeChatParser(string.Format("/t {0}, You have already requested a fellowship invitation.", name));
+                                        }
+                                    }
+                                    if (!exists)
+                                    {
+                                        int targetGuid = int.Parse(match.Groups["guid"].Value);
+                                        NewRecruit recruit = new NewRecruit(Host, name, targetGuid);
+                                        RecruitList.Add(recruit);
+                                    }
                                 }
                                 break;
                             case "DeclinedFellow": // Declines fellowship invite
