@@ -14,7 +14,7 @@ namespace ACManager
     [FriendlyName("AC Manager")]
     public class PluginCore : PluginBase
     {
-        const string Module = "General";
+        private const string Module = "General";
         private readonly string PluginName = "Fellowship Manager";
         private FellowshipControl FellowshipControl;
         private ExpTracker ExpTracker;
@@ -90,7 +90,7 @@ namespace ACManager
             try
             {
                 if (LogoffType != LogoffEventType.Authorized) 
-                    Notifications.Notify(Utility.CharacterName);
+                    Utility.LogCrash(Utility.CharacterName);
                 MVWireupHelper.WireupEnd(this);
             }
             catch (Exception ex) { Utility.LogError(ex); }

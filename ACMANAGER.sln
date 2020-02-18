@@ -5,6 +5,8 @@ VisualStudioVersion = 16.0.29613.14
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ACManager", "ACManager.csproj", "{C2880823-67E7-4B3D-A481-9ADC9847C39C}"
 EndProject
+Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "AC Manager Installer", "..\..\Users\Alex\source\repos\AC Manager Installer\AC Manager Installer.vdproj", "{C8897FED-594B-44ED-A5CE-332919D047B1}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,22 +17,15 @@ Global
 		{C2880823-67E7-4B3D-A481-9ADC9847C39C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C2880823-67E7-4B3D-A481-9ADC9847C39C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C2880823-67E7-4B3D-A481-9ADC9847C39C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C8897FED-594B-44ED-A5CE-332919D047B1}.Debug|Any CPU.ActiveCfg = Debug
+		{C8897FED-594B-44ED-A5CE-332919D047B1}.Debug|Any CPU.Build.0 = Debug
+		{C8897FED-594B-44ED-A5CE-332919D047B1}.Release|Any CPU.ActiveCfg = Release
+		{C8897FED-594B-44ED-A5CE-332919D047B1}.Release|Any CPU.Build.0 = Release
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {ECC1C99F-4C7B-4BC7-8772-015A5979EBDF}
-	EndGlobalSection
-	GlobalSection(AutomaticVersions) = postSolution
-		UpdateAssemblyVersion = True
-		UpdateAssemblyFileVersion = True
-		UpdateAssemblyInfoVersion = True
-		AssemblyVersionSettings = None.None.None.Increment
-		AssemblyFileVersionSettings = None.None.None.Increment
-		AssemblyInfoVersionSettings = None.None.None.Increment
-		UpdatePackageVersion = False
-		AssemblyInfoVersionType = SettingsVersion
-		InheritWinAppVersionFrom = None
 	EndGlobalSection
 EndGlobal

@@ -1,6 +1,7 @@
 ﻿using Decal.Adapter;
 using Decal.Adapter.Wrappers;
 using System;
+using Microsoft.Win32;
 using System.IO;
 using System.Xml;
 
@@ -8,7 +9,15 @@ namespace ACManager
 {
     public static class Utility
     {
-        private static readonly string SettingsFile = Environment.GetFolderPath(Environment.SpecialFolder.Personal) + @"\Asheron's Call\" + "FMsettings.xml";
+        // Installation location from registry entry
+        private static readonly string PluginFolder = Registry.GetValue(
+            @"HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Decal\Plugins\{A56AFA67-44C9-4DB9-871E-4A450FA5FBAC}",
+            "Path",
+            Environment.GetFolderPath(Environment.SpecialFolder.Personal) + @"\Asheron's Call").ToString();
+        private static readonly string SettingsFile = PluginFolder + @"\settings.xml";
+        private static readonly string ErrorFile = PluginFolder + @"\errors.txt";
+        private static readonly string CrashLog = PluginFolder + @"\crashlog.txt";
+
         public static PluginHost Host { get; set; }
         public static CoreManager Core { get; set; }
         public static string PluginName { get; set; }
@@ -61,7 +70,7 @@ namespace ACManager
                     else
                     {
                         // module does not exist
-                        node = doc.SelectSingleNode("/Settings");
+                        node = doc.SelectSingleNode(@"/Settings");
                         XmlNode newModule = doc.CreateNode(XmlNodeType.Element, module, string.Empty);
                         XmlNode newCharacters = doc.CreateNode(XmlNodeType.Element, "Characters", string.Empty);
                         XmlNode newCharacterNode = doc.CreateNode(XmlNodeType.Element, CharacterName, string.Empty);
@@ -78,24 +87,27 @@ namespace ACManager
                 else
                 {
                     // file does not exist
-                    XmlWriter writer = XmlWriter.Create(SettingsFile, SetupXmlWriter());
-                    writer.WriteStartDocument();
-                    writer.WriteStartElement("Settings");
+                    using(XmlWriter writer = XmlWriter.Create(SettingsFile, SetupXmlWriter()))
+                    {
 
-                    writer.WriteStartElement(module);
-                    writer.WriteStartElement("Characters");
+                        writer.WriteStartDocument();
+                        writer.WriteStartElement("Settings");
 
-                    writer.WriteStartElement(CharacterName);
+                        writer.WriteStartElement(module);
+                        writer.WriteStartElement("Characters");
 
-                    writer.WriteStartElement(setting);
-                    writer.WriteString(value);
+                        writer.WriteStartElement(CharacterName);
 
-                    writer.WriteEndDocument();
-                    writer.Close();
+                        writer.WriteStartElement(setting);
+                        writer.WriteString(value);
+
+                        writer.WriteEndDocument();
+                    }
                 }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                WriteToChat(ex.Message);
             }
         }
 
@@ -106,18 +118,7 @@ namespace ACManager
             {
                 XmlDocument doc = new XmlDocument();
                 doc.Load(SettingsFile);
-                switch (module)
-                {
-                    case "General":
-                        node = doc.SelectSingleNode(String.Format(@"/Settings/{0}/Characters/{1}", module, CharacterName));
-                        break;
-                    case "FellowshipManager":
-                        node = doc.SelectSingleNode(String.Format(@"/Settings/{0}/Characters/{1}", module, CharacterName));
-                        break;
-                    case "InventoryTracker":
-                        node = doc.SelectSingleNode(String.Format(@"/Settings/{0}/Characters/{1}", module, CharacterName));
-                        break;
-                }
+                node = doc.SelectSingleNode(String.Format(@"/Settings/{0}/Characters/{1}", module, CharacterName));
             }
             return node;
         }
@@ -134,7 +135,7 @@ namespace ACManager
         {
             try
             {
-                Host.Actions.AddChatText("<{" + PluginName + "}>: " + message, 5);
+                Host.Actions.AddChatText("<{ " + PluginName + " }>: " + message, 5);
             }
             catch (Exception ex) { LogError(ex); }
         }
@@ -143,7 +144,7 @@ namespace ACManager
         {
             try
             {
-                using (StreamWriter writer = new StreamWriter(Environment.GetFolderPath(Environment.SpecialFolder.Personal) + @"\Asheron's Call\" + PluginName + " errors.txt", true))
+                using (StreamWriter writer = new StreamWriter(ErrorFile, true))
                 {
                     writer.WriteLine("============================================================================");
                     writer.WriteLine(DateTime.Now.ToString());
@@ -157,12 +158,25 @@ namespace ACManager
                     }
                     writer.WriteLine("============================================================================");
                     writer.WriteLine("");
-                    writer.Close();
                 }
             }
             catch
             {
             }
+        }
+        public static void LogCrash(string characterName)
+        {
+            try
+            {
+                if (!characterName.Equals(""))
+                {
+                    using (StreamWriter writer = new StreamWriter(CrashLog, true))
+                    {
+                        writer.WriteLine(DateTime.Now.ToString() + " - " + characterName);
+                    }
+                }
+            }
+            catch (Exception ex) { LogError(ex); }
         }
     }
 }
