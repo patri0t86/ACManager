@@ -287,7 +287,6 @@ namespace ACManager
         {
             ComponentTimer.Stop();
             string message = String.Format("/f Logging off for low component count: {0}", comp);
-            Utility.WriteToChat(message);
             if(AnnounceLogoff)
             {
                 Host.Actions.InvokeChatParser(message);
