@@ -164,7 +164,7 @@ namespace ACManager
             {
             }
         }
-        public static void LogCrash(string characterName)
+        public static void LogCrash(string characterName, string duration, string xp, string reasonIfKnown="Crash")
         {
             try
             {
@@ -172,7 +172,11 @@ namespace ACManager
                 {
                     using (StreamWriter writer = new StreamWriter(CrashLog, true))
                     {
-                        writer.WriteLine(DateTime.Now.ToString() + " - " + characterName);
+                        writer.WriteLine(DateTime.Now.ToString() + " -" +
+                            " Character=" + characterName + 
+                            " Duration=" + duration + 
+                            " XP=" + xp + 
+                            " Reason=" + reasonIfKnown);
                     }
                 }
             }

@@ -20,6 +20,8 @@ namespace ACManager
         private ExpTracker ExpTracker;
         private InventoryTracker InventoryTracker;
         private bool AutoRespondEnabled;
+        private TimeSpan TimeLoggedIn;
+        private string Xp;
 
         private LogoffEventType LogoffType;
 
@@ -89,8 +91,11 @@ namespace ACManager
         {
             try
             {
-                if (LogoffType != LogoffEventType.Authorized) 
-                    Utility.LogCrash(Utility.CharacterName);
+                if (LogoffType != LogoffEventType.Authorized) {
+                    string duration = string.Format("{0:D2}:{1:D2}:{2:D2}:{3:d2}", TimeLoggedIn.Days, TimeLoggedIn.Hours, TimeLoggedIn.Minutes, TimeLoggedIn.Seconds);
+                    Utility.LogCrash(Utility.CharacterName, duration, Xp);
+                    
+                }
                 MVWireupHelper.WireupEnd(this);
             }
             catch (Exception ex) { Utility.LogError(ex); }
@@ -189,6 +194,7 @@ namespace ACManager
 
         private void Update_XpEarnedSinceLogon(object sender, XpEventArgs e)
         {
+            Xp = e.Value.ToString();
             XpSinceLogonText.Text = String.Format("{0:n0}", e.Value);
         }
 
@@ -199,7 +205,7 @@ namespace ACManager
 
         private void Update_TimeLoggedIn(object sender, XpEventArgs e)
         {
-            TimeSpan t = TimeSpan.FromSeconds(e.Value);
+            TimeSpan t = TimeLoggedIn = TimeSpan.FromSeconds(e.Value);
             TimeLoggedInText.Text = String.Format("{0:D2}d {1:D2}h {2:D2}m {3:d2}s", t.Days, t.Hours, t.Minutes, t.Seconds);
         }
 
