@@ -15,10 +15,11 @@ namespace ACManager
     public class PluginCore : PluginBase
     {
         private const string Module = "General";
-        private readonly string PluginName = "Fellowship Manager";
+        private readonly string PluginName = "AC Manager";
         private FellowshipControl FellowshipControl;
         private ExpTracker ExpTracker;
         private InventoryTracker InventoryTracker;
+        private PortalBot PortalBot;
         private bool AutoRespondEnabled;
         private TimeSpan TimeLoggedIn;
         private string Xp;
@@ -55,6 +56,20 @@ namespace ACManager
         private IStaticText TimeSinceResetText = null;
         [MVControlReference("TimeToNextLevel")]
         private IStaticText TimeToNextLevelText = null;
+        #endregion
+        #region Portal Bot
+        [MVControlReference("CharacterChoice")]
+        private ICombo CharacterChoiceList = null;
+        [MVControlReference("AdvertisementList")]
+        private IList Advertisements = null;
+        [MVControlReference("PrimaryKeyword")]
+        private ITextBox PrimaryKeywordText = null;
+        [MVControlReference("PrimaryDescription")]
+        private ITextBox PrimaryDescriptionText = null;
+        [MVControlReference("SecondaryKeyword")]
+        private ITextBox SecondaryKeywordText = null;
+        [MVControlReference("SecondaryDescription")]
+        private ITextBox SecondaryDescriptionText = null;
         #endregion
         #region Components Tab
         [MVControlReference("LeadScarabCount")]
@@ -110,9 +125,11 @@ namespace ACManager
                 Utility.Core = Core;
                 Utility.PluginName = PluginName;
                 Utility.CharacterName = Core.CharacterFilter.Name;
+                Utility.AccountName = Core.CharacterFilter.AccountName;
                 InventoryTracker = new InventoryTracker(this, Host, Core);
                 FellowshipControl = new FellowshipControl(this, Host, Core);
                 ExpTracker = new ExpTracker(Host, Core);
+                PortalBot = new PortalBot(this, Host, Core);
                 LoadSettings();
                 StartXPTracking();
 
@@ -165,6 +182,7 @@ namespace ACManager
             }
         }
 
+        #region XP GUI Updating
         private void StartXPTracking()
         {
             #region Do Only Once
@@ -230,6 +248,7 @@ namespace ACManager
                 Utility.LogError(ex);
             }
         }
+        #endregion
 
         private void ParseChat(object sender, ChatTextInterceptEventArgs e)
         {
@@ -293,12 +312,13 @@ namespace ACManager
             }
         }
 
+        #region GUI Events and Controls
         [MVControlEvent("AutoRespond", "Change")]
         void AutoRespond_Change(object sender, MVCheckBoxChangeEventArgs e)
         {
             try
             {
-                Utility.SaveSetting(Module, AutoRespondCheckBox.Name, e.Checked.ToString());
+                Utility.SaveSetting(Module, Core.CharacterFilter.Name, AutoRespondCheckBox.Name, e.Checked.ToString());
                 AutoRespondEnabled = e.Checked;
             }
             catch (Exception ex)
@@ -550,5 +570,104 @@ namespace ACManager
         {
             AnnounceLogoff.Checked = value;
         }
+
+        public void AddCharacterChoice(string name)
+        {
+            CharacterChoiceList.Add(name);
+        }
+
+        [MVControlEvent("CharacterChoice", "Change")]
+        private void ChoiceChange(object sender, MVIndexChangeEventArgs e)
+        {
+            string selectedCharacter = CharacterChoiceList.Text[e.Index];
+            if (selectedCharacter.Contains(" "))
+            {
+                selectedCharacter = selectedCharacter.Replace(" ", "_");
+            }
+            setPrimaryKeyword("");
+            setSecondaryKeyword("");
+            setPrimaryDescription("");
+            setSecondaryDescription("");
+            
+            XmlNode node = Utility.LoadCharacterSettings(PortalBot.Module, portal:true);
+            if (node != null)
+            {
+                XmlNodeList charNodes = node.ChildNodes;
+                if (charNodes.Count > 0)
+                {
+                    for (int i = 0; i < charNodes.Count; i++)
+                    {
+                        if (charNodes[i].Name == selectedCharacter)
+                        {
+                            foreach (XmlNode aNode in charNodes[i])
+                            {
+                                if (aNode.Name == "PrimaryKeyword")
+                                {
+                                    setPrimaryKeyword(aNode.InnerText);
+                                }
+                                if (aNode.Name == "SecondaryKeyword")
+                                {
+                                    setSecondaryKeyword(aNode.InnerText);
+                                }
+                                if (aNode.Name == "PrimaryDescription")
+                                {
+                                    setPrimaryDescription(aNode.InnerText);
+                                }
+                                if (aNode.Name == "SecondaryDescription")
+                                {
+                                    setSecondaryDescription(aNode.InnerText);
+                                }
+                            }
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+        private void setPrimaryKeyword(string keyword)
+        {
+            PrimaryKeywordText.Text = keyword;
+        }
+
+        private void setSecondaryKeyword(string keyword)
+        {
+            SecondaryKeywordText.Text = keyword;
+        }
+
+        private void setPrimaryDescription(string description)
+        {
+            PrimaryDescriptionText.Text = description;
+        }
+
+        private void setSecondaryDescription(string description)
+        {
+            SecondaryDescriptionText.Text = description;
+        }
+
+        [MVControlEvent("PrimaryKeyword", "Change")]
+        private void PrimaryKeywordChanged(object sender, MVTextBoxChangeEventArgs e)
+        {
+            PortalBot.SetPrimaryKeyword(CharacterChoiceList.Text[CharacterChoiceList.Selected], e.Text);
+        }
+
+        [MVControlEvent("PrimaryDescription", "Change")]
+        private void PrimaryDescriptionChanged(object sender, MVTextBoxChangeEventArgs e)
+        {
+            PortalBot.SetPrimaryDescription(CharacterChoiceList.Text[CharacterChoiceList.Selected], e.Text);
+        }
+
+        [MVControlEvent("SecondaryKeyword", "Change")]
+        private void SecondaryKeywordChanged(object sender, MVTextBoxChangeEventArgs e)
+        {
+            PortalBot.SetSecondaryKeyword(CharacterChoiceList.Text[CharacterChoiceList.Selected], e.Text);
+        }
+
+        [MVControlEvent("SecondaryDescription", "Change")]
+        private void SecondaryDescriptionChanged(object sender, MVTextBoxChangeEventArgs e)
+        {
+            PortalBot.SetSecondaryDescription(CharacterChoiceList.Text[CharacterChoiceList.Selected], e.Text);
+        }
+        #endregion
     }
 }

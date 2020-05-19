@@ -22,9 +22,13 @@ namespace ACManager
         public static CoreManager Core { get; set; }
         public static string PluginName { get; set; }
         public static string CharacterName { get; set; }
-
-        public static void SaveSetting(string module, string setting, string value)
+        internal static string AccountName { get; set; }
+        public static void SaveSetting(string module, string characterName, string setting, string value)
         {
+            if (characterName.Contains(" "))
+            {
+                characterName = characterName.Replace(" ", "_");
+            }
             try
             {
                 if (File.Exists(SettingsFile))
@@ -32,54 +36,74 @@ namespace ACManager
                     XmlDocument doc = new XmlDocument();
                     doc.Load(SettingsFile);
 
-                    XmlNode node = doc.SelectSingleNode(String.Format(@"/Settings/{0}", module));
-
+                    XmlNode node = doc.SelectSingleNode(String.Format(@"/Settings/{0}", AccountName));
                     if (node != null)
                     {
-                        // module exists
-                        node = doc.SelectSingleNode(String.Format(@"/Settings/{0}/Characters/{1}", module, CharacterName));
+                        // account exists
+                        node = doc.SelectSingleNode(String.Format(@"/Settings/{0}/{1}", AccountName, module));
                         if (node != null)
                         {
-                            // character exists
-                            node = doc.SelectSingleNode(String.Format(@"/Settings/{0}/Characters/{1}/{2}", module, CharacterName, setting));
+                            // module exists
+                            node = doc.SelectSingleNode(String.Format(@"/Settings/{0}/{1}/Characters/{2}", AccountName, module, characterName));
                             if (node != null)
                             {
-                                // setting exists
-                                node.InnerText = value;
+                                // character exists
+                                node = doc.SelectSingleNode(String.Format(@"/Settings/{0}/{1}/Characters/{2}/{3}", AccountName, module, characterName, setting));
+                                if (node != null)
+                                {
+                                    // setting exists
+                                    node.InnerText = value;
+                                }
+                                else
+                                {
+                                    // setting does not exist
+                                    node = doc.SelectSingleNode(String.Format(@"/Settings/{0}/{1}/Characters/{2}", AccountName, module, characterName));
+                                    XmlNode newSetting = doc.CreateNode(XmlNodeType.Element, setting, string.Empty);
+                                    newSetting.InnerText = value;
+                                    node.AppendChild(newSetting);
+                                }
                             }
                             else
                             {
-                                // setting does not exist
-                                node = doc.SelectSingleNode(String.Format(@"/Settings/{0}/Characters/{1}", module, CharacterName));
+                                // character does not exist
+                                node = doc.SelectSingleNode(String.Format(@"/Settings/{0}/{1}/Characters", AccountName, module));
+                                XmlNode newCharacterNode = doc.CreateNode(XmlNodeType.Element, characterName, string.Empty);
                                 XmlNode newSetting = doc.CreateNode(XmlNodeType.Element, setting, string.Empty);
                                 newSetting.InnerText = value;
-                                node.AppendChild(newSetting);
+                                newCharacterNode.AppendChild(newSetting);
+                                node.AppendChild(newCharacterNode);
                             }
                         }
                         else
                         {
-                            // character does not exist
-                            node = doc.SelectSingleNode(String.Format(@"/Settings/{0}/Characters", module));
-                            XmlNode newCharacterNode = doc.CreateNode(XmlNodeType.Element, CharacterName, string.Empty);
+                            // module does not exist
+                            node = doc.SelectSingleNode(String.Format(@"/Settings/{0}", AccountName));
+                            XmlNode newModule = doc.CreateNode(XmlNodeType.Element, module, string.Empty);
+                            XmlNode newCharacters = doc.CreateNode(XmlNodeType.Element, "Characters", string.Empty);
+                            XmlNode newCharacterNode = doc.CreateNode(XmlNodeType.Element, characterName, string.Empty);
                             XmlNode newSetting = doc.CreateNode(XmlNodeType.Element, setting, string.Empty);
                             newSetting.InnerText = value;
                             newCharacterNode.AppendChild(newSetting);
-                            node.AppendChild(newCharacterNode);
+                            newCharacters.AppendChild(newCharacterNode);
+                            newModule.AppendChild(newCharacters);
+                            node.AppendChild(newModule);
                         }
                     }
                     else
                     {
-                        // module does not exist
+                        // account doesn't exist
                         node = doc.SelectSingleNode(@"/Settings");
+                        XmlNode newAccount = doc.CreateNode(XmlNodeType.Element, AccountName, string.Empty);
                         XmlNode newModule = doc.CreateNode(XmlNodeType.Element, module, string.Empty);
                         XmlNode newCharacters = doc.CreateNode(XmlNodeType.Element, "Characters", string.Empty);
-                        XmlNode newCharacterNode = doc.CreateNode(XmlNodeType.Element, CharacterName, string.Empty);
+                        XmlNode newCharacterNode = doc.CreateNode(XmlNodeType.Element, characterName, string.Empty);
                         XmlNode newSetting = doc.CreateNode(XmlNodeType.Element, setting, string.Empty);
                         newSetting.InnerText = value;
                         newCharacterNode.AppendChild(newSetting);
                         newCharacters.AppendChild(newCharacterNode);
                         newModule.AppendChild(newCharacters);
-                        node.AppendChild(newModule);
+                        newAccount.AppendChild(newModule);
+                        node.AppendChild(newAccount);
                     }
 
                     doc.Save(SettingsFile);
@@ -93,11 +117,10 @@ namespace ACManager
                         writer.WriteStartDocument();
                         writer.WriteStartElement("Settings");
 
+                        writer.WriteStartElement(AccountName);
                         writer.WriteStartElement(module);
                         writer.WriteStartElement("Characters");
-
-                        writer.WriteStartElement(CharacterName);
-
+                        writer.WriteStartElement(characterName);
                         writer.WriteStartElement(setting);
                         writer.WriteString(value);
 
@@ -111,14 +134,25 @@ namespace ACManager
             }
         }
 
-        public static XmlNode LoadCharacterSettings(string module)
+        public static XmlNode LoadCharacterSettings(string module, bool portal=false, string characterName="")
         {
+            if (characterName.Contains(" "))
+            {
+                characterName = characterName.Replace(" ", "_");
+            }
+
             XmlNode node = null;
             if (File.Exists(SettingsFile))
             {
                 XmlDocument doc = new XmlDocument();
                 doc.Load(SettingsFile);
-                node = doc.SelectSingleNode(String.Format(@"/Settings/{0}/Characters/{1}", module, CharacterName));
+                if (portal == false)
+                {
+                    node = doc.SelectSingleNode(String.Format(@"/Settings/{0}/{1}/Characters/{2}", AccountName,  module, characterName));
+                } else
+                {
+                    node = doc.SelectSingleNode(String.Format(@"/Settings/{0}/{1}/Characters", AccountName, module));
+                }
             }
             return node;
         }
@@ -135,7 +169,7 @@ namespace ACManager
         {
             try
             {
-                Host.Actions.AddChatText("<{ " + PluginName + " }>: " + message, 5);
+                Host.Actions.AddChatText(" <{ " + PluginName + " }>: " + message, 5);
             }
             catch (Exception ex) { LogError(ex); }
         }
@@ -147,7 +181,7 @@ namespace ACManager
                 using (StreamWriter writer = new StreamWriter(ErrorFile, true))
                 {
                     writer.WriteLine("============================================================================");
-                    writer.WriteLine(DateTime.Now.ToString());
+                    writer.WriteLine(DateTime.UtcNow.ToString());
                     writer.WriteLine("Error: " + ex.Message);
                     writer.WriteLine("Source: " + ex.Source);
                     writer.WriteLine("Stack: " + ex.StackTrace);
@@ -159,11 +193,9 @@ namespace ACManager
                     writer.WriteLine("============================================================================");
                     writer.WriteLine("");
                 }
-            }
-            catch
-            {
-            }
+            } catch {}
         }
+
         public static void LogCrash(string characterName, string duration, string xp, string reasonIfKnown="Crash")
         {
             try
@@ -172,7 +204,7 @@ namespace ACManager
                 {
                     using (StreamWriter writer = new StreamWriter(CrashLog, true))
                     {
-                        writer.WriteLine(DateTime.Now.ToString() + " -" +
+                        writer.WriteLine(DateTime.UtcNow.ToString() + " -" +
                             " Character=" + characterName + 
                             " Duration=" + duration + 
                             " XP=" + xp + 

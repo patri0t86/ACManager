@@ -1,63 +1,92 @@
 <?xml version="1.0"?>
-<view icon="28187" title="AC Manager" width="250" height="380">
+<view icon="28187" title="AC Manager" width="400" height="380">
   <control progid="DecalControls.Notebook" name="nbMain">
     
     <page label="Fellowship">
       <control progid="DecalControls.FixedLayout" clipped="">
-        <control progid="DecalControls.StaticText" name="secretLabel" left="5" top="5" width="130" height="16" text="Recruit Command" />
-        <control progid="DecalControls.Edit" name="SecretPassword" left="5" top="23" width="130" height="19" text="XP" />
-        <control progid="DecalControls.CheckBox" name="AutoFellow" left="5" top="45" width="130" height="16" text="Auto Management" />
-        <control progid="DecalControls.CheckBox" name="AutoRespond" left="5" top="63" width="130" height="16" text="Auto Respond" />
+        <control progid="DecalControls.StaticText"                        left="5" top="5"  width="130" height="16" text="Recruit Command" />
+        <control progid="DecalControls.Edit"        name="SecretPassword" left="5" top="23" width="130" height="19" text="XP" />
+        <control progid="DecalControls.CheckBox"    name="AutoFellow"     left="5" top="45" width="130" height="16" text="Auto Management" />
+        <control progid="DecalControls.CheckBox"    name="AutoRespond"    left="5" top="63" width="130" height="16" text="Auto Respond" />
       </control>
     </page>
 
     <page label="XP Tracker">
       <control progid="DecalControls.FixedLayout" clipped="">
-        <control progid="DecalControls.StaticText" name="xpAtLogonLabel" left="5" top="5" width="130" height="16" text="Total XP At Logon" />
-        <control progid="DecalControls.StaticText" name="XpAtLogon" left="5" top="23" width="130" height="16" text="" />
-        <control progid="DecalControls.StaticText" name="xpSinceLogonLabel" left="5" top="41" width="130" height="16" text="XP Earned Since Logon" />
-        <control progid="DecalControls.StaticText" name="XpSinceLogon" left="5" top="59" width="130" height="16" text="" />
-        <control progid="DecalControls.StaticText" name="xpSinceResetLabel" left="5" top="77" width="130" height="16" text="XP Earned Since Reset" />
-        <control progid="DecalControls.StaticText" name="XpSinceReset" left="5" top="95" width="130" height="16" text="" />
-        <control progid="DecalControls.StaticText" name="xpPerHourLabel" left="5" top="113" width="130" height="16" text="XP/hr" />
-        <control progid="DecalControls.StaticText" name="XpPerHour" left="5" top="131" width="130" height="16" text="" />
-        <control progid="DecalControls.StaticText" name="xpLast5Label" left="5" top="149" width="180" height="16" text="XP/hr (Last 5 Mins)" />
-        <control progid="DecalControls.StaticText" name="XpLast5" left="5" top="167" width="130" height="16" text="" />
-        <control progid="DecalControls.PushButton" name="XpReset" left="5" top="185" width="130" height="16" text="Reset XP Tracking" />
-        <control progid="DecalControls.PushButton" name="XpFellow" left="5" top="203" width="60" height="16" text="/f" />
-        <control progid="DecalControls.PushButton" name="XpAlleg" left="75" top="203" width="60" height="16" text="/a" />
-        <control progid="DecalControls.StaticText" name="loginTimeLabel" left="5" top="221" width="130" height="16" text="Time Logged In" />
-        <control progid="DecalControls.StaticText" name="LoginTime" left="5" top="239" width="130" height="16" text="" />
-        <control progid="DecalControls.StaticText" name="timeSinceResetLabel" left="5" top="257" width="130" height="16" text="Time Since Reset" />
-        <control progid="DecalControls.StaticText" name="TimeSinceReset" left="5" top="275" width="130" height="16" text="" />
-        <control progid="DecalControls.StaticText" name="timeToNextLevelLabel" left="5" top="293" width="130" height="16" text="Time To Next Level" />
-        <control progid="DecalControls.StaticText" name="TimeToNextLevel" left="5" top="311" width="130" height="16" text="" />
+        <control progid="DecalControls.StaticText" name="xpAtLogonLabel"        left="5"  top="5"   width="130" height="16" text="Total XP At Logon" />
+        <control progid="DecalControls.StaticText" name="XpAtLogon"             left="5"  top="23"  width="130" height="16" text="" />
+        <control progid="DecalControls.StaticText" name="xpSinceLogonLabel"     left="5"  top="41"  width="130" height="16" text="XP Earned Since Logon" />
+        <control progid="DecalControls.StaticText" name="XpSinceLogon"          left="5"  top="59"  width="130" height="16" text="" />
+        <control progid="DecalControls.StaticText" name="xpSinceResetLabel"     left="5"  top="77"  width="130" height="16" text="XP Earned Since Reset" />
+        <control progid="DecalControls.StaticText" name="XpSinceReset"          left="5"  top="95"  width="130" height="16" text="" />
+        <control progid="DecalControls.StaticText" name="xpPerHourLabel"        left="5"  top="113" width="130" height="16" text="XP/hr" />
+        <control progid="DecalControls.StaticText" name="XpPerHour"             left="5"  top="131" width="130" height="16" text="" />
+        <control progid="DecalControls.StaticText" name="xpLast5Label"          left="5"  top="149" width="180" height="16" text="XP/hr (Last 5 Mins)" />
+        <control progid="DecalControls.StaticText" name="XpLast5"               left="5"  top="167" width="130" height="16" text="" />
+        <control progid="DecalControls.PushButton" name="XpReset"               left="5"  top="185" width="130" height="16" text="Reset XP Tracking" />
+        <control progid="DecalControls.PushButton" name="XpFellow"              left="5"  top="203" width="60"  height="16" text="/f" />
+        <control progid="DecalControls.PushButton" name="XpAlleg"               left="75" top="203" width="60"  height="16" text="/a" />
+        <control progid="DecalControls.StaticText" name="loginTimeLabel"        left="5"  top="221" width="130" height="16" text="Time Logged In" />
+        <control progid="DecalControls.StaticText" name="LoginTime"             left="5"  top="239" width="130" height="16" text="" />
+        <control progid="DecalControls.StaticText" name="timeSinceResetLabel"   left="5"  top="257" width="130" height="16" text="Time Since Reset" />
+        <control progid="DecalControls.StaticText" name="TimeSinceReset"        left="5"  top="275" width="130" height="16" text="" />
+        <control progid="DecalControls.StaticText" name="timeToNextLevelLabel"  left="5"  top="293" width="130" height="16" text="Time To Next Level" />
+        <control progid="DecalControls.StaticText" name="TimeToNextLevel"       left="5"  top="311" width="130" height="16" text="" />
       </control>
     </page>
 
-    <page label="Low Comps">
+    <page label="Portal Bot">
+      <control progid="DecalControls.Notebook" clipped="">
+        <page label="Control">
+          <control progid="DecalControls.FixedLayout" clipped="">
+            <control progid="DecalControls.StaticText" left="5" top="5" width="250" height="16" text="/acm start (Starts the Bot)" />
+            <control progid="DecalControls.StaticText" left="5" top="27" width="250" height="16" text="/acm stop (Stops the Bot)" />
+          </control>
+        </page>
+        <page label="Config">
+          <control progid="DecalControls.FixedLayout" clipped="">
+            <control progid="DecalControls.Choice"      name="CharacterChoice"      left="5"    top="5"     width="200" height="16" />
+            <control progid="DecalControls.StaticText"                              left="5"    top="27"    width="150" height="16" text="Primary Portal Options" />
+            <control progid="DecalControls.StaticText"                              left="5"    top="46"    width="100" height="16" text="Keyword" />
+            <control progid="DecalControls.StaticText"                              left="110"  top="46"    width="100" height="16" text="Description" />
+            <control progid="DecalControls.Edit"        name="PrimaryKeyword"       left="5"    top="62"    width="100" height="19" text="" />
+            <control progid="DecalControls.Edit"        name="PrimaryDescription"   left="110"  top="62"    width="275" height="19" text="" />
+            <control progid="DecalControls.StaticText"                              left="5"    top="86"    width="150" height="16" text="Secondary Portal Options" />
+            <control progid="DecalControls.StaticText"                              left="5"    top="105"   width="100" height="16" text="Keyword" />
+            <control progid="DecalControls.StaticText"                              left="110"  top="105"   width="100" height="16" text="Description" />
+            <control progid="DecalControls.Edit"        name="SecondaryKeyword"     left="5"    top="127"   width="100" height="19" text="" />
+            <control progid="DecalControls.Edit"        name="SecondaryDescription" left="110"  top="127"   width="275" height="19" text="" />
+            <control progid="DecalControls.StaticText"                              left="5"    top="149"   width="150" height="16" text="Advertisements" />
+            <control progid="DecalControls.List"        name="AdvertisementList"    left="5"    top="165"   width="380" height="150" />
+              <column progid="DecalControls.TextColumn" name="AdvertisementText"    fixedwidth="380" />
+          </control>
+        </page>
+      </control>
+    </page>
+
+    <page label="Comps">
       <control progid="DecalControls.FixedLayout" clipped="">
-        <control progid="DecalControls.StaticText" name="leadScarabLabel" left="5" top="6" width="90" height="16" text="Lead Scarabs" />
-        <control progid="DecalControls.Edit" name="LeadScarabCount" left="97" top="5" width="30" height="19" text="-1" />
-        <control progid="DecalControls.StaticText" name="ironScarabLabel" left="5" top="27" width="90" height="16" text="Iron Scarabs" />
-        <control progid="DecalControls.Edit" name="IronScarabCount" left="97" top="26" width="30" height="19" text="-1" />
-        <control progid="DecalControls.StaticText" name="copperScarabLabel" left="5" top="48" width="90" height="16" text="Copper Scarabs" />
-        <control progid="DecalControls.Edit" name="CopperScarabCount" left="97" top="47" width="30" height="19" text="-1" />
-        <control progid="DecalControls.StaticText" name="silverScarabLabel" left="5" top="69" width="90" height="16" text="Silver Scarabs" />
-        <control progid="DecalControls.Edit" name="SilverScarabCount" left="97" top="68" width="30" height="19" text="-1" />
-        <control progid="DecalControls.StaticText" name="goldScarabLabel" left="5" top="90" width="90" height="16" text="Gold Scarabs" />
-        <control progid="DecalControls.Edit" name="GoldScarabCount" left="97" top="89" width="30" height="19" text="-1" />
-        <control progid="DecalControls.StaticText" name="pyrealScarabLabel" left="5" top="111" width="90" height="16" text="Pyreal Scarabs" />
-        <control progid="DecalControls.Edit" name="PyrealScarabCount" left="97" top="110" width="30" height="19" text="-1" />
-        <control progid="DecalControls.StaticText" name="platinumScarabLabel" left="5" top="132" width="90" height="16" text="Platinum Scarabs" />
-        <control progid="DecalControls.Edit" name="PlatinumScarabCount" left="97" top="131" width="30" height="19" text="-1" />
-        <control progid="DecalControls.StaticText" name="manaScarabLabel" left="5" top="153" width="90" height="16" text="Mana Scarabs" />
-        <control progid="DecalControls.Edit" name="ManaScarabCount" left="97" top="152" width="30" height="19" text="-1" />
-        <control progid="DecalControls.StaticText" name="taperLabel" left="5" top="174" width="90" height="16" text="Prismatic Tapers" />
-        <control progid="DecalControls.Edit" name="TaperCount" left="97" top="173" width="30" height="19" text="-1" />
-        <control progid="DecalControls.StaticText" name="infoLabel" left="5" top="195" width="245" height="16" text="Enter -1 to disable a comp." />
-        <control progid="DecalControls.CheckBox" name="Components" left="5" top="213" width="245" height="16" text="Low Comp. Logoff" />
-        <control progid="DecalControls.CheckBox" name="AnnounceLogoff" left="5" top="231" width="245" height="16" text="Announce Logoff to Fellows" />
+        <control progid="DecalControls.StaticText"  name="leadScarabLabel"      left="5"  top="5"   width="90"  height="16" text="Lead Scarabs" />
+        <control progid="DecalControls.Edit"        name="LeadScarabCount"      left="97" top="5"   width="30"  height="19" text="-1" />
+        <control progid="DecalControls.StaticText"  name="ironScarabLabel"      left="5"  top="27"  width="90"  height="16" text="Iron Scarabs" />
+        <control progid="DecalControls.Edit"        name="IronScarabCount"      left="97" top="26"  width="30"  height="19" text="-1" />
+        <control progid="DecalControls.StaticText"  name="copperScarabLabel"    left="5"  top="48"  width="90"  height="16" text="Copper Scarabs" />
+        <control progid="DecalControls.Edit"        name="CopperScarabCount"    left="97" top="47"  width="30"  height="19" text="-1" />
+        <control progid="DecalControls.StaticText"  name="silverScarabLabel"    left="5"  top="69"  width="90"  height="16" text="Silver Scarabs" />
+        <control progid="DecalControls.Edit"        name="SilverScarabCount"    left="97" top="68"  width="30"  height="19" text="-1" />
+        <control progid="DecalControls.StaticText"  name="goldScarabLabel"      left="5"  top="90"  width="90"  height="16" text="Gold Scarabs" />
+        <control progid="DecalControls.Edit"        name="GoldScarabCount"      left="97" top="89"  width="30"  height="19" text="-1" />
+        <control progid="DecalControls.StaticText"  name="pyrealScarabLabel"    left="5"  top="111" width="90"  height="16" text="Pyreal Scarabs" />
+        <control progid="DecalControls.Edit"        name="PyrealScarabCount"    left="97" top="110" width="30"  height="19" text="-1" />
+        <control progid="DecalControls.StaticText"  name="platinumScarabLabel"  left="5"  top="132" width="90"  height="16" text="Platinum Scarabs" />
+        <control progid="DecalControls.Edit"        name="PlatinumScarabCount"  left="97" top="131" width="30"  height="19" text="-1" />
+        <control progid="DecalControls.StaticText"  name="manaScarabLabel"      left="5"  top="153" width="90"  height="16" text="Mana Scarabs" />
+        <control progid="DecalControls.Edit"        name="ManaScarabCount"      left="97" top="152" width="30"  height="19" text="-1" />
+        <control progid="DecalControls.StaticText"  name="taperLabel"           left="5"  top="174" width="90"  height="16" text="Prismatic Tapers" />
+        <control progid="DecalControls.Edit"        name="TaperCount"           left="97" top="173" width="30"  height="19" text="-1" />
+        <control progid="DecalControls.StaticText"  name="infoLabel"            left="5"  top="195" width="245" height="16" text="Enter -1 to disable a comp." />
+        <control progid="DecalControls.CheckBox"    name="Components"           left="5"  top="213" width="245" height="16" text="Low Comp. Logoff" />
+        <control progid="DecalControls.CheckBox"    name="AnnounceLogoff"       left="5"  top="231" width="245" height="16" text="Announce Logoff to Fellows" />
       </control>
     </page>
     

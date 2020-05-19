@@ -129,7 +129,7 @@ namespace ACManager
         {
             try
             {
-                XmlNode node = Utility.LoadCharacterSettings(Module);
+                XmlNode node = Utility.LoadCharacterSettings(Module, characterName:Utility.CharacterName);
                 if (node != null)
                 {
                     XmlNodeList settingNodes = node.ChildNodes;
@@ -163,13 +163,13 @@ namespace ACManager
 
         public void SetPassword(string setting, string value)
         {
-            Utility.SaveSetting(Module, setting, value);
+            Utility.SaveSetting(Module, Utility.CharacterName, setting, value);
             Password = value;
         }
 
         public void SetAutoFellow(string setting, bool value)
         {
-            Utility.SaveSetting(Module, setting, value.ToString());
+            Utility.SaveSetting(Module, Utility.CharacterName, setting, value.ToString());
             AutoFellowEnabled = value;
             if (value && FellowStatus == FellowshipEventType.Create)
             {

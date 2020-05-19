@@ -58,7 +58,7 @@ namespace ACManager
         {
             try
             {
-                XmlNode node = Utility.LoadCharacterSettings(Module);
+                XmlNode node = Utility.LoadCharacterSettings(Module, characterName:Utility.CharacterName);
                 if (node != null)
                 {
                     XmlNodeList settingNodes = node.ChildNodes;
@@ -124,61 +124,61 @@ namespace ACManager
         public void SetMinLead(string setting, string value)
         {
             MinLead = int.Parse(value);
-            Utility.SaveSetting(Module, setting, value);
+            Utility.SaveSetting(Module, Utility.CharacterName, setting, value);
         }
 
         public void SetMinIron(string setting, string value)
         {
             MinIron = int.Parse(value);
-            Utility.SaveSetting(Module, setting, value);
+            Utility.SaveSetting(Module, Utility.CharacterName, setting, value);
         }
 
         public void SetMinCopper(string setting, string value)
         {
             MinCopper = int.Parse(value);
-            Utility.SaveSetting(Module, setting, value);
+            Utility.SaveSetting(Module, Utility.CharacterName, setting, value);
         }
 
         public void SetMinSilver(string setting, string value)
         {
             MinSilver = int.Parse(value);
-            Utility.SaveSetting(Module, setting, value);
+            Utility.SaveSetting(Module, Utility.CharacterName, setting, value);
         }
 
         public void SetMinGold(string setting, string value)
         {
             MinGold = int.Parse(value);
-            Utility.SaveSetting(Module, setting, value);
+            Utility.SaveSetting(Module, Utility.CharacterName, setting, value);
         }
 
         public void SetMinPyreal(string setting, string value)
         {
             MinPyreal = int.Parse(value);
-            Utility.SaveSetting(Module, setting, value);
+            Utility.SaveSetting(Module, Utility.CharacterName, setting, value);
         }
 
         public void SetMinPlatinum(string setting, string value)
         {
             MinPlatinum = int.Parse(value);
-            Utility.SaveSetting(Module, setting, value);
+            Utility.SaveSetting(Module, Utility.CharacterName, setting, value);
         }
 
         public void SetMinMana(string setting, string value)
         {
             MinManaScarabs = int.Parse(value);
-            Utility.SaveSetting(Module, setting, value);
+            Utility.SaveSetting(Module, Utility.CharacterName, setting, value);
         }
 
         public void SetMinTapers(string setting, string value)
         {
             MinTapers = int.Parse(value);
-            Utility.SaveSetting(Module, setting, value);
+            Utility.SaveSetting(Module, Utility.CharacterName, setting, value);
         }
 
         public void SetAnnounce(string setting, bool value)
         {
             AnnounceLogoff = value;
-            Utility.SaveSetting(Module, setting, value.ToString());
+            Utility.SaveSetting(Module, Utility.CharacterName, setting, value.ToString());
         }
 
         private void CheckComps(object sender, ElapsedEventArgs e)
