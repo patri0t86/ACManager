@@ -154,7 +154,7 @@ namespace ACManager
         {
             try
             {
-                XmlNode node = Utility.LoadCharacterSettings(Module);
+                XmlNode node = Utility.LoadCharacterSettings(Module, characterName:Utility.CharacterName);
                 if (node != null)
                 {
                     XmlNodeList settingNodes = node.ChildNodes;
