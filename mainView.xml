@@ -54,8 +54,8 @@
             <control progid="DecalControls.StaticText"                              left="5"    top="86"    width="150" height="16" text="Secondary Portal Options" />
             <control progid="DecalControls.StaticText"                              left="5"    top="105"   width="100" height="16" text="Keyword" />
             <control progid="DecalControls.StaticText"                              left="110"  top="105"   width="100" height="16" text="Description" />
-            <control progid="DecalControls.Edit"        name="SecondaryKeyword"     left="5"    top="127"   width="100" height="19" text="" />
-            <control progid="DecalControls.Edit"        name="SecondaryDescription" left="110"  top="127"   width="275" height="19" text="" />
+            <control progid="DecalControls.Edit"        name="SecondaryKeyword"     left="5"    top="122"   width="100" height="19" text="" />
+            <control progid="DecalControls.Edit"        name="SecondaryDescription" left="110"  top="122"   width="275" height="19" text="" />
             <control progid="DecalControls.StaticText"                              left="5"    top="149"   width="150" height="16" text="Advertisements" />
             <control progid="DecalControls.List"        name="AdvertisementList"    left="5"    top="165"   width="380" height="150" />
               <column progid="DecalControls.TextColumn" name="AdvertisementText"    fixedwidth="380" />
