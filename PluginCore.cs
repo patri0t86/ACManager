@@ -129,7 +129,7 @@ namespace ACManager
                 InventoryTracker = new InventoryTracker(this, Host, Core);
                 FellowshipControl = new FellowshipControl(this, Host, Core);
                 ExpTracker = new ExpTracker(Host, Core);
-                PortalBot = new PortalBot(this, Host, Core);
+                PortalBot = new PortalBot(this);
                 LoadSettings();
                 StartXPTracking();
 
@@ -579,6 +579,14 @@ namespace ACManager
         [MVControlEvent("CharacterChoice", "Change")]
         private void ChoiceChange(object sender, MVIndexChangeEventArgs e)
         {
+            if (e.Index == 0)
+            {
+                setPrimaryKeyword("");
+                setSecondaryKeyword("");
+                setPrimaryDescription("");
+                setSecondaryDescription("");
+                return;
+            }
             string selectedCharacter = CharacterChoiceList.Text[e.Index];
             if (selectedCharacter.Contains(" "))
             {

@@ -1,10 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Runtime.InteropServices;
-using System.Text;
-using System.Text.RegularExpressions;
-using System.Timers;
-using System.Xml;
+﻿using System.Collections.Generic;
+
 using Decal.Adapter;
 using Decal.Adapter.Wrappers;
 
@@ -12,36 +7,26 @@ namespace ACManager
 {
     class PortalBot
     {
-
         public const string Module = "PortalBot";
-        private PluginHost Host;
-        private PluginCore Parent;
-        private CoreManager Core;
-        public bool PortalBotStatus;
-        public IndexedCollection<CharFilterIndex, int, AccountCharInfo> accountChars;
 
-        public PortalBot(PluginCore parent, PluginHost host, CoreManager core)
+        public PortalBot(PluginCore parent)
         {
-            Parent = parent;
-            Host = host;
-            Core = core;
             try
             {
                 List<string> characterList = new List<string>();
-                accountChars = Core.CharacterFilter.Characters;
+                IndexedCollection<CharFilterIndex, int, AccountCharInfo> accountChars = CoreManager.Current.CharacterFilter.Characters;
                 for (int i = 0; i < accountChars.Count; i++)
                 {
                     characterList.Add(accountChars[i].Name);
-                    //parent.AddCharacterChoice(accountChars[i].Name);
                 }
 
                 characterList.Sort();
 
+                parent.AddCharacterChoice("Select Character...");
                 for (int i = 0; i < characterList.Count; i++)
                 {
                     parent.AddCharacterChoice(characterList[i]);
                 }
-
             }
             catch { }
         }
