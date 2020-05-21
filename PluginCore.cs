@@ -126,6 +126,7 @@ namespace ACManager
                 Utility.PluginName = PluginName;
                 Utility.CharacterName = Core.CharacterFilter.Name;
                 Utility.AccountName = Core.CharacterFilter.AccountName;
+                Utility.ServerName = Core.CharacterFilter.Server;
                 InventoryTracker = new InventoryTracker(this, Host, Core);
                 FellowshipControl = new FellowshipControl(this, Host, Core);
                 ExpTracker = new ExpTracker(Host, Core);
