@@ -98,7 +98,7 @@ namespace ACManager
                             else
                             {
                                 // account doesn't exist
-                                node = doc.SelectSingleNode(@"/Settings");
+                                node = doc.SelectSingleNode(String.Format(@"/Settings/{0}", ServerName));
                                 XmlNode newAccount = doc.CreateNode(XmlNodeType.Element, AccountName, string.Empty);
                                 XmlNode newModule = doc.CreateNode(XmlNodeType.Element, module, string.Empty);
                                 XmlNode newCharacters = doc.CreateNode(XmlNodeType.Element, "Characters", string.Empty);
@@ -208,7 +208,7 @@ namespace ACManager
                 using (StreamWriter writer = new StreamWriter(ErrorFile, true))
                 {
                     writer.WriteLine("============================================================================");
-                    writer.WriteLine(DateTime.UtcNow.ToString());
+                    writer.WriteLine(DateTime.Now.ToString());
                     writer.WriteLine("Error: " + ex.Message);
                     writer.WriteLine("Source: " + ex.Source);
                     writer.WriteLine("Stack: " + ex.StackTrace);
@@ -231,7 +231,7 @@ namespace ACManager
                 {
                     using (StreamWriter writer = new StreamWriter(CrashLog, true))
                     {
-                        writer.WriteLine(DateTime.UtcNow.ToString() + " -" +
+                        writer.WriteLine(DateTime.Now.ToString() + " -" +
                             " Character=" + characterName + 
                             " Duration=" + duration + 
                             " XP=" + xp + 
