@@ -184,6 +184,51 @@ namespace ACManager
             return node;
         }
 
+        public static void DeleteSetting(string module, string characterName, string value)
+        {
+            try
+            {
+                if (File.Exists(SettingsFile))
+                {
+                    XmlDocument doc = new XmlDocument();
+                    doc.Load(SettingsFile);
+
+                    XmlNode node = doc.SelectSingleNode(String.Format(@"/Settings/{0}", ServerName));
+                    {
+                        if (node != null)
+                        // this server exists
+                        {
+                            node = doc.SelectSingleNode(String.Format(@"/Settings/{0}/{1}", ServerName, AccountName));
+                            if (node != null)
+                            {
+                                // account exists
+                                node = doc.SelectSingleNode(String.Format(@"/Settings/{0}/{1}/{2}", ServerName, AccountName, module));
+                                if (node != null)
+                                {
+                                    // module exists
+                                    node = doc.SelectSingleNode(String.Format(@"/Settings/{0}/{1}/{2}/Characters/{3}", ServerName, AccountName, module, characterName));
+                                    if (node != null)
+                                    {
+                                        XmlNodeList ads = node.ChildNodes;
+                                        foreach (XmlNode ad in ads)
+                                        {
+                                            if (ad.InnerText.Equals(value))
+                                            {
+                                                ad.ParentNode.RemoveChild(ad);
+                                                doc.Save(SettingsFile);
+                                                break;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            catch { }
+        }
+
         private static XmlWriterSettings SetupXmlWriter()
         {
             return new XmlWriterSettings

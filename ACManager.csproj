@@ -17,12 +17,12 @@
     <UpdateAssemblyVersion>True</UpdateAssemblyVersion>
     <UpdateAssemblyFileVersion>True</UpdateAssemblyFileVersion>
     <UpdateAssemblyInfoVersion>True</UpdateAssemblyInfoVersion>
-    <AssemblyVersionSettings>None.NoneWithAutoReset.DayOfYearStamp.IncrementWithResetOnIncrease</AssemblyVersionSettings>
+    <AssemblyVersionSettings>None.NoneWithAutoReset.NoneWithAutoReset.IncrementWithResetOnIncrease</AssemblyVersionSettings>
     <UpdatePackageVersion>False</UpdatePackageVersion>
     <AssemblyInfoVersionType>SettingsVersion</AssemblyInfoVersionType>
     <InheritWinAppVersionFrom>None</InheritWinAppVersionFrom>
-    <AssemblyFileVersionSettings>None.NoneWithAutoReset.DayOfYearStamp.IncrementWithResetOnIncrease</AssemblyFileVersionSettings>
-    <AssemblyInfoVersionSettings>None.NoneWithAutoReset.DayOfYearStamp.IncrementWithResetOnIncrease</AssemblyInfoVersionSettings>
+    <AssemblyFileVersionSettings>None.NoneWithAutoReset.NoneWithAutoReset.IncrementWithResetOnIncrease</AssemblyFileVersionSettings>
+    <AssemblyInfoVersionSettings>None.NoneWithAutoReset.NoneWithAutoReset.IncrementWithResetOnIncrease</AssemblyInfoVersionSettings>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>

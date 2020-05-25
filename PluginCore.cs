@@ -7,7 +7,7 @@ using System.Text.RegularExpressions;
 using System.Xml;
 
 namespace ACManager
-{
+{ 
     [WireUpBaseEvents]
     [MVView("ACManager.mainView.xml")]
     [MVWireUpControlEvents]
@@ -62,6 +62,10 @@ namespace ACManager
         private ICombo CharacterChoiceList = null;
         [MVControlReference("AdvertisementList")]
         private IList Advertisements = null;
+        [MVControlReference("NewAdvertisementText")]
+        private ITextBox NewAdvertistmentText = null;
+        [MVControlReference("AddAdvertisement")]
+        private IButton AddAdvertisement = null;
         [MVControlReference("PrimaryKeyword")]
         private ITextBox PrimaryKeywordText = null;
         [MVControlReference("PrimaryDescription")]
@@ -133,6 +137,14 @@ namespace ACManager
                 PortalBot = new PortalBot(this);
                 LoadSettings();
                 StartXPTracking();
+
+                XmlNode botGlobal = Utility.LoadCharacterSettings("PortalBot", false, "BotGlobal");
+                XmlNodeList ads = botGlobal.ChildNodes;
+                foreach (XmlNode ad in ads)
+                {
+                    IListRow row = Advertisements.Add();
+                    row[0][0] = ad.InnerText;
+                }
 
                 // Start listening to all chat and parsing if enabled
                 Core.ChatBoxMessage += new EventHandler<ChatTextInterceptEventArgs>(ParseChat);
@@ -676,6 +688,26 @@ namespace ACManager
         private void SecondaryDescriptionChanged(object sender, MVTextBoxChangeEventArgs e)
         {
             PortalBot.SetSecondaryDescription(CharacterChoiceList.Text[CharacterChoiceList.Selected], e.Text);
+        }
+
+        [MVControlEvent("AdvertisementList", "Selected")]
+        void AdvertisementList_Selected(object sender, MVListSelectEventArgs e)
+        {
+            string text = Advertisements[e.Row][e.Column][0].ToString();
+            Advertisements.RemoveRow(e.Row);
+            // delete XML node containing the text
+            Utility.DeleteSetting("PortalBot", "BotGlobal", text);
+        }
+
+        [MVControlEvent("AddAdvertisement", "Click")]
+        void AddAdvertisement_Click(object sender, MVControlEventArgs e)
+        {
+            string text = NewAdvertistmentText.Text;
+            IListRow row = Advertisements.Add();
+            row[0][0] = text;
+            NewAdvertistmentText.Text = "";
+
+            Utility.SaveSetting("PortalBot", characterName: "BotGlobal", $"Ad{DateTime.Now.Ticks}", text);
         }
         #endregion
     }
