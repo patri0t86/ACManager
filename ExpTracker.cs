@@ -55,7 +55,7 @@ namespace ACManager
                     TimeLeftToLevel.Hours,
                     TimeLeftToLevel.Minutes,
                     TimeLeftToLevel.Seconds);
-            Host.Actions.InvokeChatParser(String.Format("{0} You have earned {1} XP in {2} for {3} XP/hour ({4} XP in the last 5 minutes). At this rate, you'll hit your next level in {5}.",
+            Host.Actions.InvokeChatParser(String.Format("{0} You have earned {1} XP in {2} for {3} XP/hour ({4} XP/hr in the last 5 minutes). At this rate, you'll hit your next level in {5}.",
                 targetChat,
                 xpSinceReset,
                 timeSinceReset,
