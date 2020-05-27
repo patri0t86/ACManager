@@ -59,27 +59,52 @@ namespace ACManager.Views
 
         private void XpReset_Hit(object sender, System.EventArgs e)
         {
-            Plugin.ExpTracker.Reset();
-            XpLast5Text.Text = "0";
-            XpPerHourText.Text = "0";
-            XpSinceResetText.Text = "0";
-            TimeToNextLevelText.Text = string.Format("{0:D2}d {1:D2}h {2:D2}m {3:D2}s", 0, 0, 0, 0);
-            TimeSinceResetText.Text = string.Format("{0:D2}d {1:D2}h {2:D2}m {3:D2}s", 0, 0, 0, 0);
+            try
+            {
+                Plugin.ExpTracker.Reset();
+                XpLast5Text.Text = "0";
+                XpPerHourText.Text = "0";
+                XpSinceResetText.Text = "0";
+                TimeToNextLevelText.Text = string.Format("{0:D2}d {1:D2}h {2:D2}m {3:D2}s", 0, 0, 0, 0);
+                TimeSinceResetText.Text = string.Format("{0:D2}d {1:D2}h {2:D2}m {3:D2}s", 0, 0, 0, 0);
+            }
+            catch { }
         }
 
         private void XpFellow_Hit(object sender, System.EventArgs e)
         {
-            Plugin.ExpTracker.Report("/f");
+            try
+            {
+                Plugin.ExpTracker.Report("/f");
+            }
+            catch 
+            {
+
+            }
         }
 
         private void XpAlleg_Hit(object sender, System.EventArgs e)
         {
-            Plugin.ExpTracker.Report("/a");
+            try
+            {
+                Plugin.ExpTracker.Report("/a");
+            }
+            catch
+            {
+
+            }
         }
 
         private void XpLocal_Hit(object sender, System.EventArgs e)
         {
-            Plugin.ExpTracker.Report();
+            try
+            {
+                Plugin.ExpTracker.Report();
+            }
+            catch
+            {
+
+            }
         }
     }
 }

@@ -14,36 +14,30 @@ namespace ACManager
     {
         internal const string Module = "General";
         internal const string PluginName = "AC Manager";
-
-        internal static string CharacterName { get; set; }
-
         internal FellowshipControl FellowshipControl { get; set; }
         internal ExpTracker ExpTracker { get; set; }
         internal InventoryTracker InventoryTracker { get; set; }
-        internal TimeSpan TimeLoggedIn { get; set; }
-        internal string Xp { get; set; }
-        internal LogoffEventType LogoffType { get; set; }
-        internal bool AutoRespondEnabled { get; set; }
         internal MainView MainView { get; set; }
         internal PortalBotView PortalBotView { get; set; }
         internal ExpTrackerView ExpTrackerView { get; set; }
+        internal bool AutoRespondEnabled { get; set; }
 
         protected override void Startup()
         {
-            MainView = new MainView(this);
-            ExpTrackerView = new ExpTrackerView(this);
-            PortalBotView = new PortalBotView();
+            try
+            {
+                MainView = new MainView(this);
+                ExpTrackerView = new ExpTrackerView(this);
+                PortalBotView = new PortalBotView();
+            }
+            catch { }
         }
 
         protected override void Shutdown()
         {
             try
             {
-                if (LogoffType != LogoffEventType.Authorized)
-                {
-                    string duration = string.Format("{0:D2}:{1:D2}:{2:D2}:{3:d2}", TimeLoggedIn.Days, TimeLoggedIn.Hours, TimeLoggedIn.Minutes, TimeLoggedIn.Seconds);
-                    Utility.LogCrash(Utility.CharacterName, duration, Xp);
-                }
+
             }
             catch (Exception ex) { Utility.LogError(ex); }
         }
@@ -53,20 +47,14 @@ namespace ACManager
         {
             try
             {
-                CharacterName = Core.CharacterFilter.Name;
-                Utility.Host = Host;
-                Utility.Core = Core;
-                Utility.PluginName = PluginName;
-                Utility.CharacterName = Core.CharacterFilter.Name;
-                Utility.AccountName = Core.CharacterFilter.AccountName;
-                Utility.ServerName = Core.CharacterFilter.Server;
-                InventoryTracker = new InventoryTracker(this, Host, Core);
-                FellowshipControl = new FellowshipControl(this, Host, Core);
+                InventoryTracker = new InventoryTracker(this);
+                FellowshipControl = new FellowshipControl(this);
                 ExpTracker = new ExpTracker(this, Host, Core);
                 LoadSettings();
 
                 // Start listening to all chat and parsing if enabled
                 Core.ChatBoxMessage += new EventHandler<ChatTextInterceptEventArgs>(ParseChat);
+                Core.RenderFrame += Core_RenderFrame;
             }
             catch (Exception ex) { Utility.LogError(ex); }
         }
@@ -76,17 +64,23 @@ namespace ACManager
         {
             try
             {
-                LogoffType = e.Type;
                 Core.ChatBoxMessage -= new EventHandler<ChatTextInterceptEventArgs>(ParseChat);
+                Core.RenderFrame -= Core_RenderFrame;
             }
             catch (Exception ex) { Utility.LogError(ex); }
+        }
+
+        private void Core_RenderFrame(object sender, EventArgs e)
+        {
+            InventoryTracker.CheckComps();
+            FellowshipControl.CheckRecruit();
         }
 
         private void LoadSettings()
         {
             try
             {
-                XmlNode node = Utility.LoadCharacterSettings(Module, characterName: Utility.CharacterName);
+                XmlNode node = Utility.LoadCharacterSettings(Module, characterName: CoreManager.Current.CharacterFilter.Name);
                 if (node != null)
                 {
                     XmlNodeList settingNodes = node.ChildNodes;
@@ -173,19 +167,6 @@ namespace ACManager
                         }
                     }
                 }
-            }
-        }
-
-        [BaseEvent("ChangeFellowship", "CharacterFilter")]
-        private void ChangeFellowship(object sender, ChangeFellowshipEventArgs e)
-        {
-            try
-            {
-                FellowshipControl.FellowStatus = e.Type;
-            }
-            catch (Exception ex)
-            {
-                Utility.LogError(ex);
             }
         }
     }

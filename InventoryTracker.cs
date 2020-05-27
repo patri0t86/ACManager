@@ -9,10 +9,7 @@ namespace ACManager
     class InventoryTracker
     {
         private const string Module = "InventoryTracker";
-        private PluginCore Parent;
-        private PluginHost Host;
-        private CoreManager Core;
-        private Timer ComponentTimer;
+        private PluginCore Parent { get; set; }
         private readonly string[] Comps = {
                         "Lead Scarab",
                         "Iron Scarab",
@@ -45,20 +42,17 @@ namespace ACManager
         internal int CurManaScarabs { get; set; }
         internal int CurTapers { get; set; }
 
-        public InventoryTracker(PluginCore parent, PluginHost host, CoreManager core)
+        public InventoryTracker(PluginCore parent)
         {
             Parent = parent;
-            Host = host;
-            Core = core;
             LoadSettings();
-            StartWatcher();
         }
 
         private void LoadSettings()
         {
             try
             {
-                XmlNode node = Utility.LoadCharacterSettings(Module, characterName:Utility.CharacterName);
+                XmlNode node = Utility.LoadCharacterSettings(Module, characterName: CoreManager.Current.CharacterFilter.Name);
                 if (node != null)
                 {
                     XmlNodeList settingNodes = node.ChildNodes;
@@ -121,17 +115,20 @@ namespace ACManager
             }
         }
 
-        private void CheckComps(object sender, ElapsedEventArgs e)
+        public void CheckComps()
         {
-            GetCompCounts();
-            if (LogoffEnabled) MinCompsCheck();
+            if (LogoffEnabled)
+            {
+                GetCompCounts();
+                MinCompsCheck();
+            }
         }
 
         private void GetCompCounts()
         {
             foreach (string comp in Comps)
             {
-                WorldObjectCollection collection = Core.WorldFilter.GetInventory();
+                WorldObjectCollection collection = CoreManager.Current.WorldFilter.GetInventory();
                 collection.SetFilter(new ByNameFilter(comp));
                 switch (comp)
                 {
@@ -163,7 +160,6 @@ namespace ACManager
                         CurTapers = collection.Quantity;
                         break;
                 }
-                collection = null;
             }
         }
 
@@ -215,23 +211,15 @@ namespace ACManager
             }
         }
 
-        private void StartWatcher()
-        {
-            ComponentTimer = new Timer(1000);
-            ComponentTimer.AutoReset = true;
-            ComponentTimer.Elapsed += CheckComps;
-            ComponentTimer.Start();
-        }
-
         private void Logout(string comp)
         {
-            ComponentTimer.Stop();
-            string message = String.Format("/f Logging off for low component count: {0}", comp);
+            string message = string.Format("/f Logging off for low component count: {0}", comp);
             if(AnnounceLogoff)
             {
-                Host.Actions.InvokeChatParser(message);
+                CoreManager.Current.Actions.InvokeChatParser(message);
             }
-            Core.Actions.Logout();
+            Utility.WriteToChat(message);
+            CoreManager.Current.Actions.Logout();
         }
     }
 }

@@ -98,184 +98,297 @@ namespace ACManager.Views
 
         private void SecretPassword_Change(object sender, System.EventArgs e)
         {
-            Utility.SaveSetting(FellowshipModule, CoreManager.Current.CharacterFilter.Name, SecretPassword.Name, SecretPassword.Text);
-            Plugin.FellowshipControl.Password = SecretPassword.Text;
+            try
+            {
+                Utility.SaveSetting(FellowshipModule, CoreManager.Current.CharacterFilter.Name, SecretPassword.Name, SecretPassword.Text);
+                Plugin.FellowshipControl.Password = SecretPassword.Text;
+            }
+            catch 
+            {
+
+            }
         }
 
         private void AutoFellow_Change(object sender, System.EventArgs e)
         {
-            Utility.SaveSetting(FellowshipModule, CoreManager.Current.CharacterFilter.Name, AutoFellow.Name, AutoFellow.Checked.ToString());
-            Plugin.FellowshipControl.AutoFellowEnabled = AutoFellow.Checked;
-            if (AutoFellow.Checked && Plugin.FellowshipControl.FellowStatus == FellowshipEventType.Create)
+            try
             {
-                CoreManager.Current.Actions.FellowshipSetOpen(true);
+                Utility.SaveSetting(FellowshipModule, CoreManager.Current.CharacterFilter.Name, AutoFellow.Name, AutoFellow.Checked.ToString());
+                Plugin.FellowshipControl.AutoFellowEnabled = AutoFellow.Checked;
+                if (AutoFellow.Checked && Plugin.FellowshipControl.FellowStatus.Equals(FellowshipEventType.Create))
+                {
+                    CoreManager.Current.Actions.FellowshipSetOpen(true);
+                }
+            }
+            catch
+            {
+
             }
         }
 
         private void AutoRespond_Change(object sender, System.EventArgs e)
         {
-            Utility.SaveSetting(GeneralModule, CoreManager.Current.CharacterFilter.Name, AutoRespond.Name, AutoRespond.Checked.ToString());
-            Plugin.AutoRespondEnabled = AutoRespond.Checked;
+            try
+            {
+                Utility.SaveSetting(GeneralModule, CoreManager.Current.CharacterFilter.Name, AutoRespond.Name, AutoRespond.Checked.ToString());
+                Plugin.AutoRespondEnabled = AutoRespond.Checked;
+            }
+            catch
+            {
+
+            }
         }
 
         private void LowCompLogoff_Change(object sender, System.EventArgs e)
         {
-            Plugin.InventoryTracker.LogoffEnabled = LowCompLogoff.Checked;
+            try
+            {
+                Plugin.InventoryTracker.LogoffEnabled = LowCompLogoff.Checked;
+            }
+            catch
+            {
+
+            }
         }
 
         private void AnnounceLogoff_Change(object sender, System.EventArgs e)
         {
-            Utility.SaveSetting(InventoryModule, CoreManager.Current.CharacterFilter.Name, AnnounceLogoff.Name, AnnounceLogoff.Checked.ToString());
-            Plugin.InventoryTracker.AnnounceLogoff = AnnounceLogoff.Checked;
+            try
+            {
+                Utility.SaveSetting(InventoryModule, CoreManager.Current.CharacterFilter.Name, AnnounceLogoff.Name, AnnounceLogoff.Checked.ToString());
+                Plugin.InventoryTracker.AnnounceLogoff = AnnounceLogoff.Checked;
+            }
+            catch 
+            {
+
+            }
         }
 
         private void PortalBotCheckBox_Change(object sender, System.EventArgs e)
         {
-            if (PortalBotCheckBox.Checked)
+            try
             {
-                Plugin.PortalBotView.View.ShowInBar = true;
-            } else
+                if (PortalBotCheckBox.Checked)
+                {
+                    Plugin.PortalBotView.View.ShowInBar = true;
+                }
+                else
+                {
+                    Plugin.PortalBotView.View.ShowInBar = false;
+                }
+            }
+            catch
             {
-                Plugin.PortalBotView.View.ShowInBar = false;
+
             }
         }
 
         private void ExpTrackerCheckBox_Change(object sender, System.EventArgs e)
         {
-            if (ExpTrackerCheckBox.Checked)
+            try
             {
-                Plugin.ExpTrackerView.View.ShowInBar = true;
+                if (ExpTrackerCheckBox.Checked)
+                {
+                    Plugin.ExpTrackerView.View.ShowInBar = true;
+                }
+                else
+                {
+                    Plugin.ExpTrackerView.View.ShowInBar = false;
+                }
             }
-            else
+            catch 
             {
-                Plugin.ExpTrackerView.View.ShowInBar = false;
+
             }
         }
 
         private void LeadScarabText_Change(object sender, System.EventArgs e)
         {
-            if (int.TryParse(LeadScarabText.Text, out int result))
+            try
             {
-                Plugin.InventoryTracker.MinLead = result;
+                if (int.TryParse(LeadScarabText.Text, out int result))
+                {
+                    Plugin.InventoryTracker.MinLead = result;
+                }
+                else
+                {
+                    Plugin.InventoryTracker.MinLead = -1;
+                    LeadScarabText.Text = "-1";
+                }
+                Utility.SaveSetting(InventoryModule, CoreManager.Current.CharacterFilter.Name, LeadScarabText.Name, LeadScarabText.Text);
             }
-            else
+            catch 
             {
-                Plugin.InventoryTracker.MinLead = -1;
-                LeadScarabText.Text = "-1";
+
             }
-            Utility.SaveSetting(InventoryModule, CoreManager.Current.CharacterFilter.Name, LeadScarabText.Name, LeadScarabText.Text);
         }
 
         private void IronScarabText_Change(object sender, System.EventArgs e)
         {
-            if (int.TryParse(IronScarabText.Text, out int result))
+            try
             {
-                Plugin.InventoryTracker.MinIron = result;
+                if (int.TryParse(IronScarabText.Text, out int result))
+                {
+                    Plugin.InventoryTracker.MinIron = result;
+                }
+                else
+                {
+                    Plugin.InventoryTracker.MinIron = -1;
+                    IronScarabText.Text = "-1";
+                }
+                Utility.SaveSetting(InventoryModule, CoreManager.Current.CharacterFilter.Name, IronScarabText.Name, IronScarabText.Text);
             }
-            else
+            catch 
             {
-                Plugin.InventoryTracker.MinIron = -1;
-                IronScarabText.Text = "-1";
+
             }
-            Utility.SaveSetting(InventoryModule, CoreManager.Current.CharacterFilter.Name, IronScarabText.Name, IronScarabText.Text);
         }
 
         private void CopperScarabText_Change(object sender, System.EventArgs e)
         {
-            if (int.TryParse(CopperScarabText.Text, out int result))
+            try
             {
-                Plugin.InventoryTracker.MinCopper = result;
+                if (int.TryParse(CopperScarabText.Text, out int result))
+                {
+                    Plugin.InventoryTracker.MinCopper = result;
+                }
+                else
+                {
+                    Plugin.InventoryTracker.MinCopper = -1;
+                    CopperScarabText.Text = "-1";
+                }
+                Utility.SaveSetting(InventoryModule, CoreManager.Current.CharacterFilter.Name, CopperScarabText.Name, CopperScarabText.Text);
             }
-            else
+            catch
             {
-                Plugin.InventoryTracker.MinCopper = -1;
-                CopperScarabText.Text = "-1";
+
             }
-            Utility.SaveSetting(InventoryModule, CoreManager.Current.CharacterFilter.Name, CopperScarabText.Name, CopperScarabText.Text);
         }
 
         private void SilverScarabText_Change(object sender, System.EventArgs e)
         {
-            if (int.TryParse(SilverScarabText.Text, out int result))
+            try
             {
-                Plugin.InventoryTracker.MinSilver = result;
+                if (int.TryParse(SilverScarabText.Text, out int result))
+                {
+                    Plugin.InventoryTracker.MinSilver = result;
+                }
+                else
+                {
+                    Plugin.InventoryTracker.MinSilver = -1;
+                    SilverScarabText.Text = "-1";
+                }
+                Utility.SaveSetting(InventoryModule, CoreManager.Current.CharacterFilter.Name, SilverScarabText.Name, SilverScarabText.Text);
             }
-            else
+            catch 
             {
-                Plugin.InventoryTracker.MinSilver = -1;
-                SilverScarabText.Text = "-1";
+
             }
-            Utility.SaveSetting(InventoryModule, CoreManager.Current.CharacterFilter.Name, SilverScarabText.Name, SilverScarabText.Text);
         }
 
         private void GoldScarabText_Change(object sender, System.EventArgs e)
         {
-            if (int.TryParse(GoldScarabText.Text, out int result))
+            try
             {
-                Plugin.InventoryTracker.MinGold = result;
+                if (int.TryParse(GoldScarabText.Text, out int result))
+                {
+                    Plugin.InventoryTracker.MinGold = result;
+                }
+                else
+                {
+                    Plugin.InventoryTracker.MinGold = -1;
+                    GoldScarabText.Text = "-1";
+                }
+                Utility.SaveSetting(InventoryModule, CoreManager.Current.CharacterFilter.Name, GoldScarabText.Name, GoldScarabText.Text);
             }
-            else
+            catch
             {
-                Plugin.InventoryTracker.MinGold = -1;
-                GoldScarabText.Text = "-1";
+
             }
-            Utility.SaveSetting(InventoryModule, CoreManager.Current.CharacterFilter.Name, GoldScarabText.Name, GoldScarabText.Text);
         }
 
         private void PyrealScarabText_Change(object sender, System.EventArgs e)
         {
-            if (int.TryParse(PyrealScarabText.Text, out int result))
+            try
             {
-                Plugin.InventoryTracker.MinPyreal = result;
+                if (int.TryParse(PyrealScarabText.Text, out int result))
+                {
+                    Plugin.InventoryTracker.MinPyreal = result;
+                }
+                else
+                {
+                    Plugin.InventoryTracker.MinPyreal = -1;
+                    PyrealScarabText.Text = "-1";
+                }
+                Utility.SaveSetting(InventoryModule, CoreManager.Current.CharacterFilter.Name, PyrealScarabText.Name, PyrealScarabText.Text);
             }
-            else
+            catch 
             {
-                Plugin.InventoryTracker.MinPyreal = -1;
-                PyrealScarabText.Text = "-1";
+
             }
-            Utility.SaveSetting(InventoryModule, CoreManager.Current.CharacterFilter.Name, PyrealScarabText.Name, PyrealScarabText.Text);
         }
 
         private void PlatinumScarabText_Change(object sender, System.EventArgs e)
         {
-            if (int.TryParse(PlatinumScarabText.Text, out int result))
+            try
             {
-                Plugin.InventoryTracker.MinPlatinum = result;
+                if (int.TryParse(PlatinumScarabText.Text, out int result))
+                {
+                    Plugin.InventoryTracker.MinPlatinum = result;
+                }
+                else
+                {
+                    Plugin.InventoryTracker.MinPlatinum = -1;
+                    PlatinumScarabText.Text = "-1";
+                }
+                Utility.SaveSetting(InventoryModule, CoreManager.Current.CharacterFilter.Name, PlatinumScarabText.Name, PlatinumScarabText.Text);
             }
-            else
+            catch 
             {
-                Plugin.InventoryTracker.MinPlatinum = -1;
-                PlatinumScarabText.Text = "-1";
+
             }
-            Utility.SaveSetting(InventoryModule, CoreManager.Current.CharacterFilter.Name, PlatinumScarabText.Name, PlatinumScarabText.Text);
         }
 
         private void ManaScarabText_Change(object sender, System.EventArgs e)
         {
-            if (int.TryParse(ManaScarabText.Text, out int result))
+            try
             {
-                Plugin.InventoryTracker.MinManaScarabs = result;
+                if (int.TryParse(ManaScarabText.Text, out int result))
+                {
+                    Plugin.InventoryTracker.MinManaScarabs = result;
+                }
+                else
+                {
+                    Plugin.InventoryTracker.MinManaScarabs = -1;
+                    ManaScarabText.Text = "-1";
+                }
+                Utility.SaveSetting(InventoryModule, CoreManager.Current.CharacterFilter.Name, ManaScarabText.Name, ManaScarabText.Text);
             }
-            else
+            catch 
             {
-                Plugin.InventoryTracker.MinManaScarabs = -1;
-                ManaScarabText.Text = "-1";
+
             }
-            Utility.SaveSetting(InventoryModule, CoreManager.Current.CharacterFilter.Name, ManaScarabText.Name, ManaScarabText.Text);
         }
 
         private void TaperText_Change(object sender, System.EventArgs e)
         {
-            if (int.TryParse(TaperText.Text, out int result))
+            try
             {
-                Plugin.InventoryTracker.MinTapers = result;
+                if (int.TryParse(TaperText.Text, out int result))
+                {
+                    Plugin.InventoryTracker.MinTapers = result;
+                }
+                else
+                {
+                    Plugin.InventoryTracker.MinTapers = -1;
+                    TaperText.Text = "-1";
+                }
+                Utility.SaveSetting(InventoryModule, CoreManager.Current.CharacterFilter.Name, TaperText.Name, TaperText.Text);
             }
-            else
+            catch 
             {
-                Plugin.InventoryTracker.MinTapers = -1;
-                TaperText.Text = "-1";
+
             }
-            Utility.SaveSetting(InventoryModule, CoreManager.Current.CharacterFilter.Name, TaperText.Name, TaperText.Text);
         }
     }
 }

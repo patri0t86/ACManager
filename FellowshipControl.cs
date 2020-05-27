@@ -10,124 +10,25 @@ namespace ACManager
 {
     public class FellowshipControl
     {
-        private PluginCore Plugin;
-        private PluginHost Host;
-        private const string Module = "FellowshipManager";
-        public string Password = "XP";
-        public bool AutoFellowEnabled = false;
-        private static List<NewRecruit> RecruitList;
-        public FellowshipEventType FellowStatus { get; set; } = FellowshipEventType.Quit;
+        internal const string Module = "FellowshipManager";
+        private PluginCore Plugin { get; set; }
+        internal string Password { get; set; } = "XP";
+        internal bool AutoFellowEnabled { get; set; } = false;
+        private List<Recruit> Recruits { get; set; } = new List<Recruit>();
+        internal FellowshipEventType FellowStatus { get; set; } = FellowshipEventType.Quit;
+        internal DateTime LastAttempt { get; set; } = DateTime.MinValue;
 
-        public FellowshipControl(PluginCore parent, PluginHost host, CoreManager core)
+        public FellowshipControl(PluginCore parent)
         {
             Plugin = parent;
-            Host = host;
-            RecruitList = new List<NewRecruit>();
             LoadSettings();
-        }
-
-        public void ChatActions(string parsedMessage)
-        {
-            if (AutoFellowEnabled)
-            {
-                Dictionary<string, string> AutoFellowStrings = new Dictionary<string, string>
-                {
-                    ["CreatedFellow"] = @"^You have created the Fellowship",
-                    ["NewLeader"] = string.Format(@"{0} now leads the fellowship", Utility.CharacterName),
-                    ["NotAccepting"] = @"(?<name>.+?) is not accepting fellowing requests",
-                    ["JoinedFellow"] = @"(?<name>.+?) joined the fellowship",
-                    ["ElseLeftFellow"] = @"(?<name>.+?) left the fellowship",
-                    ["RequestFellow"] = string.Format(@"(?<guid>\d+):(?<dupleName>.+?)Tell\s(?<msg>tells)\syou\s(?<secret>{0}$)", Password),
-                    ["DeclinedFellow"] = @"(?<name>.+?) declines your invite",
-                    ["AlreadyFellow"] = @"(?<name>.+?) is already in a fellowship",
-                    ["FullFellow"] = @"^Fellowship is already full"
-                };
-
-                Match match;
-
-                foreach (var item in AutoFellowStrings)
-                {
-                    match = new Regex(item.Value).Match(parsedMessage);
-                    if (match.Success)
-                    {
-                        switch (item.Key)
-                        {
-                            case "CreatedFellow": // You have created the Fellowship
-                                Host.Actions.FellowshipSetOpen(true);
-                                break;
-                            case "NewLeader": // You inherited leader
-                                Host.Actions.FellowshipSetOpen(true);
-                                break;
-                            case "NotAccepting": // Target is not accepting fellowship requests
-                                Host.Actions.InvokeChatParser(string.Format("/t {0}, You are not accepting fellowship requests!", match.Groups["name"].Value));
-                                RemoveRecruit(match.Groups["name"].Value);
-                                break;
-                            case "JoinedFellow": // Target joins the fellowship
-                                RemoveRecruit(match.Groups["name"].Value);
-                                break;
-                            case "ElseLeftFellow": // Someone leaves the fellowship
-                                break;
-                            case "FullFellow": // Fellowship is currently full
-                                Host.Actions.InvokeChatParser(string.Format("/r The fellowship is already full."));
-                                RemoveRecruit(match.Groups["name"].Value);
-                                break;
-                            case "RequestFellow": // Someone /tells you the fellowship password
-                                string name = match.Groups["dupleName"].Value.Substring(0, match.Groups["dupleName"].Value.Length / 2);
-                                if (FellowStatus == FellowshipEventType.Quit)
-                                {
-                                    Host.Actions.InvokeChatParser(string.Format("/t {0}, I'm not currently in a fellowship.", name));
-                                }
-                                if (match.Groups["msg"].Value.Equals("tells") && match.Groups["secret"].Value.Equals(Password))
-                                {
-                                    bool exists = false;
-                                    for (int i = 0; i < RecruitList.Count; i++)
-                                    {
-                                        if (RecruitList[i].Name.Equals(name))
-                                        {
-                                            exists = true;
-                                            Host.Actions.InvokeChatParser(string.Format("/t {0}, You have already requested a fellowship invitation.", name));
-                                        }
-                                    }
-                                    if (!exists)
-                                    {
-                                        int targetGuid = int.Parse(match.Groups["guid"].Value);
-                                        NewRecruit recruit = new NewRecruit(Host, name, targetGuid);
-                                        RecruitList.Add(recruit);
-                                    }
-                                }
-                                break;
-                            case "DeclinedFellow": // Declines fellowship invite
-                                RemoveRecruit(match.Groups["name"].Value);
-                                break;
-                            case "AlreadyFellow": // Target is already in a fellowship
-                                Host.Actions.InvokeChatParser(String.Format("/t {0}, You're already in a fellowship.", match.Groups["name"].Value));
-                                RemoveRecruit(match.Groups["name"].Value);
-                                break;
-                        }
-                        break;
-                    }
-                }
-            }
-        }
-
-        private void RemoveRecruit(string name)
-        {
-            for (int i = 0; i < RecruitList.Count; i++)
-            {
-                if (RecruitList[i].Name.Equals(name))
-                {
-                    RecruitList[i].Stop();
-                    RecruitList.RemoveAt(i);
-                    break;
-                }
-            }
         }
 
         private void LoadSettings()
         {
             try
             {
-                XmlNode node = Utility.LoadCharacterSettings(Module, characterName:Utility.CharacterName);
+                XmlNode node = Utility.LoadCharacterSettings(Module, characterName: CoreManager.Current.CharacterFilter.Name);
                 if (node != null)
                 {
                     XmlNodeList settingNodes = node.ChildNodes;
@@ -159,76 +60,159 @@ namespace ACManager
             catch (Exception ex) { Utility.LogError(ex); }
         }
 
-        public void SetPassword(string setting, string value)
+        public void ChatActions(string parsedMessage)
         {
-            Utility.SaveSetting(Module, CoreManager.Current.CharacterFilter.Name, setting, value);
-            Password = value;
-        }
-
-        public void SetAutoFellow(string setting, bool value)
-        {
-            Utility.SaveSetting(Module, CoreManager.Current.CharacterFilter.Name, setting, value.ToString());
-            AutoFellowEnabled = value;
-            if (value && FellowStatus == FellowshipEventType.Create)
+            if (AutoFellowEnabled)
             {
-                Host.Actions.FellowshipSetOpen(true);
+                Dictionary<string, string> AutoFellowStrings = new Dictionary<string, string>
+                {
+                    ["CreatedFellow"] = @"^You have created the Fellowship",
+                    ["NewLeader"] = string.Format(@"{0} now leads the fellowship", CoreManager.Current.CharacterFilter.Name),
+                    ["NotAccepting"] = @"(?<name>.+?) is not accepting fellowing requests",
+                    ["JoinedFellow"] = @"(?<name>.+?) joined the fellowship",
+                    ["ElseLeftFellow"] = @"(?<name>.+?) left the fellowship",
+                    ["RequestFellow"] = string.Format(@"(?<guid>\d+):(?<dupleName>.+?)Tell\s(?<msg>tells)\syou\s(?<secret>{0}$)", Password),
+                    ["DeclinedFellow"] = @"(?<name>.+?) declines your invite",
+                    ["AlreadyFellow"] = @"(?<name>.+?) is already in a fellowship",
+                    ["FullFellow"] = @"^Fellowship is already full",
+                    ["TargetJoined"] = @"(?<name>.+?) is now a member of your Fellowship",
+                    ["YouDisband"] = @"^You have disbanded your Fellowship",
+                    ["YouQuit"] = @"^You are no longer a member of",
+                    ["YouWereDismissed"] = @"has dismissed you from the Fellowship",
+                    ["FellowWasDisbanded"] = @"has disbanded your Fellowship",
+                    ["Recruited"] = @"You have been recruited"
+                };
+
+                Match match;
+
+                foreach (KeyValuePair<string, string> item in AutoFellowStrings)
+                {
+                    match = new Regex(item.Value).Match(parsedMessage);
+                    if (match.Success)
+                    {
+                        switch (item.Key)
+                        {
+                            case "Recruited":
+                                FellowStatus = FellowshipEventType.Create;
+                                break;
+                            case "YouDisband":
+                                FellowStatus = FellowshipEventType.Disband;
+                                break;
+                            case "YouQuit":
+                                FellowStatus = FellowshipEventType.Quit;
+                                break;
+                            case "YouWereDismissed":
+                                FellowStatus = FellowshipEventType.Dismiss;
+                                break;
+                            case "FellowWasDisbanded":
+                                FellowStatus = FellowshipEventType.Disband;
+                                break;
+                            case "CreatedFellow": // You have created the Fellowship
+                                FellowStatus = FellowshipEventType.Create;
+                                CoreManager.Current.Actions.FellowshipSetOpen(true);
+                                break;
+                            case "NewLeader": // You inherited leader
+                                CoreManager.Current.Actions.FellowshipSetOpen(true);
+                                break;
+                            case "NotAccepting": // Target is not accepting fellowship requests
+                                CoreManager.Current.Actions.InvokeChatParser(string.Format("/t {0}, You are not accepting fellowship requests!", match.Groups["name"].Value));
+                                Remove(match.Groups["name"].Value);
+                                break;
+                            case "JoinedFellow": // Target joins the fellowship
+                                Remove(match.Groups["name"].Value);
+                                break;
+                            case "ElseLeftFellow": // Someone leaves the fellowship
+                                break;
+                            case "FullFellow": // Fellowship is currently full
+                                CoreManager.Current.Actions.InvokeChatParser(string.Format("/r The fellowship is already full."));
+                                Remove(match.Groups["name"].Value);
+                                break;
+                            case "TargetJoined":
+                                Remove(match.Groups["name"].Value);
+                                break;
+                            case "RequestFellow": // Someone /tells you the fellowship password
+                                string name = match.Groups["dupleName"].Value.Substring(0, match.Groups["dupleName"].Value.Length / 2);
+                                if (!FellowStatus.Equals(FellowshipEventType.Create))
+                                {
+                                    CoreManager.Current.Actions.InvokeChatParser(string.Format("/t {0}, I'm not currently in a fellowship.", name));
+                                }
+                                else if (match.Groups["msg"].Value.Equals("tells") && match.Groups["secret"].Value.Equals(Password))
+                                {
+                                    bool exists = false;
+                                    for (int i = 0; i < Recruits.Count; i++)
+                                    {
+                                        if (Recruits[i].Name.Equals(name))
+                                        {
+                                            exists = true;
+                                            CoreManager.Current.Actions.InvokeChatParser(string.Format("/t {0}, You have already requested a fellowship invitation.", name));
+                                        }
+                                    }
+                                    if (!exists)
+                                    {
+                                        CoreManager.Current.Actions.InvokeChatParser(string.Format("/t {0}, Please stand near me, I'm going to try and recruit you into the fellowship.", name));
+                                        int targetGuid = int.Parse(match.Groups["guid"].Value);
+                                        Recruit recruit = new Recruit(name, targetGuid);
+                                        Recruits.Add(recruit);
+                                    }
+                                }
+                                break;
+                            case "DeclinedFellow": // Declines fellowship invite
+                                Remove(match.Groups["name"].Value);
+                                break;
+                            case "AlreadyFellow": // Target is already in a fellowship
+                                CoreManager.Current.Actions.InvokeChatParser(String.Format("/t {0}, You're already in a fellowship.", match.Groups["name"].Value));
+                                Remove(match.Groups["name"].Value);
+                                break;
+                        }
+                        break;
+                    }
+                }
             }
         }
 
-        private class NewRecruit
+        public void CheckRecruit()
         {
-            private PluginHost Host;
-            private Timer Timer;
+            if (Recruits.Count > 0 && DateTime.Now - LastAttempt > TimeSpan.FromMilliseconds(2000))
+            {
+                LastAttempt = DateTime.Now;
+                for (int i = 0; i < Recruits.Count; i++)
+                {
+                    Recruits[i].Attempts += 1;
+                    if (Recruits[i].Attempts >= 10)
+                    {
+                        CoreManager.Current.Actions.InvokeChatParser(string.Format("/t {0}, I wasn't able to recruit you into the fellowship, or you did not accept the invite.", Recruits[i].Name));
+                        Remove(Recruits[i].Name);
+                    } else
+                    {
+                        CoreManager.Current.Actions.FellowshipRecruit(Recruits[i].Guid);
+                    }
+                }
+            }
+        }
+
+        private void Remove(string name)
+        {
+            for (int i = 0; i < Recruits.Count; i++)
+            {
+                if (Recruits[i].Name.Equals(name))
+                {
+                    Recruits.RemoveAt(i);
+                    break;
+                }
+            }
+        }
+
+        private class Recruit
+        {
             public string Name { get; set; }
-            private int Id, Attempts;
-            public NewRecruit(PluginHost host, string target, int guid)
+            public int Guid { get; set; }
+            public int Attempts { get; set; }
+            public Recruit(string name, int guid)
             {
-                Host = host;
-                Name = target;
-                Id = guid;
-                Start();
-            }
-            
-            private void Start()
-            {
-                Host.Actions.InvokeChatParser(string.Format("/t {0}, Please stand near me, I'm going to try and recruit you into the fellowship.", Name));
-                Timer = new Timer(1000);
-                Timer.Elapsed += AttemptRecruit;
-                Timer.AutoReset = true;
-                Timer.Start();
-            }
-
-            private void AttemptRecruit(object sender, ElapsedEventArgs e)
-            {
-                Attempts++;
-                if (Attempts == 10)
-                {
-                    Host.Actions.InvokeChatParser(string.Format("/t {0}, I haven't been able to recruit you, or you haven't accepted my invite. " +
-                        "Please get closer and I'll attempt to recruit you for another 10 seconds.", Name));
-                }
-                if (Attempts <= 20)
-                {
-                    Host.Actions.FellowshipRecruit(Id);
-                }
-                if (Attempts >= 20)
-                {
-                    Host.Actions.InvokeChatParser(string.Format("/t {0}, I wasn't able to recruit you into the fellowship. Please try again.", Name));
-                    Stop();
-                }
-            }
-
-            public void Stop()
-            { 
-                Timer.Stop();
-                Host = null;
-                Timer = null;
-                Name = null;
-                Id = 0;
+                Name = name;
+                Guid = guid;
                 Attempts = 0;
-                RecruitList.Remove(this);
             }
-
         }
-
     }
 }

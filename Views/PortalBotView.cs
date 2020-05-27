@@ -62,100 +62,171 @@ namespace ACManager.Views
 
         private void PrimaryKeyword_Change(object sender, EventArgs e)
         {
-            HudStaticText selectedCharacter = (HudStaticText)CharacterChoice[CharacterChoice.Current];
-            Utility.SaveSetting(Module, selectedCharacter.Text, "PrimaryKeyword", PrimaryKeyword.Text.ToLower());
+            try
+            {
+                if (CharacterSeleceted())
+                {
+                    HudStaticText selectedCharacter = (HudStaticText)CharacterChoice[CharacterChoice.Current];
+                    Utility.SaveSetting(Module, selectedCharacter.Text, "PrimaryKeyword", PrimaryKeyword.Text.ToLower());
+                }
+            }
+            catch
+            {
+
+            }
         }
 
         private void SecondaryKeyword_Change(object sender, EventArgs e)
         {
-            HudStaticText selectedCharacter = (HudStaticText)CharacterChoice[CharacterChoice.Current];
-            Utility.SaveSetting(Module, selectedCharacter.Text, "SecondaryKeyword", SecondaryKeyword.Text.ToLower());
+            try
+            {
+                if (CharacterSeleceted())
+                {
+                    HudStaticText selectedCharacter = (HudStaticText)CharacterChoice[CharacterChoice.Current];
+                    Utility.SaveSetting(Module, selectedCharacter.Text, "SecondaryKeyword", SecondaryKeyword.Text.ToLower());
+                }
+            }
+            catch 
+            {
+
+            }
         }
 
         private void PrimaryDescription_Change(object sender, EventArgs e)
         {
-            HudStaticText selectedCharacter = (HudStaticText)CharacterChoice[CharacterChoice.Current];
-            Utility.SaveSetting(Module, selectedCharacter.Text, "PrimaryDescription", PrimaryDescription.Text);
+            try
+            {
+                if (CharacterSeleceted())
+                {
+                    HudStaticText selectedCharacter = (HudStaticText)CharacterChoice[CharacterChoice.Current];
+                    Utility.SaveSetting(Module, selectedCharacter.Text, "PrimaryDescription", PrimaryDescription.Text);
+                }
+            }
+            catch
+            {
+
+            }
         }
 
         private void SecondaryDescription_Change(object sender, EventArgs e)
         {
+            try
+            {
+                if (CharacterSeleceted())
+                {
+                    HudStaticText selectedCharacter = (HudStaticText)CharacterChoice[CharacterChoice.Current];
+                    Utility.SaveSetting(Module, selectedCharacter.Text, "SecondaryDescription", SecondaryDescription.Text);
+                }
+            }
+            catch 
+            { 
+
+            }
+        }
+
+        private bool CharacterSeleceted()
+        {
             HudStaticText selectedCharacter = (HudStaticText)CharacterChoice[CharacterChoice.Current];
-            Utility.SaveSetting(Module, selectedCharacter.Text, "SecondaryDescription", SecondaryDescription.Text);
+            if (selectedCharacter.Text.Equals("Select character..."))
+            {
+                return false;
+            }
+            return true;
         }
 
         private void AddAdvertisement_Hit(object sender, EventArgs e)
         {
-            HudList.HudListRowAccessor row = Advertisements.AddRow();
-            HudStaticText control = new HudStaticText();
-            control.Text = NewAdvertisement.Text;
-            row[0] = control;
-            Utility.SaveSetting("PortalBot", characterName: "BotGlobal", $"Ad{DateTime.Now.Ticks}", NewAdvertisement.Text);
-            NewAdvertisement.Text = "";
+            try
+            {
+                HudList.HudListRowAccessor row = Advertisements.AddRow();
+                HudStaticText control = new HudStaticText();
+                control.Text = NewAdvertisement.Text;
+                row[0] = control;
+                Utility.SaveSetting("PortalBot", characterName: "BotGlobal", $"Ad{DateTime.Now.Ticks}", NewAdvertisement.Text);
+                NewAdvertisement.Text = "";
+            }
+            catch
+            {
+
+            }
         }
 
         private void Advertisements_Click(object sender, int row, int col)
         {
-            HudList.HudListRowAccessor rowToDelete = Advertisements[row];
-            HudStaticText item = (HudStaticText)rowToDelete[row];
-            Utility.DeleteSetting("PortalBot", "BotGlobal", item.Text);
-            Advertisements.RemoveRow(row);
+            try
+            {
+                HudStaticText rowToDelete = (HudStaticText)Advertisements[row][0];
+                Utility.DeleteSetting("PortalBot", "BotGlobal", rowToDelete.Text);
+                Advertisements.RemoveRow(row);
+            }
+            catch 
+            {
+
+            }
         }
 
         private void CharacterChoice_Change(object sender, EventArgs e)
         {
-            if (CharacterChoice.Current == 0)
+            try
             {
+                if (CharacterChoice.Current == 0)
+                {
+                    PrimaryKeyword.Text = "";
+                    SecondaryKeyword.Text = "";
+                    PrimaryDescription.Text = "";
+                    SecondaryDescription.Text = "";
+                    return;
+                }
+
+                HudStaticText selectedCharacter = (HudStaticText)CharacterChoice[CharacterChoice.Current];
+                string character = selectedCharacter.Text;
+                if (character.Contains(" "))
+                {
+                    character = character.Replace(" ", "_");
+                }
                 PrimaryKeyword.Text = "";
                 SecondaryKeyword.Text = "";
                 PrimaryDescription.Text = "";
                 SecondaryDescription.Text = "";
-                return;
-            }
 
-            HudStaticText selectedCharacter = (HudStaticText)CharacterChoice[CharacterChoice.Current];
-            if (selectedCharacter.Text.Contains(" "))
-            {
-                selectedCharacter.Text = selectedCharacter.Text.Replace(" ", "_");
-            }
-            PrimaryKeyword.Text = "";
-            SecondaryKeyword.Text = "";
-            PrimaryDescription.Text = "";
-            SecondaryDescription.Text = "";
-
-            XmlNode node = Utility.LoadCharacterSettings(Module, portal: true);
-            if (node != null)
-            {
-                XmlNodeList charNodes = node.ChildNodes;
-                if (charNodes.Count > 0)
+                XmlNode node = Utility.LoadCharacterSettings(Module, portal: true);
+                if (node != null)
                 {
-                    for (int i = 0; i < charNodes.Count; i++)
+                    XmlNodeList charNodes = node.ChildNodes;
+                    if (charNodes.Count > 0)
                     {
-                        if (charNodes[i].Name == selectedCharacter.Text)
+                        for (int i = 0; i < charNodes.Count; i++)
                         {
-                            foreach (XmlNode aNode in charNodes[i])
+                            if (charNodes[i].Name == character)
                             {
-                                if (aNode.Name == "PrimaryKeyword")
+                                foreach (XmlNode aNode in charNodes[i])
                                 {
-                                    PrimaryKeyword.Text = aNode.InnerText;
+                                    if (aNode.Name == "PrimaryKeyword")
+                                    {
+                                        PrimaryKeyword.Text = aNode.InnerText;
+                                    }
+                                    if (aNode.Name == "SecondaryKeyword")
+                                    {
+                                        SecondaryKeyword.Text = aNode.InnerText;
+                                    }
+                                    if (aNode.Name == "PrimaryDescription")
+                                    {
+                                        PrimaryDescription.Text = aNode.InnerText;
+                                    }
+                                    if (aNode.Name == "SecondaryDescription")
+                                    {
+                                        SecondaryDescription.Text = aNode.InnerText;
+                                    }
                                 }
-                                if (aNode.Name == "SecondaryKeyword")
-                                {
-                                    SecondaryKeyword.Text = aNode.InnerText;
-                                }
-                                if (aNode.Name == "PrimaryDescription")
-                                {
-                                    PrimaryDescription.Text = aNode.InnerText;
-                                }
-                                if (aNode.Name == "SecondaryDescription")
-                                {
-                                    SecondaryDescription.Text = aNode.InnerText;
-                                }
+                                break;
                             }
-                            break;
                         }
                     }
                 }
+            }
+            catch 
+            {
+
             }
         }
 

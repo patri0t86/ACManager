@@ -21,12 +21,6 @@ namespace ACManager
         private static readonly string ErrorFile = PluginFolder + @"\errors.txt";
         private static readonly string CrashLog = PluginFolder + @"\crashlog.txt";
 
-        public static PluginHost Host { get; set; }
-        public static CoreManager Core { get; set; }
-        public static string PluginName { get; set; }
-        public static string CharacterName { get; set; }
-        internal static string AccountName { get; set; }
-        internal static string ServerName { get; set; }
         public static void SaveSetting(string module, string characterName, string setting, string value)
         {
             if (characterName.Contains(" "))
@@ -40,24 +34,24 @@ namespace ACManager
                     XmlDocument doc = new XmlDocument();
                     doc.Load(SettingsFile);
 
-                    XmlNode node = doc.SelectSingleNode(String.Format(@"/Settings/{0}", ServerName));
+                    XmlNode node = doc.SelectSingleNode(String.Format(@"/Settings/{0}", CoreManager.Current.CharacterFilter.Server));
                     {
                         if (node != null)
                         // this server exists
                         {
-                            node = doc.SelectSingleNode(String.Format(@"/Settings/{0}/{1}", ServerName, AccountName));
+                            node = doc.SelectSingleNode(String.Format(@"/Settings/{0}/{1}", CoreManager.Current.CharacterFilter.Server, CoreManager.Current.CharacterFilter.AccountName));
                             if (node != null)
                             {
                                 // account exists
-                                node = doc.SelectSingleNode(String.Format(@"/Settings/{0}/{1}/{2}", ServerName, AccountName, module));
+                                node = doc.SelectSingleNode(String.Format(@"/Settings/{0}/{1}/{2}", CoreManager.Current.CharacterFilter.Server, CoreManager.Current.CharacterFilter.AccountName, module));
                                 if (node != null)
                                 {
                                     // module exists
-                                    node = doc.SelectSingleNode(String.Format(@"/Settings/{0}/{1}/{2}/Characters/{3}", ServerName, AccountName, module, characterName));
+                                    node = doc.SelectSingleNode(String.Format(@"/Settings/{0}/{1}/{2}/Characters/{3}", CoreManager.Current.CharacterFilter.Server, CoreManager.Current.CharacterFilter.AccountName, module, characterName));
                                     if (node != null)
                                     {
                                         // character exists
-                                        node = doc.SelectSingleNode(String.Format(@"/Settings/{0}/{1}/{2}/Characters/{3}/{4}", ServerName, AccountName, module, characterName, setting));
+                                        node = doc.SelectSingleNode(String.Format(@"/Settings/{0}/{1}/{2}/Characters/{3}/{4}", CoreManager.Current.CharacterFilter.Server, CoreManager.Current.CharacterFilter.AccountName, module, characterName, setting));
                                         if (node != null)
                                         {
                                             // setting exists
@@ -66,7 +60,7 @@ namespace ACManager
                                         else
                                         {
                                             // setting does not exist
-                                            node = doc.SelectSingleNode(String.Format(@"/Settings/{0}/{1}/{2}/Characters/{3}", ServerName, AccountName, module, characterName));
+                                            node = doc.SelectSingleNode(String.Format(@"/Settings/{0}/{1}/{2}/Characters/{3}", CoreManager.Current.CharacterFilter.Server, CoreManager.Current.CharacterFilter.AccountName, module, characterName));
                                             XmlNode newSetting = doc.CreateNode(XmlNodeType.Element, setting, string.Empty);
                                             newSetting.InnerText = value;
                                             node.AppendChild(newSetting);
@@ -75,7 +69,7 @@ namespace ACManager
                                     else
                                     {
                                         // character does not exist
-                                        node = doc.SelectSingleNode(String.Format(@"/Settings/{0}/{1}/{2}/Characters", ServerName, AccountName, module));
+                                        node = doc.SelectSingleNode(String.Format(@"/Settings/{0}/{1}/{2}/Characters", CoreManager.Current.CharacterFilter.Server, CoreManager.Current.CharacterFilter.AccountName, module));
                                         XmlNode newCharacterNode = doc.CreateNode(XmlNodeType.Element, characterName, string.Empty);
                                         XmlNode newSetting = doc.CreateNode(XmlNodeType.Element, setting, string.Empty);
                                         newSetting.InnerText = value;
@@ -86,7 +80,7 @@ namespace ACManager
                                 else
                                 {
                                     // module does not exist
-                                    node = doc.SelectSingleNode(String.Format(@"/Settings/{0}/{1}", ServerName, AccountName));
+                                    node = doc.SelectSingleNode(String.Format(@"/Settings/{0}/{1}", CoreManager.Current.CharacterFilter.Server, CoreManager.Current.CharacterFilter.AccountName));
                                     XmlNode newModule = doc.CreateNode(XmlNodeType.Element, module, string.Empty);
                                     XmlNode newCharacters = doc.CreateNode(XmlNodeType.Element, "Characters", string.Empty);
                                     XmlNode newCharacterNode = doc.CreateNode(XmlNodeType.Element, characterName, string.Empty);
@@ -101,8 +95,8 @@ namespace ACManager
                             else
                             {
                                 // account doesn't exist
-                                node = doc.SelectSingleNode(String.Format(@"/Settings/{0}", ServerName));
-                                XmlNode newAccount = doc.CreateNode(XmlNodeType.Element, AccountName, string.Empty);
+                                node = doc.SelectSingleNode(String.Format(@"/Settings/{0}", CoreManager.Current.CharacterFilter.Server));
+                                XmlNode newAccount = doc.CreateNode(XmlNodeType.Element, CoreManager.Current.CharacterFilter.AccountName, string.Empty);
                                 XmlNode newModule = doc.CreateNode(XmlNodeType.Element, module, string.Empty);
                                 XmlNode newCharacters = doc.CreateNode(XmlNodeType.Element, "Characters", string.Empty);
                                 XmlNode newCharacterNode = doc.CreateNode(XmlNodeType.Element, characterName, string.Empty);
@@ -119,8 +113,8 @@ namespace ACManager
                         {
                             // server doesn't exists
                             node = doc.SelectSingleNode(@"/Settings");
-                            XmlNode newServer = doc.CreateNode(XmlNodeType.Element, ServerName, string.Empty);
-                            XmlNode newAccount = doc.CreateNode(XmlNodeType.Element, AccountName, string.Empty);
+                            XmlNode newServer = doc.CreateNode(XmlNodeType.Element, CoreManager.Current.CharacterFilter.Server, string.Empty);
+                            XmlNode newAccount = doc.CreateNode(XmlNodeType.Element, CoreManager.Current.CharacterFilter.AccountName, string.Empty);
                             XmlNode newModule = doc.CreateNode(XmlNodeType.Element, module, string.Empty);
                             XmlNode newCharacters = doc.CreateNode(XmlNodeType.Element, "Characters", string.Empty);
                             XmlNode newCharacterNode = doc.CreateNode(XmlNodeType.Element, characterName, string.Empty);
@@ -146,8 +140,8 @@ namespace ACManager
                         writer.WriteStartDocument();
                         writer.WriteStartElement("Settings");
 
-                        writer.WriteStartElement(ServerName);
-                        writer.WriteStartElement(AccountName);
+                        writer.WriteStartElement(CoreManager.Current.CharacterFilter.Server);
+                        writer.WriteStartElement(CoreManager.Current.CharacterFilter.AccountName);
                         writer.WriteStartElement(module);
                         writer.WriteStartElement("Characters");
                         writer.WriteStartElement(characterName);
@@ -205,10 +199,10 @@ namespace ACManager
                 doc.Load(SettingsFile);
                 if (portal == false)
                 {
-                    node = doc.SelectSingleNode(String.Format(@"/Settings/{0}/{1}/{2}/Characters/{3}", ServerName, AccountName,  module, characterName));
+                    node = doc.SelectSingleNode(String.Format(@"/Settings/{0}/{1}/{2}/Characters/{3}", CoreManager.Current.CharacterFilter.Server, CoreManager.Current.CharacterFilter.AccountName,  module, characterName));
                 } else
                 {
-                    node = doc.SelectSingleNode(String.Format(@"/Settings/{0}/{1}/{2}/Characters", ServerName, AccountName, module));
+                    node = doc.SelectSingleNode(String.Format(@"/Settings/{0}/{1}/{2}/Characters", CoreManager.Current.CharacterFilter.Server, CoreManager.Current.CharacterFilter.AccountName, module));
                 }
             }
             return node;
@@ -223,20 +217,20 @@ namespace ACManager
                     XmlDocument doc = new XmlDocument();
                     doc.Load(SettingsFile);
 
-                    XmlNode node = doc.SelectSingleNode(String.Format(@"/Settings/{0}", ServerName));
+                    XmlNode node = doc.SelectSingleNode(String.Format(@"/Settings/{0}", CoreManager.Current.CharacterFilter.Server));
                     {
                         if (node != null)
                         // this server exists
                         {
-                            node = doc.SelectSingleNode(String.Format(@"/Settings/{0}/{1}", ServerName, AccountName));
+                            node = doc.SelectSingleNode(String.Format(@"/Settings/{0}/{1}", CoreManager.Current.CharacterFilter.Server, CoreManager.Current.CharacterFilter.AccountName));
                             if (node != null)
                             {
                                 // account exists
-                                node = doc.SelectSingleNode(String.Format(@"/Settings/{0}/{1}/{2}", ServerName, AccountName, module));
+                                node = doc.SelectSingleNode(String.Format(@"/Settings/{0}/{1}/{2}", CoreManager.Current.CharacterFilter.Server, CoreManager.Current.CharacterFilter.AccountName, module));
                                 if (node != null)
                                 {
                                     // module exists
-                                    node = doc.SelectSingleNode(String.Format(@"/Settings/{0}/{1}/{2}/Characters/{3}", ServerName, AccountName, module, characterName));
+                                    node = doc.SelectSingleNode(String.Format(@"/Settings/{0}/{1}/{2}/Characters/{3}", CoreManager.Current.CharacterFilter.Server, CoreManager.Current.CharacterFilter.AccountName, module, characterName));
                                     if (node != null)
                                     {
                                         XmlNodeList ads = node.ChildNodes;
@@ -271,7 +265,7 @@ namespace ACManager
         {
             try
             {
-                Host.Actions.AddChatText(" <{ " + PluginName + " }>: " + message, 5);
+                CoreManager.Current.Actions.AddChatText(" <{ " + PluginCore.PluginName + " }>: " + message, 5);
             }
             catch (Exception ex) { LogError(ex); }
         }
