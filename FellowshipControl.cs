@@ -10,9 +10,8 @@ namespace ACManager
 {
     public class FellowshipControl
     {
-        private PluginCore Parent;
+        private PluginCore Plugin;
         private PluginHost Host;
-        private CoreManager Core;
         private const string Module = "FellowshipManager";
         public string Password = "XP";
         public bool AutoFellowEnabled = false;
@@ -21,9 +20,8 @@ namespace ACManager
 
         public FellowshipControl(PluginCore parent, PluginHost host, CoreManager core)
         {
-            Parent = parent;
+            Plugin = parent;
             Host = host;
-            Core = core;
             RecruitList = new List<NewRecruit>();
             LoadSettings();
         }
@@ -143,13 +141,13 @@ namespace ACManager
                                     if (!string.IsNullOrEmpty(aNode.InnerText))
                                     {
                                         Password = aNode.InnerText;
-                                        Parent.SetPassword(Password);
+                                        Plugin.MainView.SecretPassword.Text = aNode.InnerText;
                                     }
                                     break;
                                 case "AutoFellow":
                                     if (aNode.InnerText.Equals("True"))
                                     {
-                                        Parent.SetAutoFellow(true);
+                                        Plugin.MainView.AutoFellow.Checked = true;
                                         AutoFellowEnabled = true;
                                     }
                                     break;
@@ -163,13 +161,13 @@ namespace ACManager
 
         public void SetPassword(string setting, string value)
         {
-            Utility.SaveSetting(Module, Utility.CharacterName, setting, value);
+            Utility.SaveSetting(Module, CoreManager.Current.CharacterFilter.Name, setting, value);
             Password = value;
         }
 
         public void SetAutoFellow(string setting, bool value)
         {
-            Utility.SaveSetting(Module, Utility.CharacterName, setting, value.ToString());
+            Utility.SaveSetting(Module, CoreManager.Current.CharacterFilter.Name, setting, value.ToString());
             AutoFellowEnabled = value;
             if (value && FellowStatus == FellowshipEventType.Create)
             {
@@ -227,7 +225,7 @@ namespace ACManager
                 Name = null;
                 Id = 0;
                 Attempts = 0;
-                FellowshipControl.RecruitList.Remove(this);
+                RecruitList.Remove(this);
             }
 
         }

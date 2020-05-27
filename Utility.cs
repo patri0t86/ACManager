@@ -4,6 +4,9 @@ using System;
 using Microsoft.Win32;
 using System.IO;
 using System.Xml;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Reflection;
 
 namespace ACManager
 {
@@ -161,6 +164,33 @@ namespace ACManager
             }
         }
 
+        public static List<string> GetAdvertisements()
+        {
+            try
+            {
+                List<string> advertisements = new List<string>();
+                if (File.Exists(SettingsFile))
+                {
+                    XmlDocument doc = new XmlDocument();
+                    doc.Load(SettingsFile);
+                    XmlNode node = doc.SelectSingleNode(string.Format(@"/Settings/{0}/{1}/{2}/Characters/{3}", CoreManager.Current.CharacterFilter.Server, CoreManager.Current.CharacterFilter.AccountName, "PortalBot", "BotGlobal"));
+                    if (node != null)
+                    {
+                        XmlNodeList ads = node.ChildNodes;
+                        foreach (XmlNode ad in ads)
+                        {
+                            advertisements.Add(ad.InnerText);
+                        }
+                    }
+                }
+                return advertisements;
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
         public static XmlNode LoadCharacterSettings(string module, bool portal=false, string characterName="")
         {
             if (characterName.Contains(" "))
@@ -285,6 +315,11 @@ namespace ACManager
                 }
             }
             catch (Exception ex) { LogError(ex); }
+        }
+
+        public static string GetVersion()
+        {
+            return FileVersionInfo.GetVersionInfo(Assembly.GetExecutingAssembly().Location).ProductVersion;
         }
     }
 }

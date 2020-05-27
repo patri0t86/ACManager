@@ -14,9 +14,9 @@ NOTE: If you completely tax your system resources (max CPU/RAM/etc.) your system
 
 ## Usage
 
-1. Use the ACManager Decal plugin to easily edit the portal mapping to your characters.
-   1. This can be found under the "Portal Bot" tab.
-2. Once your ties are set up for each character, type `/acm start` and the bot will begin.
+1. Use the ACManager plugin to easily edit the portal mapping to your characters.
+   1. This can be accessed by checking the "Portal Bot" check box on the "Controls" tab. Pressing this check box does **not** start the bot.
+2. Once your ties are set up for each character, type `/acm start` and the bot will start.
 3. To stop your bot, type `/acm stop` or completely close your client.
 
 ## Assumptions 
@@ -55,13 +55,13 @@ These recommendations will allow the bot to restart automatically, even on serve
 
 1. You can have as many advertisements as you want, customized any way you want. It is highly recommended to control the advertisement creation and deletion through the GUI since it will handle it for you. However, if you want to edit the XML directly, you can. Any manual edits will not show up in the GUI until the next login, but the bot will read all XML edits live.
 2. The frontend plugin initially started as a completely different plugin, with the portal bot added later. Any additional funtionality is hopefully fairly self-explanatory, but as a quick rundown:
-   1. *Recruit Command* on the main page is a custom, case-sensitive password you can set for fellowship management. If you are in an open fellowship, or lead a fellowship, if someone whispers you that command, they will automatically receive a fellowship invite. This command can be anything you want to set.
+   1. *Recruit Command* is a custom, case-sensitive password you can set for fellowship management. If you are in an open fellowship, or lead a fellowship, if someone whispers you that command, they will automatically receive a fellowship invite. This command can be anything you want to set.
    2. *Auto Respond* has some minor functionality built-in. Whisper "comps" to get a status on comps. Or whisper any in-game name and the bot will respond with how many of those items it currently possesses, i.e. "Prismatic Taper" or "Brood Matron Carapace".
-   3. XP Tracker should be totally self-explanatory.
-   4. *Low Comps* gives you the ability to log off a character automatically if it runs low on a component. You have the option to broadcast your disconnect to your fellowship.
+   3. EXP Tracker should be totally self-explanatory.
+   4. *Low Comp. Logoff* gives you the ability to log off a character automatically if it runs low on a component. You have the option to broadcast your disconnect to your fellowship.
 
 ### For What It's Worth
 
-The original plugin, that the bot piggybacked on, was intended for general gameplay/personal use. The plan is to refactor it completely into cleaner, more maintainable code. Don't use the plugin code as exmaple code, it's ugly, and my first run at a Decal plugin while learning!
+The original plugin, that the bot piggybacked on, was intended for general gameplay/personal use. The plan is to refactor it completely into cleaner, more maintainable code. It's ugly in its current form!
 
 My plan is for this project to grow and evolve to help the entire AC community. If you have any issues, or feature requests, please record them here so I can properly track and respond. As the project name implies, my intention was for this bot to be your best friend, and manager of AC :)

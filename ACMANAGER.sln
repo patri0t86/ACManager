@@ -23,12 +23,10 @@ Global
 		SolutionGuid = {ECC1C99F-4C7B-4BC7-8772-015A5979EBDF}
 	EndGlobalSection
 	GlobalSection(AutomaticVersions) = postSolution
-		UpdateAssemblyVersion = True
-		UpdateAssemblyFileVersion = True
-		UpdateAssemblyInfoVersion = True
-		AssemblyVersionSettings = None.None.DayOfYearStamp.IncrementWithResetOnIncrease
-		AssemblyFileVersionSettings = None.None.DayOfYearStamp.IncrementWithResetOnIncrease
-		AssemblyInfoVersionSettings = None.None.DayOfYearStamp.IncrementWithResetOnIncrease
+		UpdateAssemblyVersion = False
+		UpdateAssemblyFileVersion = False
+		UpdateAssemblyInfoVersion = False
+		ShouldCreateLogs = True
 		UpdatePackageVersion = False
 		AssemblyInfoVersionType = SettingsVersion
 		InheritWinAppVersionFrom = None

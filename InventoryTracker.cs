@@ -24,26 +24,26 @@ namespace ACManager
                         "Mana Scarab",
                         "Prismatic Taper"
                         };
-        private int MinLead = -1;
-        private int MinIron = -1;
-        private int MinCopper = -1;
-        private int MinSilver = -1;
-        private int MinGold = -1;
-        private int MinPyreal = -1;
-        private int MinPlatinum = -1;
-        private int MinManaScarabs = -1;
-        private int MinTapers = -1;
-        public bool LogoffEnabled { get; set; }
-        public bool AnnounceLogoff { get; set; }
-        public int CurLead { get; set; }
-        public int CurIron { get; set; }
-        public int CurCopper { get; set; }
-        public int CurSilver { get; set; }
-        public int CurGold { get; set; }
-        public int CurPyreal { get; set; }
-        public int CurPlatinum { get; set; }
-        public int CurManaScarabs { get; set; }
-        public int CurTapers { get; set; }
+        internal int MinLead { get; set; } = -1;
+        internal int MinIron {get;set;} = -1;
+        internal int MinCopper {get;set;} = -1;
+        internal int MinSilver {get;set;} = -1;
+        internal int MinGold {get;set;} = -1;
+        internal int MinPyreal {get;set;} = -1;
+        internal int MinPlatinum {get;set;} = -1;
+        internal int MinManaScarabs {get;set;} = -1;
+        internal int MinTapers {get;set;} = -1;
+        internal bool LogoffEnabled { get; set; }
+        internal bool AnnounceLogoff { get; set; }
+        internal int CurLead { get; set; }
+        internal int CurIron { get; set; }
+        internal int CurCopper { get; set; }
+        internal int CurSilver { get; set; }
+        internal int CurGold { get; set; }
+        internal int CurPyreal { get; set; }
+        internal int CurPlatinum { get; set; }
+        internal int CurManaScarabs { get; set; }
+        internal int CurTapers { get; set; }
 
         public InventoryTracker(PluginCore parent, PluginHost host, CoreManager core)
         {
@@ -70,45 +70,45 @@ namespace ACManager
                             {
                                 case "LeadScarabCount":
                                     MinLead = int.Parse(aNode.InnerText);
-                                    Parent.SetLeadCount(aNode.InnerText);
+                                    Parent.MainView.LeadScarabText.Text = aNode.InnerText;
                                     break;
                                 case "IronScarabCount":
                                     MinIron = int.Parse(aNode.InnerText);
-                                    Parent.SetIronCount(aNode.InnerText);
+                                    Parent.MainView.IronScarabText.Text = aNode.InnerText;
                                     break;
                                 case "CopperScarabCount":
                                     MinCopper = int.Parse(aNode.InnerText);
-                                    Parent.SetCopperCount(aNode.InnerText);
+                                    Parent.MainView.CopperScarabText.Text = aNode.InnerText;
                                     break;
                                 case "SilverScarabCount":
                                     MinSilver = int.Parse(aNode.InnerText);
-                                    Parent.SetSilverCount(aNode.InnerText);
+                                    Parent.MainView.SilverScarabText.Text = aNode.InnerText;
                                     break;
                                 case "GoldScarabCount":
                                     MinGold = int.Parse(aNode.InnerText);
-                                    Parent.SetGoldCount(aNode.InnerText);
+                                    Parent.MainView.GoldScarabText.Text = aNode.InnerText;
                                     break;
                                 case "PyrealScarabCount":
                                     MinPyreal = int.Parse(aNode.InnerText);
-                                    Parent.SetPyrealCount(aNode.InnerText);
+                                    Parent.MainView.PyrealScarabText.Text = aNode.InnerText;
                                     break;
                                 case "PlatinumScarabCount":
                                     MinPlatinum = int.Parse(aNode.InnerText);
-                                    Parent.SetPlatinumCount(aNode.InnerText);
+                                    Parent.MainView.PlatinumScarabText.Text = aNode.InnerText;
                                     break;
                                 case "ManaScarabCount":
                                     MinManaScarabs = int.Parse(aNode.InnerText);
-                                    Parent.SetManaCount(aNode.InnerText);
+                                    Parent.MainView.ManaScarabText.Text = aNode.InnerText;
                                     break;
                                 case "TaperCount":
                                     MinTapers = int.Parse(aNode.InnerText);
-                                    Parent.SetTaperCount(aNode.InnerText);
+                                    Parent.MainView.TaperText.Text = aNode.InnerText;
                                     break;
                                 case "AnnounceLogoff":
                                     if (aNode.InnerText.Equals("True")) 
                                     { 
+                                        Parent.MainView.AnnounceLogoff.Checked = true;
                                         AnnounceLogoff = true;
-                                        Parent.SetAnnounceCheckBox(AnnounceLogoff);
                                     }
                                     break;
                             }
@@ -119,66 +119,6 @@ namespace ACManager
             catch (Exception)
             {
             }
-        }
-
-        public void SetMinLead(string setting, string value)
-        {
-            MinLead = int.Parse(value);
-            Utility.SaveSetting(Module, Utility.CharacterName, setting, value);
-        }
-
-        public void SetMinIron(string setting, string value)
-        {
-            MinIron = int.Parse(value);
-            Utility.SaveSetting(Module, Utility.CharacterName, setting, value);
-        }
-
-        public void SetMinCopper(string setting, string value)
-        {
-            MinCopper = int.Parse(value);
-            Utility.SaveSetting(Module, Utility.CharacterName, setting, value);
-        }
-
-        public void SetMinSilver(string setting, string value)
-        {
-            MinSilver = int.Parse(value);
-            Utility.SaveSetting(Module, Utility.CharacterName, setting, value);
-        }
-
-        public void SetMinGold(string setting, string value)
-        {
-            MinGold = int.Parse(value);
-            Utility.SaveSetting(Module, Utility.CharacterName, setting, value);
-        }
-
-        public void SetMinPyreal(string setting, string value)
-        {
-            MinPyreal = int.Parse(value);
-            Utility.SaveSetting(Module, Utility.CharacterName, setting, value);
-        }
-
-        public void SetMinPlatinum(string setting, string value)
-        {
-            MinPlatinum = int.Parse(value);
-            Utility.SaveSetting(Module, Utility.CharacterName, setting, value);
-        }
-
-        public void SetMinMana(string setting, string value)
-        {
-            MinManaScarabs = int.Parse(value);
-            Utility.SaveSetting(Module, Utility.CharacterName, setting, value);
-        }
-
-        public void SetMinTapers(string setting, string value)
-        {
-            MinTapers = int.Parse(value);
-            Utility.SaveSetting(Module, Utility.CharacterName, setting, value);
-        }
-
-        public void SetAnnounce(string setting, bool value)
-        {
-            AnnounceLogoff = value;
-            Utility.SaveSetting(Module, Utility.CharacterName, setting, value.ToString());
         }
 
         private void CheckComps(object sender, ElapsedEventArgs e)
@@ -229,47 +169,47 @@ namespace ACManager
 
         private void MinCompsCheck()
         {
-            if (CurLead <= MinLead)
+            if (CurLead < MinLead)
             {
                 Logout("Lead Scarabs");
             }
 
-            if (CurIron <= MinIron)
+            if (CurIron < MinIron)
             {
                 Logout("Iron Scarabs");
             }
 
-            if (CurCopper <= MinCopper)
+            if (CurCopper < MinCopper)
             {
                 Logout("Copper Scarabs");
             }
 
-            if (CurSilver <= MinSilver)
+            if (CurSilver < MinSilver)
             {
                 Logout("Silver Scarabs");
             }
 
-            if (CurGold <= MinGold)
+            if (CurGold < MinGold)
             {
                 Logout("Gold Scarabs");
             }
 
-            if (CurPyreal <= MinPyreal)
+            if (CurPyreal < MinPyreal)
             {
                 Logout("Pyreal Scarabs");
             }
 
-            if (CurPlatinum <= MinPlatinum)
+            if (CurPlatinum < MinPlatinum)
             {
                 Logout("Platinum Scarabs");
             }
 
-            if (CurManaScarabs <= MinManaScarabs)
+            if (CurManaScarabs < MinManaScarabs)
             {
                 Logout("Mana Scarabs");
             }
 
-            if (CurTapers <= MinTapers)
+            if (CurTapers < MinTapers)
             {
                 Logout("Prismatic Tapers");
             }

@@ -1,0 +1,34 @@
+﻿<?xml version="1.0"?>
+<view icon="29728" title="Portal Bot Manager" width="400" height="400">
+  <control progid="DecalControls.Notebook" name="nbPortalMain">
+    <page label="Control">
+      <control progid="DecalControls.FixedLayout" clipped="">
+        <control progid="DecalControls.StaticText" left="5" top="5" width="250" height="16" text="/acm start (Starts the Bot)" />
+        <control progid="DecalControls.StaticText" left="5" top="27" width="250" height="16" text="/acm stop (Stops the Bot)" />
+      </control>
+    </page>
+    <page label="Config">
+      <control progid="DecalControls.FixedLayout" clipped="">
+        <control progid="DecalControls.Choice"      name="CharacterChoice"      left="5"    top="5"     width="200" height="16" />
+        <control progid="DecalControls.StaticText"                              left="5"    top="27"    width="150" height="16" text="Primary Portal Options" />
+        <control progid="DecalControls.StaticText"                              left="5"    top="46"    width="100" height="16" text="Keyword" />
+        <control progid="DecalControls.StaticText"                              left="110"  top="46"    width="100" height="16" text="Description" />
+        <control progid="DecalControls.Edit"        name="PrimaryKeyword"       left="5"    top="62"    width="100" height="19" text="" />
+        <control progid="DecalControls.Edit"        name="PrimaryDescription"   left="110"  top="62"    width="275" height="19" text="" />
+        <control progid="DecalControls.StaticText"                              left="5"    top="86"    width="150" height="16" text="Secondary Portal Options" />
+        <control progid="DecalControls.StaticText"                              left="5"    top="105"   width="100" height="16" text="Keyword" />
+        <control progid="DecalControls.StaticText"                              left="110"  top="105"   width="100" height="16" text="Description" />
+        <control progid="DecalControls.Edit"        name="SecondaryKeyword"     left="5"    top="122"   width="100" height="19" text="" />
+        <control progid="DecalControls.Edit"        name="SecondaryDescription" left="110"  top="122"   width="275" height="19" text="" /> 
+        <control progid="DecalControls.StaticText"                              left="5"    top="149"   width="150" height="16" text="New Advertisement" />
+        <control progid="DecalControls.Edit"        name="NewAdvertisementText" left="5"    top="166"   width="350" height="19" text="" />
+        <control progid="DecalControls.PushButton"  name="AddAdvertisement"     left="360"  top="166"   width="35"  height="19" text="Add" />
+        <control progid="DecalControls.StaticText"                              left="5"    top="188"   width="150" height="16" text="Advertisements" />
+        <control progid="DecalControls.List"        name="AdvertisementList"    left="5"    top="207"   width="390" height="139">
+          <column progid="DecalControls.TextColumn" name="AdvertisementText"    fixedwidth="390" />
+        </control>
+        <control progid="DecalControls.StaticText"                              left="5"    top="347"   width="390" height="16" text="Click on a row to delete the advertisement." />
+      </control>
+    </page>
+  </control>
+</view>

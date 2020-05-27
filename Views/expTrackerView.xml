@@ -1,0 +1,25 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<view icon="9075" title="Exp Tracker" width="140" height="360">
+  <control progid="DecalControls.FixedLayout" clipped="">
+    <control progid="DecalControls.StaticText" name="xpAtLogonLabel"        left="5"  top="5"   width="130" height="16" text="Total XP At Logon" />
+    <control progid="DecalControls.StaticText" name="XpAtLogon"             left="5"  top="23"  width="130" height="16" text="" />
+    <control progid="DecalControls.StaticText" name="xpSinceLogonLabel"     left="5"  top="41"  width="130" height="16" text="XP Earned Since Logon" />
+    <control progid="DecalControls.StaticText" name="XpSinceLogon"          left="5"  top="59"  width="130" height="16" text="" />
+    <control progid="DecalControls.StaticText" name="xpSinceResetLabel"     left="5"  top="77"  width="130" height="16" text="XP Earned Since Reset" />
+    <control progid="DecalControls.StaticText" name="XpSinceReset"          left="5"  top="95"  width="130" height="16" text="" />
+    <control progid="DecalControls.StaticText" name="xpPerHourLabel"        left="5"  top="113" width="130" height="16" text="XP/hr" />
+    <control progid="DecalControls.StaticText" name="XpPerHour"             left="5"  top="131" width="130" height="16" text="" />
+    <control progid="DecalControls.StaticText" name="xpLast5Label"          left="5"  top="149" width="180" height="16" text="XP/hr (Last 5 Mins)" />
+    <control progid="DecalControls.StaticText" name="XpLast5"               left="5"  top="167" width="130" height="16" text="" />
+    <control progid="DecalControls.PushButton" name="XpReset"               left="5"  top="185" width="130" height="16" text="Reset XP Tracking" />
+    <control progid="DecalControls.PushButton" name="XpFellow"              left="5"  top="203" width="40"  height="16" text="/f" />
+    <control progid="DecalControls.PushButton" name="XpAlleg"               left="50" top="203" width="40"  height="16" text="/a" />
+    <control progid="DecalControls.PushButton" name="XpLocal"               left="95" top="203" width="40"  height="16" text="Self" />
+    <control progid="DecalControls.StaticText" name="loginTimeLabel"        left="5"  top="221" width="130" height="16" text="Time Logged In" />
+    <control progid="DecalControls.StaticText" name="LoginTime"             left="5"  top="239" width="130" height="16" text="" />
+    <control progid="DecalControls.StaticText" name="timeSinceResetLabel"   left="5"  top="257" width="130" height="16" text="Time Since Reset" />
+    <control progid="DecalControls.StaticText" name="TimeSinceReset"        left="5"  top="275" width="130" height="16" text="" />
+    <control progid="DecalControls.StaticText" name="timeToNextLevelLabel"  left="5"  top="293" width="130" height="16" text="Time To Next Level" />
+    <control progid="DecalControls.StaticText" name="TimeToNextLevel"       left="5"  top="311" width="130" height="16" text="" />
+  </control>
+</view>
