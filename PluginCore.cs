@@ -49,7 +49,7 @@ namespace ACManager
             {
                 InventoryTracker = new InventoryTracker(this);
                 FellowshipControl = new FellowshipControl(this);
-                ExpTracker = new ExpTracker(this, Host, Core);
+                ExpTracker = new ExpTracker(this);
                 LoadSettings();
 
                 // Start listening to all chat and parsing if enabled
