@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
-using System.Timers;
 using System.Xml;
 using Decal.Adapter;
 using Decal.Adapter.Wrappers;

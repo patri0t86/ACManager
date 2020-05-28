@@ -6,11 +6,15 @@ This bot's processing speed is tied to your client's frame rate. The faster the 
 
 NOTE: If you completely tax your system resources (max CPU/RAM/etc.) your system may run garbage collection to save itself and kill parts of the bot. This was experienced on my low end server when I had 4 instances of AC running at the same time on 3GB of memory. Once I lowered the resource usage, it ran without fail.
 
+## Prerequisites
+1. Asheron's Call/ThwargLauncher/Decal Installed and working properly.
+2. Virindi Bundle is installed - the plugin **requires** the Virindi View System (VVS) and does **not** provide Decal fallback.
+
 ## Installation
 
-1. ACManager plugin is the frontend of the bot only. The backend is controlled via the Decal filter. To run the bot, you must have the filter.
+1. ACManager plugin is the frontend of the bot only. The backend is controlled via the Decal filter. To run the bot, you must have the filter. Once the bot is configured, you don't actually need the plugin to function.'
    1. **(Recommended)** This can be automatically handled using the installer found [here](https://github.com/patri0t86/ACManager/releases). The uninstaller will then remove all files created throughout the lifecycle of the plugin/filter, giving you a clean uninstall.
-   2. You can manually install everything from the same location above, just using the .dll like you would any other plugin.
+   2. You can manually install everything from the same location above, just using the .dlls like you would any other plugin.
 
 ## Usage
 
