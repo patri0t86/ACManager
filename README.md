@@ -44,7 +44,7 @@ These recommendations will allow the bot to restart automatically, even on serve
 
 - ThwargFilter installed in Decal.
 - Have your portal bot account set to login automatically (Auto Relaunch).
-- Set your On-Login command for the default character to `acm start`.
+- Set your On-Login command for the default character to `/acm start`.
 
 ## FAQs
 
