@@ -42,7 +42,9 @@ namespace ACManager
         {
             try
             {
-
+                MainView.Dispose();
+                ExpTrackerView.Dispose();
+                PortalBotView.Dispose();
             }
             catch (Exception ex) { Utility.LogError(ex); }
         }
