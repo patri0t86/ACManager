@@ -3,7 +3,6 @@ using Decal.Adapter;
 using Decal.Adapter.Wrappers;
 using System;
 using System.Collections.Generic;
-using System.Xml;
 using VirindiViewService;
 using VirindiViewService.Controls;
 
@@ -167,7 +166,7 @@ namespace ACManager.Views
                     }
                 }
 
-                Plugin.Utility.SaveSettings();                
+                Plugin.Utility.SaveSettings();
                 adToDelete.Dispose();
             }
             catch (Exception ex) { Plugin.Utility.LogError(ex); }
@@ -371,7 +370,7 @@ namespace ACManager.Views
                     PrimaryKeyword.Change -= PrimaryKeyword_Change;
                     SecondaryKeyword.Change -= SecondaryKeyword_Change;
                     PrimaryDescription.Change -= PrimaryDescription_Change;
-                    SecondaryDescription.Change -= SecondaryDescription_Change; 
+                    SecondaryDescription.Change -= SecondaryDescription_Change;
                     AddAdvertisement.Hit -= AddAdvertisement_Hit;
                     Advertisements.Click -= Advertisements_Click;
                     CharacterChoice.Change -= CharacterChoice_Change;

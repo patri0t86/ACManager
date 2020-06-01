@@ -1,6 +1,6 @@
-﻿using VirindiViewService;
+﻿using System;
+using VirindiViewService;
 using VirindiViewService.Controls;
-using System;
 
 namespace ACManager.Views
 {
@@ -9,16 +9,16 @@ namespace ACManager.Views
         internal PluginCore Plugin { get; set; }
         internal HudView View { get; set; }
         internal HudStaticText XpAtLogonText { get; set; }
-        internal HudStaticText XpSinceLogonText {get; set; }
-        internal HudStaticText XpSinceResetText {get; set; }
-        internal HudStaticText XpPerHourText {get;set;}
-        internal HudStaticText XpLast5Text {get;set;}
-        internal HudStaticText TimeLoggedInText {get;set;}
-        internal HudStaticText TimeSinceResetText {get;set;}
-        internal HudStaticText TimeToNextLevelText {get;set;}
-        internal HudButton XpReset {get;set;}
-        internal HudButton XpFellow {get;set;}
-        internal HudButton XpAlleg {get;set;}
+        internal HudStaticText XpSinceLogonText { get; set; }
+        internal HudStaticText XpSinceResetText { get; set; }
+        internal HudStaticText XpPerHourText { get; set; }
+        internal HudStaticText XpLast5Text { get; set; }
+        internal HudStaticText TimeLoggedInText { get; set; }
+        internal HudStaticText TimeSinceResetText { get; set; }
+        internal HudStaticText TimeToNextLevelText { get; set; }
+        internal HudButton XpReset { get; set; }
+        internal HudButton XpFellow { get; set; }
+        internal HudButton XpAlleg { get; set; }
         internal HudButton XpLocal { get; set; }
 
         public ExpTrackerView(PluginCore parent)

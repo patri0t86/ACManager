@@ -1,11 +1,11 @@
-﻿using Decal.Adapter;
+﻿using ACManager.Settings;
+using Decal.Adapter;
 using System;
-using System.Text;
-using System.IO;
-using System.Xml;
 using System.Diagnostics;
+using System.IO;
 using System.Reflection;
-using ACManager.Settings;
+using System.Text;
+using System.Xml;
 using System.Xml.Serialization;
 
 namespace ACManager
@@ -113,10 +113,11 @@ namespace ACManager
                     writer.WriteLine("============================================================================");
                     writer.WriteLine("");
                 }
-            } catch {}
+            }
+            catch { }
         }
 
-        internal void LogCrash(string characterName, string duration, string xp, string reasonIfKnown="Crash")
+        internal void LogCrash(string characterName, string duration, string xp, string reasonIfKnown = "Crash")
         {
             try
             {
@@ -125,9 +126,9 @@ namespace ACManager
                     using (StreamWriter writer = new StreamWriter(CrashPath, true))
                     {
                         writer.WriteLine(DateTime.Now.ToString() + " -" +
-                            " Character=" + characterName + 
-                            " Duration=" + duration + 
-                            " XP=" + xp + 
+                            " Character=" + characterName +
+                            " Duration=" + duration +
+                            " XP=" + xp +
                             " Reason=" + reasonIfKnown);
                     }
                 }

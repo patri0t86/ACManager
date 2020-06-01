@@ -1,11 +1,10 @@
-﻿using ACManager.Views;
+﻿using ACManager.Settings;
+using ACManager.Views;
 using Decal.Adapter;
 using Decal.Adapter.Wrappers;
 using System;
 using System.Globalization;
 using System.Text.RegularExpressions;
-
-using ACManager.Settings;
 
 namespace ACManager
 {
@@ -88,7 +87,7 @@ namespace ACManager
             }
             catch (Exception ex) { Utility.LogError(ex); }
         }
-        
+
         [BaseEvent("Logoff", "CharacterFilter")]
         private void CharacterFilter_Logoff(object sender, LogoffEventArgs e)
         {

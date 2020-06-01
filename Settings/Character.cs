@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
-using System.Xml.Serialization;
 
 namespace ACManager.Settings
-{ 
+{
     public class Character : IEquatable<Character>
     {
         public string Name;

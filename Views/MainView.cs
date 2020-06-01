@@ -14,22 +14,22 @@ namespace ACManager.Views
         internal string FellowshipModule = "FellowshipManager";
         private HudView View { get; set; }
         internal HudStaticText Version { get; set; }
-        internal HudCheckBox AutoFellow {get; set; }
-        internal HudCheckBox AutoRespond {get; set; }
+        internal HudCheckBox AutoFellow { get; set; }
+        internal HudCheckBox AutoRespond { get; set; }
         internal HudCheckBox LowCompLogoff { get; set; }
-        internal HudCheckBox AnnounceLogoff {get; set; }
+        internal HudCheckBox AnnounceLogoff { get; set; }
         internal HudCheckBox PortalBotCheckBox { get; set; }
         internal HudCheckBox ExpTrackerCheckBox { get; set; }
         internal HudTextBox Password { get; set; }
-        internal HudTextBox LeadScarabText {get; set; }
-        internal HudTextBox IronScarabText {get; set; }
-        internal HudTextBox CopperScarabText {get; set; }
-        internal HudTextBox SilverScarabText {get; set; }
-        internal HudTextBox GoldScarabText {get; set; }
-        internal HudTextBox PyrealScarabText {get; set; }
-        internal HudTextBox PlatinumScarabText {get; set; }
-        internal HudTextBox ManaScarabText {get; set; }
-        internal HudTextBox TaperText {get; set; }
+        internal HudTextBox LeadScarabText { get; set; }
+        internal HudTextBox IronScarabText { get; set; }
+        internal HudTextBox CopperScarabText { get; set; }
+        internal HudTextBox SilverScarabText { get; set; }
+        internal HudTextBox GoldScarabText { get; set; }
+        internal HudTextBox PyrealScarabText { get; set; }
+        internal HudTextBox PlatinumScarabText { get; set; }
+        internal HudTextBox ManaScarabText { get; set; }
+        internal HudTextBox TaperText { get; set; }
 
         public MainView(PluginCore parent)
         {
@@ -295,11 +295,11 @@ namespace ACManager.Views
                 Plugin.CurrentCharacter.Tapers = int.Parse(TaperText.Text);
                 Plugin.Utility.SaveSettings();
             }
-            catch(Exception ex) { Plugin.Utility.LogError(ex); }
+            catch (Exception ex) { Plugin.Utility.LogError(ex); }
         }
 
         #region IDisposable Support
-        private bool disposedValue = false; 
+        private bool disposedValue = false;
 
         protected virtual void Dispose(bool disposing)
         {

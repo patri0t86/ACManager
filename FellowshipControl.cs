@@ -1,8 +1,8 @@
-﻿using System;
+﻿using Decal.Adapter;
+using Decal.Adapter.Wrappers;
+using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
-using Decal.Adapter;
-using Decal.Adapter.Wrappers;
 
 namespace ACManager
 {
@@ -149,7 +149,8 @@ namespace ACManager
                     {
                         CoreManager.Current.Actions.InvokeChatParser(string.Format("/t {0}, I wasn't able to recruit you into the fellowship, or you did not accept the invite.", Recruits[i].Name));
                         Remove(Recruits[i].Name);
-                    } else
+                    }
+                    else
                     {
                         CoreManager.Current.Actions.FellowshipRecruit(Recruits[i].Guid);
                     }

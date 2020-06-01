@@ -36,14 +36,14 @@ namespace ACManager
                 Plugin.MainView.AnnounceLogoff.Checked = Plugin.CurrentCharacter.AnnounceLogoff;
             }
             catch (Exception ex)
-            { 
+            {
                 Plugin.Utility.LogError(ex);
-            }   
+            }
         }
 
         public void CheckComps()
         {
-            if(Plugin.MainView.LowCompLogoff.Checked)
+            if (Plugin.MainView.LowCompLogoff.Checked)
             {
                 GetCompCounts();
             }
@@ -120,7 +120,7 @@ namespace ACManager
         {
             Plugin.MainView.LowCompLogoff.Checked = false;
             string message = $"Logging off for low component count: {comp}";
-            if(Plugin.MainView.AnnounceLogoff.Checked)
+            if (Plugin.MainView.AnnounceLogoff.Checked)
             {
                 CoreManager.Current.Actions.InvokeChatParser($"/f {message}");
             }
