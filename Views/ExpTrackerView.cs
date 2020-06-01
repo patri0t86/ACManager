@@ -1,10 +1,10 @@
 ﻿using VirindiViewService;
 using VirindiViewService.Controls;
-using Decal.Adapter;
+using System;
 
 namespace ACManager.Views
 {
-    internal class ExpTrackerView
+    internal class ExpTrackerView : IDisposable
     {
         internal PluginCore Plugin { get; set; }
         internal HudView View { get; set; }
@@ -54,10 +54,10 @@ namespace ACManager.Views
                 XpLocal = View != null ? (HudButton)View["XpLocal"] : new HudButton();
                 XpLocal.Hit += XpLocal_Hit;
             }
-            catch { }
+            catch (Exception ex) { Plugin.Utility.LogError(ex); }
         }
 
-        private void XpReset_Hit(object sender, System.EventArgs e)
+        private void XpReset_Hit(object sender, EventArgs e)
         {
             try
             {
@@ -68,43 +68,61 @@ namespace ACManager.Views
                 TimeToNextLevelText.Text = string.Format("{0:D2}d {1:D2}h {2:D2}m {3:D2}s", 0, 0, 0, 0);
                 TimeSinceResetText.Text = string.Format("{0:D2}d {1:D2}h {2:D2}m {3:D2}s", 0, 0, 0, 0);
             }
-            catch { }
+            catch (Exception ex) { Plugin.Utility.LogError(ex); }
         }
 
-        private void XpFellow_Hit(object sender, System.EventArgs e)
+        private void XpFellow_Hit(object sender, EventArgs e)
         {
             try
             {
                 Plugin.ExpTracker.Report("/f");
             }
-            catch 
-            {
-
-            }
+            catch (Exception ex) { Plugin.Utility.LogError(ex); }
         }
 
-        private void XpAlleg_Hit(object sender, System.EventArgs e)
+        private void XpAlleg_Hit(object sender, EventArgs e)
         {
             try
             {
                 Plugin.ExpTracker.Report("/a");
             }
-            catch
-            {
-
-            }
+            catch (Exception ex) { Plugin.Utility.LogError(ex); }
         }
 
-        private void XpLocal_Hit(object sender, System.EventArgs e)
+        private void XpLocal_Hit(object sender, EventArgs e)
         {
             try
             {
                 Plugin.ExpTracker.Report();
             }
-            catch
-            {
+            catch (Exception ex) { Plugin.Utility.LogError(ex); }
+        }
 
+        #region IDisposable Support
+        private bool disposedValue = false;
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!disposedValue)
+            {
+                if (disposing)
+                {
+                    Plugin = null;
+                    XpReset.Hit -= XpReset_Hit;
+                    XpFellow.Hit -= XpFellow_Hit;
+                    XpAlleg.Hit -= XpAlleg_Hit;
+                    XpLocal.Hit -= XpLocal_Hit;
+                    if (View != null) View.Dispose();
+                }
+                disposedValue = true;
             }
         }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+        #endregion
     }
 }

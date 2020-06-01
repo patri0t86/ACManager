@@ -1,4 +1,5 @@
-﻿using Decal.Adapter;
+﻿using ACManager.Settings;
+using Decal.Adapter;
 using Decal.Adapter.Wrappers;
 using System;
 using System.Collections.Generic;
@@ -8,9 +9,10 @@ using VirindiViewService.Controls;
 
 namespace ACManager.Views
 {
-    internal class PortalBotView
+    internal class PortalBotView : IDisposable
     {
         internal const string Module = "PortalBot";
+        internal PluginCore Plugin { get; set; }
         internal HudView View { get; set; }
         internal HudCombo CharacterChoice { get; set; }
         internal HudTextBox PrimaryKeyword { get; set; }
@@ -21,10 +23,12 @@ namespace ACManager.Views
         internal HudList Advertisements { get; set; }
         internal HudButton AddAdvertisement { get; set; }
 
-        public PortalBotView()
+        public PortalBotView(PluginCore parent)
         {
             try
             {
+                Plugin = parent;
+
                 VirindiViewService.XMLParsers.Decal3XMLParser parser = new VirindiViewService.XMLParsers.Decal3XMLParser();
                 parser.ParseFromResource("ACManager.Views.portalBotView.xml", out ViewProperties Properties, out ControlGroup Controls);
 
@@ -57,177 +61,154 @@ namespace ACManager.Views
                 GetCharacters();
                 GetAdvertisements();
             }
-            catch { }
+            catch (Exception ex) { Plugin.Utility.LogError(ex); }
         }
 
         private void PrimaryKeyword_Change(object sender, EventArgs e)
         {
             try
             {
-                if (CharacterSeleceted())
+                if (!CharacterChoice.Current.Equals(0))
                 {
                     HudStaticText selectedCharacter = (HudStaticText)CharacterChoice[CharacterChoice.Current];
-                    Utility.SaveSetting(Module, selectedCharacter.Text, "PrimaryKeyword", PrimaryKeyword.Text.ToLower());
+                    Character character = CharacterExistsOrNew(selectedCharacter.Text);
+                    UpdatePortalKeyword(character, PortalType.Primary, PrimaryKeyword.Text.ToLower());
+                    selectedCharacter.Dispose();
                 }
             }
-            catch
-            {
-
-            }
+            catch (Exception ex) { Plugin.Utility.LogError(ex); }
         }
 
         private void SecondaryKeyword_Change(object sender, EventArgs e)
         {
             try
             {
-                if (CharacterSeleceted())
+                if (!CharacterChoice.Current.Equals(0))
                 {
                     HudStaticText selectedCharacter = (HudStaticText)CharacterChoice[CharacterChoice.Current];
-                    Utility.SaveSetting(Module, selectedCharacter.Text, "SecondaryKeyword", SecondaryKeyword.Text.ToLower());
+                    Character character = CharacterExistsOrNew(selectedCharacter.Text);
+                    UpdatePortalKeyword(character, PortalType.Secondary, SecondaryKeyword.Text.ToLower());
+                    selectedCharacter.Dispose();
                 }
             }
-            catch 
-            {
-
-            }
+            catch (Exception ex) { Plugin.Utility.LogError(ex); }
         }
 
         private void PrimaryDescription_Change(object sender, EventArgs e)
         {
             try
             {
-                if (CharacterSeleceted())
+                if (!CharacterChoice.Current.Equals(0))
                 {
                     HudStaticText selectedCharacter = (HudStaticText)CharacterChoice[CharacterChoice.Current];
-                    Utility.SaveSetting(Module, selectedCharacter.Text, "PrimaryDescription", PrimaryDescription.Text);
+                    Character character = CharacterExistsOrNew(selectedCharacter.Text);
+                    UpdatePortalDescription(character, PortalType.Primary, PrimaryDescription.Text);
+                    selectedCharacter.Dispose();
                 }
             }
-            catch
-            {
-
-            }
+            catch (Exception ex) { Plugin.Utility.LogError(ex); }
         }
 
         private void SecondaryDescription_Change(object sender, EventArgs e)
         {
             try
             {
-                if (CharacterSeleceted())
+                if (!CharacterChoice.Current.Equals(0))
                 {
                     HudStaticText selectedCharacter = (HudStaticText)CharacterChoice[CharacterChoice.Current];
-                    Utility.SaveSetting(Module, selectedCharacter.Text, "SecondaryDescription", SecondaryDescription.Text);
+                    Character character = CharacterExistsOrNew(selectedCharacter.Text);
+                    UpdatePortalDescription(character, PortalType.Secondary, SecondaryDescription.Text);
+                    selectedCharacter.Dispose();
                 }
             }
-            catch 
-            { 
-
-            }
-        }
-
-        private bool CharacterSeleceted()
-        {
-            HudStaticText selectedCharacter = (HudStaticText)CharacterChoice[CharacterChoice.Current];
-            if (selectedCharacter.Text.Equals("Select character..."))
-            {
-                return false;
-            }
-            return true;
+            catch (Exception ex) { Plugin.Utility.LogError(ex); }
         }
 
         private void AddAdvertisement_Hit(object sender, EventArgs e)
         {
             try
             {
-                HudList.HudListRowAccessor row = Advertisements.AddRow();
-                HudStaticText control = new HudStaticText();
-                control.Text = NewAdvertisement.Text;
-                row[0] = control;
-                Utility.SaveSetting("PortalBot", characterName: "BotGlobal", $"Ad{DateTime.Now.Ticks}", NewAdvertisement.Text);
-                NewAdvertisement.Text = "";
-            }
-            catch
-            {
+                if (!string.IsNullOrEmpty(NewAdvertisement.Text))
+                {
+                    HudList.HudListRowAccessor row = Advertisements.AddRow();
+                    HudStaticText control = new HudStaticText();
+                    string ad = NewAdvertisement.Text;
+                    control.Text = ad;
+                    row[0] = control;
+                    NewAdvertisement.Text = "";
 
+                    Advertisement advertisement = new Advertisement
+                    {
+                        Message = ad
+                    };
+
+                    Plugin.Utility.AllSettings.Advertisements.Add(advertisement);
+                    Plugin.Utility.SaveSettings();
+                    advertisement = null;
+                    control.Dispose();
+                }
             }
+            catch (Exception ex) { Plugin.Utility.LogError(ex); }
         }
 
         private void Advertisements_Click(object sender, int row, int col)
         {
             try
             {
-                HudStaticText rowToDelete = (HudStaticText)Advertisements[row][0];
-                Utility.DeleteSetting("PortalBot", "BotGlobal", rowToDelete.Text);
+                HudStaticText adToDelete = (HudStaticText)Advertisements[row][0];
                 Advertisements.RemoveRow(row);
-            }
-            catch 
-            {
 
+                for (int i = 0; i < Plugin.Utility.AllSettings.Advertisements.Count; i++)
+                {
+                    if (Plugin.Utility.AllSettings.Advertisements[i].Message.Equals(adToDelete.Text))
+                    {
+                        Plugin.Utility.AllSettings.Advertisements.RemoveAt(i);
+                        break;
+                    }
+                }
+
+                Plugin.Utility.SaveSettings();                
+                adToDelete.Dispose();
             }
+            catch (Exception ex) { Plugin.Utility.LogError(ex); }
+        }
+
+        public void ClearUI()
+        {
+            PrimaryKeyword.Text = "";
+            SecondaryKeyword.Text = "";
+            PrimaryDescription.Text = "";
+            SecondaryDescription.Text = "";
         }
 
         private void CharacterChoice_Change(object sender, EventArgs e)
         {
             try
             {
-                if (CharacterChoice.Current == 0)
+                ClearUI();
+                if (!CharacterChoice.Current.Equals(0))
                 {
-                    PrimaryKeyword.Text = "";
-                    SecondaryKeyword.Text = "";
-                    PrimaryDescription.Text = "";
-                    SecondaryDescription.Text = "";
-                    return;
-                }
+                    HudStaticText selectedCharacter = (HudStaticText)CharacterChoice[CharacterChoice.Current];
+                    Character character = CharacterExistsOrNew(selectedCharacter.Text);
 
-                HudStaticText selectedCharacter = (HudStaticText)CharacterChoice[CharacterChoice.Current];
-                string character = selectedCharacter.Text;
-                if (character.Contains(" "))
-                {
-                    character = character.Replace(" ", "_");
-                }
-                PrimaryKeyword.Text = "";
-                SecondaryKeyword.Text = "";
-                PrimaryDescription.Text = "";
-                SecondaryDescription.Text = "";
-
-                XmlNode node = Utility.LoadCharacterSettings(Module, portal: true);
-                if (node != null)
-                {
-                    XmlNodeList charNodes = node.ChildNodes;
-                    if (charNodes.Count > 0)
+                    foreach (Portal portal in character.Portals)
                     {
-                        for (int i = 0; i < charNodes.Count; i++)
+                        if (portal.Type.Equals(PortalType.Primary))
                         {
-                            if (charNodes[i].Name == character)
-                            {
-                                foreach (XmlNode aNode in charNodes[i])
-                                {
-                                    if (aNode.Name == "PrimaryKeyword")
-                                    {
-                                        PrimaryKeyword.Text = aNode.InnerText;
-                                    }
-                                    if (aNode.Name == "SecondaryKeyword")
-                                    {
-                                        SecondaryKeyword.Text = aNode.InnerText;
-                                    }
-                                    if (aNode.Name == "PrimaryDescription")
-                                    {
-                                        PrimaryDescription.Text = aNode.InnerText;
-                                    }
-                                    if (aNode.Name == "SecondaryDescription")
-                                    {
-                                        SecondaryDescription.Text = aNode.InnerText;
-                                    }
-                                }
-                                break;
-                            }
+                            PrimaryKeyword.Text = portal.Keyword;
+                            PrimaryDescription.Text = portal.Description;
+                        }
+                        else
+                        {
+                            SecondaryKeyword.Text = portal.Keyword;
+                            SecondaryDescription.Text = portal.Description;
                         }
                     }
+
+                    selectedCharacter.Dispose();
                 }
             }
-            catch 
-            {
-
-            }
+            catch (Exception ex) { Plugin.Utility.LogError(ex); }
         }
 
         private void GetCharacters()
@@ -250,18 +231,161 @@ namespace ACManager.Views
 
         private void GetAdvertisements()
         {
-            List<string> ads = Utility.GetAdvertisements();
-            if (ads != null)
+            HudStaticText row;
+            for (int i = 0; i < Plugin.Utility.AllSettings.Advertisements.Count; i++)
             {
-                HudStaticText row;
-                for (int i = 0; i < ads.Count; i++)
+                Plugin.Utility.WriteToChat(Plugin.Utility.AllSettings.Advertisements[i].Message);
+                HudList.HudListRowAccessor rowAccessor = Advertisements.AddRow();
+                row = new HudStaticText
                 {
-                    HudList.HudListRowAccessor rowAccessor = Advertisements.AddRow();
-                    row = new HudStaticText();
-                    row.Text = ads[i];
-                    rowAccessor[0] = row;
-                }
+                    Text = Plugin.Utility.AllSettings.Advertisements[i].Message
+                };
+                rowAccessor[0] = row;
             }
         }
+
+        private Character CharacterExistsOrNew(string name)
+        {
+            Character character = new Character
+            {
+                Name = name,
+                Account = CoreManager.Current.CharacterFilter.AccountName,
+                Server = CoreManager.Current.CharacterFilter.Server
+            };
+
+            if (Plugin.Utility.AllSettings.Characters.Contains(character))
+            {
+                foreach (Character ch in Plugin.Utility.AllSettings.Characters)
+                {
+                    if (character.Equals(ch))
+                    {
+                        return ch;
+                    }
+                }
+            }
+            return character;
+        }
+
+        private void UpdatePortalKeyword(Character character, PortalType type, string value)
+        {
+            Portal portal = null;
+            for (int i = 0; i < character.Portals.Count; i++)
+            {
+                if (character.Portals[i].Type.Equals(type))
+                {
+                    portal = character.Portals[i];
+                    character.Portals.RemoveAt(i);
+                    break;
+                }
+            }
+
+            if (portal != null)
+            {
+                portal.Keyword = value;
+            }
+            else
+            {
+                portal = new Portal
+                {
+                    Type = type,
+                    Keyword = value
+                };
+            }
+            character.Portals.Add(portal);
+
+            if (Plugin.Utility.AllSettings.Characters.Contains(character))
+            {
+                for (int i = 0; i < Plugin.Utility.AllSettings.Characters.Count; i++)
+                {
+                    if (Plugin.Utility.AllSettings.Characters[i].Equals(character))
+                    {
+                        Plugin.Utility.AllSettings.Characters[i] = character;
+                        break;
+                    }
+                }
+            }
+            else
+            {
+                Plugin.Utility.AllSettings.Characters.Add(character);
+            }
+
+            Plugin.Utility.SaveSettings();
+        }
+
+        private void UpdatePortalDescription(Character character, PortalType type, string value)
+        {
+            Portal portal = null;
+            for (int i = 0; i < character.Portals.Count; i++)
+            {
+                if (character.Portals[i].Type.Equals(type))
+                {
+                    portal = character.Portals[i];
+                    character.Portals.RemoveAt(i);
+                    break;
+                }
+            }
+
+            if (portal != null)
+            {
+                portal.Description = value;
+            }
+            else
+            {
+                portal = new Portal
+                {
+                    Type = type,
+                    Description = value
+                };
+            }
+            character.Portals.Add(portal);
+
+            if (Plugin.Utility.AllSettings.Characters.Contains(character))
+            {
+                for (int i = 0; i < Plugin.Utility.AllSettings.Characters.Count; i++)
+                {
+                    if (Plugin.Utility.AllSettings.Characters[i].Equals(character))
+                    {
+                        Plugin.Utility.AllSettings.Characters[i] = character;
+                        break;
+                    }
+                }
+            }
+            else
+            {
+                Plugin.Utility.AllSettings.Characters.Add(character);
+            }
+
+            Plugin.Utility.SaveSettings();
+        }
+
+        #region IDisposable Support
+        private bool disposedValue = false;
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!disposedValue)
+            {
+                if (disposing)
+                {
+                    Plugin = null;
+                    PrimaryKeyword.Change -= PrimaryKeyword_Change;
+                    SecondaryKeyword.Change -= SecondaryKeyword_Change;
+                    PrimaryDescription.Change -= PrimaryDescription_Change;
+                    SecondaryDescription.Change -= SecondaryDescription_Change; 
+                    AddAdvertisement.Hit -= AddAdvertisement_Hit;
+                    Advertisements.Click -= Advertisements_Click;
+                    CharacterChoice.Change -= CharacterChoice_Change;
+                    if (View != null) View.Dispose();
+                }
+                disposedValue = true;
+            }
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+        #endregion
     }
 }

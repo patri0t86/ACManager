@@ -4,7 +4,8 @@ using Decal.Adapter.Wrappers;
 using System;
 using System.Globalization;
 using System.Text.RegularExpressions;
-using System.Xml;
+
+using ACManager.Settings;
 
 namespace ACManager
 {
@@ -14,6 +15,7 @@ namespace ACManager
     {
         internal const string Module = "General";
         internal const string PluginName = "AC Manager";
+        internal Utility Utility { get; set; }
         internal FellowshipControl FellowshipControl { get; set; }
         internal ExpTracker ExpTracker { get; set; }
         internal InventoryTracker InventoryTracker { get; set; }
@@ -21,16 +23,20 @@ namespace ACManager
         internal PortalBotView PortalBotView { get; set; }
         internal ExpTrackerView ExpTrackerView { get; set; }
         internal bool AutoRespondEnabled { get; set; }
+        internal Character CurrentCharacter { get; set; }
 
         protected override void Startup()
         {
             try
             {
+                Utility = new Utility(this);
+                Utility.LoadSettings();
+
                 MainView = new MainView(this);
                 ExpTrackerView = new ExpTrackerView(this);
-                PortalBotView = new PortalBotView();
+                PortalBotView = new PortalBotView(this);
             }
-            catch { }
+            catch (Exception ex) { Utility.LogError(ex); }
         }
 
         protected override void Shutdown()
@@ -47,10 +53,34 @@ namespace ACManager
         {
             try
             {
+                CurrentCharacter = new Character
+                {
+                    Name = Core.CharacterFilter.Name,
+                    Account = Core.CharacterFilter.AccountName,
+                    Server = Core.CharacterFilter.Server
+                };
+
+                if (Utility.AllSettings.Characters.Contains(CurrentCharacter))
+                {
+                    foreach (Character character in Utility.AllSettings.Characters)
+                    {
+                        if (CurrentCharacter.Equals(character))
+                        {
+                            CurrentCharacter = character;
+                            MainView.AutoRespond.Checked = CurrentCharacter.AutoRespond;
+                            break;
+                        }
+                    }
+                }
+                else
+                {
+                    Utility.AllSettings.Characters.Add(CurrentCharacter);
+                    Utility.SaveSettings();
+                }
+
                 InventoryTracker = new InventoryTracker(this);
                 FellowshipControl = new FellowshipControl(this);
                 ExpTracker = new ExpTracker(this);
-                LoadSettings();
 
                 // Start listening to all chat and parsing if enabled
                 Core.ChatBoxMessage += new EventHandler<ChatTextInterceptEventArgs>(ParseChat);
@@ -58,7 +88,7 @@ namespace ACManager
             }
             catch (Exception ex) { Utility.LogError(ex); }
         }
-
+        
         [BaseEvent("Logoff", "CharacterFilter")]
         private void CharacterFilter_Logoff(object sender, LogoffEventArgs e)
         {
@@ -76,45 +106,13 @@ namespace ACManager
             FellowshipControl.CheckRecruit();
         }
 
-        private void LoadSettings()
-        {
-            try
-            {
-                XmlNode node = Utility.LoadCharacterSettings(Module, characterName: CoreManager.Current.CharacterFilter.Name);
-                if (node != null)
-                {
-                    XmlNodeList settingNodes = node.ChildNodes;
-                    if (settingNodes.Count > 0)
-                    {
-                        foreach (XmlNode aNode in settingNodes)
-                        {
-                            switch (aNode.Name)
-                            {
-                                case "AutoRespond":
-                                    if (aNode.InnerText.Equals("True"))
-                                    {
-                                        MainView.AutoRespond.Checked = true;
-                                        AutoRespondEnabled = true;
-                                    }
-                                    break;
-                            }
-                        }
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                Utility.LogError(ex);
-            }
-        }
-
         private void ParseChat(object sender, ChatTextInterceptEventArgs e)
         {
             string sanitizedInput = Regex.Replace(e.Text, @"[^\w:/ ']", string.Empty);
 
             FellowshipControl.ChatActions(sanitizedInput);
 
-            if (AutoRespondEnabled)
+            if (MainView.AutoRespond.Checked)
             {
                 // refactor to go to InventoryTracker
                 Match match;
@@ -152,6 +150,7 @@ namespace ACManager
                                 string.Format(singleCompResponse, name, collection.Quantity.ToString(), collection.First.Name) :
                                 string.Format(pluralCompResponse, name, collection.Quantity.ToString(), collection.First.Name)
                             );
+                            collection.Dispose();
                         }
                     }
                     else
@@ -165,6 +164,7 @@ namespace ACManager
                                 string.Format(pluralCompResponse, name, collection.Quantity.ToString(), collection.First.Name)
                             );
                         }
+                        collection.Dispose();
                     }
                 }
             }

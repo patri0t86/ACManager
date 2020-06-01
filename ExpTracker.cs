@@ -8,8 +8,8 @@ namespace ACManager
     public class ExpTracker
     {
         private PluginCore Plugin { get; set; }
-        private Timer CalcXpTimer;
-        private List<long> Rolling5Min;
+        private Timer CalcXpTimer { get; set; }
+        private List<long> Rolling5Min { get; set; }
         private DateTime LoginTime, LastResetTime;
         public long XpAtReset { get; private set; }
         public long TotalXpAtLogon { get; private set; }
@@ -43,7 +43,7 @@ namespace ACManager
                     TimeLeftToLevel.Hours,
                     TimeLeftToLevel.Minutes,
                     TimeLeftToLevel.Seconds);
-            Utility.WriteToChat(string.Format("You have earned {0} XP in {1} for {2} XP/hour ({3} XP/hr in the last 5 minutes). At this rate, you'll hit your next level in {4}.",
+            Plugin.Utility.WriteToChat(string.Format("You have earned {0} XP in {1} for {2} XP/hour ({3} XP/hr in the last 5 minutes). At this rate, you'll hit your next level in {4}.",
                 xpSinceReset,
                 timeSinceReset,
                 xpPerHour,

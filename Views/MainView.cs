@@ -1,16 +1,17 @@
 ﻿using Decal.Adapter;
 using Decal.Adapter.Wrappers;
+using System;
 using VirindiViewService;
 using VirindiViewService.Controls;
 
 namespace ACManager.Views
 {
-    internal class MainView
+    internal class MainView : IDisposable
     {
         internal PluginCore Plugin { get; set; }
-        internal const string GeneralModule = "General";
-        internal const string InventoryModule = "InventoryTracker";
-        internal const string FellowshipModule = "FellowshipManager";
+        internal string GeneralModule = "General";
+        internal string InventoryModule = "InventoryTracker";
+        internal string FellowshipModule = "FellowshipManager";
         private HudView View { get; set; }
         internal HudStaticText Version { get; set; }
         internal HudCheckBox AutoFellow {get; set; }
@@ -19,7 +20,7 @@ namespace ACManager.Views
         internal HudCheckBox AnnounceLogoff {get; set; }
         internal HudCheckBox PortalBotCheckBox { get; set; }
         internal HudCheckBox ExpTrackerCheckBox { get; set; }
-        internal HudTextBox SecretPassword { get; set; }
+        internal HudTextBox Password { get; set; }
         internal HudTextBox LeadScarabText {get; set; }
         internal HudTextBox IronScarabText {get; set; }
         internal HudTextBox CopperScarabText {get; set; }
@@ -42,10 +43,10 @@ namespace ACManager.Views
                 View = new HudView(Properties, Controls);
 
                 Version = View != null ? (HudStaticText)View["Version"] : new HudStaticText();
-                Version.Text = $"v{Utility.GetVersion()}";
+                Version.Text = $"v{Plugin.Utility.Version}";
 
-                SecretPassword = View != null ? (HudTextBox)View["SecretPassword"] : new HudTextBox();
-                SecretPassword.Change += SecretPassword_Change;
+                Password = View != null ? (HudTextBox)View["Password"] : new HudTextBox();
+                Password.Change += Password_Change;
 
                 AutoFellow = View != null ? (HudCheckBox)View["AutoFellow"] : new HudCheckBox();
                 AutoFellow.Change += AutoFellow_Change;
@@ -54,7 +55,6 @@ namespace ACManager.Views
                 AutoRespond.Change += AutoRespond_Change;
 
                 LowCompLogoff = View != null ? (HudCheckBox)View["Components"] : new HudCheckBox();
-                LowCompLogoff.Change += LowCompLogoff_Change;
 
                 AnnounceLogoff = View != null ? (HudCheckBox)View["AnnounceLogoff"] : new HudCheckBox();
                 AnnounceLogoff.Change += AnnounceLogoff_Change;
@@ -93,78 +93,54 @@ namespace ACManager.Views
                 TaperText.Change += TaperText_Change;
 
             }
-            catch { }
+            catch (Exception ex) { Plugin.Utility.LogError(ex); }
         }
 
-        private void SecretPassword_Change(object sender, System.EventArgs e)
+        private void Password_Change(object sender, EventArgs e)
         {
             try
             {
-                Utility.SaveSetting(FellowshipModule, CoreManager.Current.CharacterFilter.Name, SecretPassword.Name, SecretPassword.Text);
-                Plugin.FellowshipControl.Password = SecretPassword.Text;
+                Plugin.CurrentCharacter.Password = Password.Text;
+                Plugin.Utility.SaveSettings();
             }
-            catch 
-            {
-
-            }
+            catch (Exception ex) { Plugin.Utility.LogError(ex); }
         }
 
-        private void AutoFellow_Change(object sender, System.EventArgs e)
+        private void AutoFellow_Change(object sender, EventArgs e)
         {
             try
             {
-                Utility.SaveSetting(FellowshipModule, CoreManager.Current.CharacterFilter.Name, AutoFellow.Name, AutoFellow.Checked.ToString());
-                Plugin.FellowshipControl.AutoFellowEnabled = AutoFellow.Checked;
+                Plugin.CurrentCharacter.AutoFellow = AutoFellow.Checked;
+                Plugin.Utility.SaveSettings();
                 if (AutoFellow.Checked && Plugin.FellowshipControl.FellowStatus.Equals(FellowshipEventType.Create))
                 {
                     CoreManager.Current.Actions.FellowshipSetOpen(true);
                 }
             }
-            catch
-            {
-
-            }
+            catch (Exception ex) { Plugin.Utility.LogError(ex); }
         }
 
-        private void AutoRespond_Change(object sender, System.EventArgs e)
+        private void AutoRespond_Change(object sender, EventArgs e)
         {
             try
             {
-                Utility.SaveSetting(GeneralModule, CoreManager.Current.CharacterFilter.Name, AutoRespond.Name, AutoRespond.Checked.ToString());
-                Plugin.AutoRespondEnabled = AutoRespond.Checked;
+                Plugin.CurrentCharacter.AutoRespond = AutoRespond.Checked;
+                Plugin.Utility.SaveSettings();
             }
-            catch
-            {
-
-            }
+            catch (Exception ex) { Plugin.Utility.LogError(ex); }
         }
 
-        private void LowCompLogoff_Change(object sender, System.EventArgs e)
+        private void AnnounceLogoff_Change(object sender, EventArgs e)
         {
             try
             {
-                Plugin.InventoryTracker.LogoffEnabled = LowCompLogoff.Checked;
+                Plugin.CurrentCharacter.AnnounceLogoff = AnnounceLogoff.Checked;
+                Plugin.Utility.SaveSettings();
             }
-            catch
-            {
-
-            }
+            catch (Exception ex) { Plugin.Utility.LogError(ex); }
         }
 
-        private void AnnounceLogoff_Change(object sender, System.EventArgs e)
-        {
-            try
-            {
-                Utility.SaveSetting(InventoryModule, CoreManager.Current.CharacterFilter.Name, AnnounceLogoff.Name, AnnounceLogoff.Checked.ToString());
-                Plugin.InventoryTracker.AnnounceLogoff = AnnounceLogoff.Checked;
-            }
-            catch 
-            {
-
-            }
-        }
-
-        private void PortalBotCheckBox_Change(object sender, System.EventArgs e)
+        private void PortalBotCheckBox_Change(object sender, EventArgs e)
         {
             try
             {
@@ -177,13 +153,10 @@ namespace ACManager.Views
                     Plugin.PortalBotView.View.ShowInBar = false;
                 }
             }
-            catch
-            {
-
-            }
+            catch (Exception ex) { Plugin.Utility.LogError(ex); }
         }
 
-        private void ExpTrackerCheckBox_Change(object sender, System.EventArgs e)
+        private void ExpTrackerCheckBox_Change(object sender, EventArgs e)
         {
             try
             {
@@ -196,199 +169,174 @@ namespace ACManager.Views
                     Plugin.ExpTrackerView.View.ShowInBar = false;
                 }
             }
-            catch 
-            {
-
-            }
+            catch (Exception ex) { Plugin.Utility.LogError(ex); }
         }
 
-        private void LeadScarabText_Change(object sender, System.EventArgs e)
+        private void LeadScarabText_Change(object sender, EventArgs e)
         {
             try
             {
-                if (int.TryParse(LeadScarabText.Text, out int result))
+                if (!int.TryParse(LeadScarabText.Text, out _))
                 {
-                    Plugin.InventoryTracker.MinLead = result;
+                    LeadScarabText.Text = "0";
                 }
-                else
-                {
-                    Plugin.InventoryTracker.MinLead = -1;
-                    LeadScarabText.Text = "-1";
-                }
-                Utility.SaveSetting(InventoryModule, CoreManager.Current.CharacterFilter.Name, LeadScarabText.Name, LeadScarabText.Text);
+                Plugin.CurrentCharacter.LeadScarabs = int.Parse(LeadScarabText.Text);
+                Plugin.Utility.SaveSettings();
             }
-            catch 
-            {
-
-            }
+            catch (Exception ex) { Plugin.Utility.LogError(ex); }
         }
 
-        private void IronScarabText_Change(object sender, System.EventArgs e)
+        private void IronScarabText_Change(object sender, EventArgs e)
         {
             try
             {
-                if (int.TryParse(IronScarabText.Text, out int result))
+                if (!int.TryParse(IronScarabText.Text, out _))
                 {
-                    Plugin.InventoryTracker.MinIron = result;
+                    IronScarabText.Text = "0";
                 }
-                else
-                {
-                    Plugin.InventoryTracker.MinIron = -1;
-                    IronScarabText.Text = "-1";
-                }
-                Utility.SaveSetting(InventoryModule, CoreManager.Current.CharacterFilter.Name, IronScarabText.Name, IronScarabText.Text);
+                Plugin.CurrentCharacter.IronScarabs = int.Parse(IronScarabText.Text);
+                Plugin.Utility.SaveSettings();
             }
-            catch 
-            {
-
-            }
+            catch (Exception ex) { Plugin.Utility.LogError(ex); }
         }
 
-        private void CopperScarabText_Change(object sender, System.EventArgs e)
+        private void CopperScarabText_Change(object sender, EventArgs e)
         {
             try
             {
-                if (int.TryParse(CopperScarabText.Text, out int result))
+                if (!int.TryParse(CopperScarabText.Text, out _))
                 {
-                    Plugin.InventoryTracker.MinCopper = result;
+                    CopperScarabText.Text = "0";
                 }
-                else
-                {
-                    Plugin.InventoryTracker.MinCopper = -1;
-                    CopperScarabText.Text = "-1";
-                }
-                Utility.SaveSetting(InventoryModule, CoreManager.Current.CharacterFilter.Name, CopperScarabText.Name, CopperScarabText.Text);
+                Plugin.CurrentCharacter.CopperScarabs = int.Parse(CopperScarabText.Text);
+                Plugin.Utility.SaveSettings();
             }
-            catch
-            {
-
-            }
+            catch (Exception ex) { Plugin.Utility.LogError(ex); }
         }
 
-        private void SilverScarabText_Change(object sender, System.EventArgs e)
+        private void SilverScarabText_Change(object sender, EventArgs e)
         {
             try
             {
-                if (int.TryParse(SilverScarabText.Text, out int result))
+                if (!int.TryParse(SilverScarabText.Text, out _))
                 {
-                    Plugin.InventoryTracker.MinSilver = result;
+                    SilverScarabText.Text = "0";
                 }
-                else
-                {
-                    Plugin.InventoryTracker.MinSilver = -1;
-                    SilverScarabText.Text = "-1";
-                }
-                Utility.SaveSetting(InventoryModule, CoreManager.Current.CharacterFilter.Name, SilverScarabText.Name, SilverScarabText.Text);
+                Plugin.CurrentCharacter.SilverScarabs = int.Parse(SilverScarabText.Text);
+                Plugin.Utility.SaveSettings();
             }
-            catch 
-            {
-
-            }
+            catch (Exception ex) { Plugin.Utility.LogError(ex); }
         }
 
-        private void GoldScarabText_Change(object sender, System.EventArgs e)
+        private void GoldScarabText_Change(object sender, EventArgs e)
         {
             try
             {
-                if (int.TryParse(GoldScarabText.Text, out int result))
+                if (!int.TryParse(GoldScarabText.Text, out _))
                 {
-                    Plugin.InventoryTracker.MinGold = result;
+                    GoldScarabText.Text = "0";
                 }
-                else
-                {
-                    Plugin.InventoryTracker.MinGold = -1;
-                    GoldScarabText.Text = "-1";
-                }
-                Utility.SaveSetting(InventoryModule, CoreManager.Current.CharacterFilter.Name, GoldScarabText.Name, GoldScarabText.Text);
+                Plugin.CurrentCharacter.GoldScarabs = int.Parse(GoldScarabText.Text);
+                Plugin.Utility.SaveSettings();
             }
-            catch
-            {
-
-            }
+            catch (Exception ex) { Plugin.Utility.LogError(ex); }
         }
 
-        private void PyrealScarabText_Change(object sender, System.EventArgs e)
+        private void PyrealScarabText_Change(object sender, EventArgs e)
         {
             try
             {
-                if (int.TryParse(PyrealScarabText.Text, out int result))
+                if (!int.TryParse(PyrealScarabText.Text, out _))
                 {
-                    Plugin.InventoryTracker.MinPyreal = result;
+                    PyrealScarabText.Text = "0";
                 }
-                else
-                {
-                    Plugin.InventoryTracker.MinPyreal = -1;
-                    PyrealScarabText.Text = "-1";
-                }
-                Utility.SaveSetting(InventoryModule, CoreManager.Current.CharacterFilter.Name, PyrealScarabText.Name, PyrealScarabText.Text);
+                Plugin.CurrentCharacter.PyrealScarabs = int.Parse(PyrealScarabText.Text);
+                Plugin.Utility.SaveSettings();
             }
-            catch 
-            {
-
-            }
+            catch (Exception ex) { Plugin.Utility.LogError(ex); }
         }
 
-        private void PlatinumScarabText_Change(object sender, System.EventArgs e)
+        private void PlatinumScarabText_Change(object sender, EventArgs e)
         {
             try
             {
-                if (int.TryParse(PlatinumScarabText.Text, out int result))
+                if (!int.TryParse(PlatinumScarabText.Text, out _))
                 {
-                    Plugin.InventoryTracker.MinPlatinum = result;
+                    PlatinumScarabText.Text = "0";
                 }
-                else
-                {
-                    Plugin.InventoryTracker.MinPlatinum = -1;
-                    PlatinumScarabText.Text = "-1";
-                }
-                Utility.SaveSetting(InventoryModule, CoreManager.Current.CharacterFilter.Name, PlatinumScarabText.Name, PlatinumScarabText.Text);
+                Plugin.CurrentCharacter.PlatinumScarabs = int.Parse(PlatinumScarabText.Text);
+                Plugin.Utility.SaveSettings();
             }
-            catch 
-            {
-
-            }
+            catch (Exception ex) { Plugin.Utility.LogError(ex); }
         }
 
-        private void ManaScarabText_Change(object sender, System.EventArgs e)
+        private void ManaScarabText_Change(object sender, EventArgs e)
         {
             try
             {
-                if (int.TryParse(ManaScarabText.Text, out int result))
+                if (!int.TryParse(ManaScarabText.Text, out _))
                 {
-                    Plugin.InventoryTracker.MinManaScarabs = result;
+                    ManaScarabText.Text = "0";
                 }
-                else
-                {
-                    Plugin.InventoryTracker.MinManaScarabs = -1;
-                    ManaScarabText.Text = "-1";
-                }
-                Utility.SaveSetting(InventoryModule, CoreManager.Current.CharacterFilter.Name, ManaScarabText.Name, ManaScarabText.Text);
+                Plugin.CurrentCharacter.ManaScarabs = int.Parse(ManaScarabText.Text);
+                Plugin.Utility.SaveSettings();
             }
-            catch 
-            {
-
-            }
+            catch (Exception ex) { Plugin.Utility.LogError(ex); }
         }
 
-        private void TaperText_Change(object sender, System.EventArgs e)
+        private void TaperText_Change(object sender, EventArgs e)
         {
             try
             {
-                if (int.TryParse(TaperText.Text, out int result))
+                if (!int.TryParse(TaperText.Text, out _))
                 {
-                    Plugin.InventoryTracker.MinTapers = result;
+                    TaperText.Text = "0";
                 }
-                else
-                {
-                    Plugin.InventoryTracker.MinTapers = -1;
-                    TaperText.Text = "-1";
-                }
-                Utility.SaveSetting(InventoryModule, CoreManager.Current.CharacterFilter.Name, TaperText.Name, TaperText.Text);
+                Plugin.CurrentCharacter.Tapers = int.Parse(TaperText.Text);
+                Plugin.Utility.SaveSettings();
             }
-            catch 
-            {
+            catch(Exception ex) { Plugin.Utility.LogError(ex); }
+        }
 
+        #region IDisposable Support
+        private bool disposedValue = false; 
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!disposedValue)
+            {
+                if (disposing)
+                {
+                    Plugin = null;
+                    GeneralModule = null;
+                    InventoryModule = null;
+                    FellowshipModule = null;
+                    Password.Change += Password_Change;
+                    AutoFellow.Change += AutoFellow_Change;
+                    AutoRespond.Change += AutoRespond_Change;
+                    AnnounceLogoff.Change += AnnounceLogoff_Change;
+                    PortalBotCheckBox.Change += PortalBotCheckBox_Change;
+                    ExpTrackerCheckBox.Change += ExpTrackerCheckBox_Change;
+                    LeadScarabText.Change += LeadScarabText_Change;
+                    IronScarabText.Change += IronScarabText_Change;
+                    CopperScarabText.Change += CopperScarabText_Change;
+                    SilverScarabText.Change += SilverScarabText_Change;
+                    GoldScarabText.Change += GoldScarabText_Change;
+                    PyrealScarabText.Change += PyrealScarabText_Change;
+                    PlatinumScarabText.Change += PlatinumScarabText_Change;
+                    ManaScarabText.Change += ManaScarabText_Change;
+                    TaperText.Change += TaperText_Change;
+                    if (View != null) View.Dispose();
+                }
+                disposedValue = true;
             }
         }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+        #endregion
     }
 }

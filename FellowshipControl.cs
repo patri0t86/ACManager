@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
-using System.Xml;
 using Decal.Adapter;
 using Decal.Adapter.Wrappers;
 
@@ -9,10 +8,7 @@ namespace ACManager
 {
     public class FellowshipControl
     {
-        internal const string Module = "FellowshipManager";
         private PluginCore Plugin { get; set; }
-        internal string Password { get; set; } = "XP";
-        internal bool AutoFellowEnabled { get; set; } = false;
         private List<Recruit> Recruits { get; set; } = new List<Recruit>();
         internal FellowshipEventType FellowStatus { get; set; } = FellowshipEventType.Quit;
         internal DateTime LastAttempt { get; set; } = DateTime.MinValue;
@@ -20,48 +16,20 @@ namespace ACManager
         public FellowshipControl(PluginCore parent)
         {
             Plugin = parent;
-            LoadSettings();
-        }
-
-        private void LoadSettings()
-        {
-            try
+            Plugin.MainView.AutoFellow.Checked = Plugin.CurrentCharacter.AutoFellow;
+            if (string.IsNullOrEmpty(Plugin.CurrentCharacter.Password))
             {
-                XmlNode node = Utility.LoadCharacterSettings(Module, characterName: CoreManager.Current.CharacterFilter.Name);
-                if (node != null)
-                {
-                    XmlNodeList settingNodes = node.ChildNodes;
-                    if (settingNodes.Count > 0)
-                    {
-                        foreach (XmlNode aNode in settingNodes)
-                        {
-                            switch (aNode.Name)
-                            {
-                                case "SecretPassword":
-                                    if (!string.IsNullOrEmpty(aNode.InnerText))
-                                    {
-                                        Password = aNode.InnerText;
-                                        Plugin.MainView.SecretPassword.Text = aNode.InnerText;
-                                    }
-                                    break;
-                                case "AutoFellow":
-                                    if (aNode.InnerText.Equals("True"))
-                                    {
-                                        Plugin.MainView.AutoFellow.Checked = true;
-                                        AutoFellowEnabled = true;
-                                    }
-                                    break;
-                            }
-                        }
-                    }
-                }
+                Plugin.MainView.Password.Text = "xp";
             }
-            catch (Exception ex) { Utility.LogError(ex); }
+            else
+            {
+                Plugin.MainView.Password.Text = Plugin.CurrentCharacter.Password;
+            }
         }
 
         public void ChatActions(string parsedMessage)
         {
-            if (AutoFellowEnabled)
+            if (Plugin.MainView.AutoFellow.Checked)
             {
                 Dictionary<string, string> AutoFellowStrings = new Dictionary<string, string>
                 {
@@ -70,7 +38,7 @@ namespace ACManager
                     ["NotAccepting"] = @"(?<name>.+?) is not accepting fellowing requests",
                     ["JoinedFellow"] = @"(?<name>.+?) joined the fellowship",
                     ["ElseLeftFellow"] = @"(?<name>.+?) left the fellowship",
-                    ["RequestFellow"] = string.Format(@"(?<guid>\d+):(?<dupleName>.+?)Tell\s(?<msg>tells)\syou\s(?<secret>{0}$)", Password),
+                    ["RequestFellow"] = string.Format(@"(?<guid>\d+):(?<dupleName>.+?)Tell\s(?<msg>tells)\syou\s(?<secret>{0}$)", Plugin.MainView.Password.Text),
                     ["DeclinedFellow"] = @"(?<name>.+?) declines your invite",
                     ["AlreadyFellow"] = @"(?<name>.+?) is already in a fellowship",
                     ["FullFellow"] = @"^Fellowship is already full",
@@ -135,7 +103,7 @@ namespace ACManager
                                 {
                                     CoreManager.Current.Actions.InvokeChatParser(string.Format("/t {0}, I'm not currently in a fellowship.", name));
                                 }
-                                else if (match.Groups["msg"].Value.Equals("tells") && match.Groups["secret"].Value.Equals(Password))
+                                else if (match.Groups["msg"].Value.Equals("tells") && match.Groups["secret"].Value.Equals(Plugin.MainView.Password.Text))
                                 {
                                     bool exists = false;
                                     for (int i = 0; i < Recruits.Count; i++)
