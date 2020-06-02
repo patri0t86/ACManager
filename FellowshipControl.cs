@@ -6,7 +6,7 @@ using System.Text.RegularExpressions;
 
 namespace ACManager
 {
-    public class FellowshipControl
+    internal class FellowshipControl
     {
         private PluginCore Plugin { get; set; }
         private List<Recruit> Recruits { get; set; } = new List<Recruit>();

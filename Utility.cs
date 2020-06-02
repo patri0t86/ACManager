@@ -117,25 +117,6 @@ namespace ACManager
             catch { }
         }
 
-        internal void LogCrash(string characterName, string duration, string xp, string reasonIfKnown = "Crash")
-        {
-            try
-            {
-                if (!characterName.Equals(""))
-                {
-                    using (StreamWriter writer = new StreamWriter(CrashPath, true))
-                    {
-                        writer.WriteLine(DateTime.Now.ToString() + " -" +
-                            " Character=" + characterName +
-                            " Duration=" + duration +
-                            " XP=" + xp +
-                            " Reason=" + reasonIfKnown);
-                    }
-                }
-            }
-            catch (Exception ex) { LogError(ex); }
-        }
-
         internal void GetVersion()
         {
             Version = FileVersionInfo.GetVersionInfo(Assembly.GetExecutingAssembly().Location).ProductVersion;

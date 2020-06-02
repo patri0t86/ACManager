@@ -112,7 +112,7 @@ namespace ACManager.Views
                     XpFellow.Hit -= XpFellow_Hit;
                     XpAlleg.Hit -= XpAlleg_Hit;
                     XpLocal.Hit -= XpLocal_Hit;
-                    if (View != null) View.Dispose();
+                    View?.Dispose();
                 }
                 disposedValue = true;
             }

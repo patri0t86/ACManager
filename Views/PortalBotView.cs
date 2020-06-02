@@ -130,21 +130,22 @@ namespace ACManager.Views
                 if (!string.IsNullOrEmpty(NewAdvertisement.Text))
                 {
                     HudList.HudListRowAccessor row = Advertisements.AddRow();
-                    HudStaticText control = new HudStaticText();
-                    string ad = NewAdvertisement.Text;
-                    control.Text = ad;
-                    row[0] = control;
-                    NewAdvertisement.Text = "";
-
-                    Advertisement advertisement = new Advertisement
+                    using (HudStaticText control = new HudStaticText())
                     {
-                        Message = ad
-                    };
+                        string ad = NewAdvertisement.Text;
+                        control.Text = ad;
+                        row[0] = control;
+                        NewAdvertisement.Text = "";
 
-                    Plugin.Utility.AllSettings.Advertisements.Add(advertisement);
-                    Plugin.Utility.SaveSettings();
-                    advertisement = null;
-                    control.Dispose();
+                        Advertisement advertisement = new Advertisement
+                        {
+                            Message = ad
+                        };
+
+                        Plugin.Utility.AllSettings.Advertisements.Add(advertisement);
+                        Plugin.Utility.SaveSettings();
+                        advertisement = null;
+                    }
                 }
             }
             catch (Exception ex) { Plugin.Utility.LogError(ex); }
@@ -374,7 +375,7 @@ namespace ACManager.Views
                     AddAdvertisement.Hit -= AddAdvertisement_Hit;
                     Advertisements.Click -= Advertisements_Click;
                     CharacterChoice.Change -= CharacterChoice_Change;
-                    if (View != null) View.Dispose();
+                    View?.Dispose();
                 }
                 disposedValue = true;
             }

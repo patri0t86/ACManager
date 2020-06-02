@@ -4,7 +4,7 @@ using System;
 
 namespace ACManager
 {
-    class InventoryTracker
+    internal class InventoryTracker
     {
         private PluginCore Plugin { get; set; }
         private string[] Comps { get; set; } = {
@@ -53,66 +53,67 @@ namespace ACManager
         {
             foreach (string comp in Comps)
             {
-                WorldObjectCollection collection = CoreManager.Current.WorldFilter.GetInventory();
-                collection.SetFilter(new ByNameFilter(comp));
-                switch (comp)
+                using (WorldObjectCollection collection = CoreManager.Current.WorldFilter.GetInventory())
                 {
-                    case "Lead Scarab":
-                        if (collection.Quantity < int.Parse(Plugin.MainView.LeadScarabText.Text))
-                        {
-                            Logout("Lead Scarab");
-                        }
-                        break;
-                    case "Iron Scarab":
-                        if (collection.Quantity < int.Parse(Plugin.MainView.IronScarabText.Text))
-                        {
-                            Logout("Iron Scarab");
-                        }
-                        break;
-                    case "Copper Scarab":
-                        if (collection.Quantity < int.Parse(Plugin.MainView.CopperScarabText.Text))
-                        {
-                            Logout("Copper Scarab");
-                        }
-                        break;
-                    case "Silver Scarab":
-                        if (collection.Quantity < int.Parse(Plugin.MainView.SilverScarabText.Text))
-                        {
-                            Logout("Silver Scarab");
-                        };
-                        break;
-                    case "Gold Scarab":
-                        if (collection.Quantity < int.Parse(Plugin.MainView.GoldScarabText.Text))
-                        {
-                            Logout("Gold Scarab");
-                        }
-                        break;
-                    case "Pyreal Scarab":
-                        if (collection.Quantity < int.Parse(Plugin.MainView.PyrealScarabText.Text))
-                        {
-                            Logout("Pyreal Scarab");
-                        }
-                        break;
-                    case "Platinum Scarab":
-                        if (collection.Quantity < int.Parse(Plugin.MainView.PlatinumScarabText.Text))
-                        {
-                            Logout("Platinum Scarab");
-                        }
-                        break;
-                    case "Mana Scarab":
-                        if (collection.Quantity < int.Parse(Plugin.MainView.ManaScarabText.Text))
-                        {
-                            Logout("Mana Scarab");
-                        }
-                        break;
-                    case "Prismatic Taper":
-                        if (collection.Quantity < int.Parse(Plugin.MainView.TaperText.Text))
-                        {
-                            Logout("Prismatic Taper");
-                        }
-                        break;
+                    collection.SetFilter(new ByNameFilter(comp));
+                    switch (comp)
+                    {
+                        case "Lead Scarab":
+                            if (collection.Quantity < int.Parse(Plugin.MainView.LeadScarabText.Text))
+                            {
+                                Logout("Lead Scarab");
+                            }
+                            break;
+                        case "Iron Scarab":
+                            if (collection.Quantity < int.Parse(Plugin.MainView.IronScarabText.Text))
+                            {
+                                Logout("Iron Scarab");
+                            }
+                            break;
+                        case "Copper Scarab":
+                            if (collection.Quantity < int.Parse(Plugin.MainView.CopperScarabText.Text))
+                            {
+                                Logout("Copper Scarab");
+                            }
+                            break;
+                        case "Silver Scarab":
+                            if (collection.Quantity < int.Parse(Plugin.MainView.SilverScarabText.Text))
+                            {
+                                Logout("Silver Scarab");
+                            };
+                            break;
+                        case "Gold Scarab":
+                            if (collection.Quantity < int.Parse(Plugin.MainView.GoldScarabText.Text))
+                            {
+                                Logout("Gold Scarab");
+                            }
+                            break;
+                        case "Pyreal Scarab":
+                            if (collection.Quantity < int.Parse(Plugin.MainView.PyrealScarabText.Text))
+                            {
+                                Logout("Pyreal Scarab");
+                            }
+                            break;
+                        case "Platinum Scarab":
+                            if (collection.Quantity < int.Parse(Plugin.MainView.PlatinumScarabText.Text))
+                            {
+                                Logout("Platinum Scarab");
+                            }
+                            break;
+                        case "Mana Scarab":
+                            if (collection.Quantity < int.Parse(Plugin.MainView.ManaScarabText.Text))
+                            {
+                                Logout("Mana Scarab");
+                            }
+                            break;
+                        case "Prismatic Taper":
+                            if (collection.Quantity < int.Parse(Plugin.MainView.TaperText.Text))
+                            {
+                                Logout("Prismatic Taper");
+                            }
+                            break;
+                    }
                 }
-                collection.Dispose();
             }
         }
 

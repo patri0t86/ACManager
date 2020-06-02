@@ -9,9 +9,6 @@ namespace ACManager.Views
     internal class MainView : IDisposable
     {
         internal PluginCore Plugin { get; set; }
-        internal string GeneralModule = "General";
-        internal string InventoryModule = "InventoryTracker";
-        internal string FellowshipModule = "FellowshipManager";
         private HudView View { get; set; }
         internal HudStaticText Version { get; set; }
         internal HudCheckBox AutoFellow { get; set; }
@@ -308,9 +305,6 @@ namespace ACManager.Views
                 if (disposing)
                 {
                     Plugin = null;
-                    GeneralModule = null;
-                    InventoryModule = null;
-                    FellowshipModule = null;
                     Password.Change -= Password_Change;
                     AutoFellow.Change -= AutoFellow_Change;
                     AutoRespond.Change -= AutoRespond_Change;
@@ -326,7 +320,7 @@ namespace ACManager.Views
                     PlatinumScarabText.Change -= PlatinumScarabText_Change;
                     ManaScarabText.Change -= ManaScarabText_Change;
                     TaperText.Change -= TaperText_Change;
-                    if (View != null) View.Dispose();
+                    View?.Dispose();
                 }
                 disposedValue = true;
             }

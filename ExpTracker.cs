@@ -5,7 +5,7 @@ using System.Timers;
 
 namespace ACManager
 {
-    public class ExpTracker
+    internal class ExpTracker
     {
         private PluginCore Plugin { get; set; }
         private Timer CalcXpTimer { get; set; }
