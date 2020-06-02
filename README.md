@@ -1,14 +1,10 @@
 # Overview
 
-This project was designed from the ground up to be the new defacto multicharacter portal bot for Asheron's Call. The idea for the project was it was to be completed within Decal only, requiring no other plugins or programs. This was designed to be very user friendly from setup to actual end-user use. If you know how to add a Decal plugin, you are already halfway to running your portal bot!
-
-This bot's processing speed is tied to your client's frame rate. The faster the frame rate, the faster the processing. This was tested on a very performant gaming computer and, with little surprise, performed flawlessly. But the bot was also tested on low spec server hardware (no GPU), in a VM, and performed just fine, though a few seconds slower. So, unless someone finds otherwise, this will work on virtually any system spec that can play AC. 
-
-NOTE: If you completely tax your system resources (max CPU/RAM/etc.) your system may run garbage collection to save itself and kill parts of the bot. This was experienced on my low end server when I had 4 instances of AC running at the same time on 3GB of memory. Once I lowered the resource usage, it ran without fail.
+This project was designed from the ground up to be the new defacto multicharacter portal bot for Asheron's Call. The idea for the project was it was to be completed within Decal only, requiring no other plugins or programs to be running (except for the Virindi View System). This was designed to be very user friendly from setup to actual end-user use. If you know how to add a Decal plugin, you are already halfway to running your portal bot!
 
 ## Prerequisites
 1. Asheron's Call/ThwargLauncher/Decal Installed and working properly.
-2. Virindi Bundle is installed - the plugin **requires** the Virindi View System (VVS) and does **not** provide Decal fallback.
+2. Virindi Bundle is installed - the plugin **requires** VVS and does **not** provide Decal fallback.
 
 ## Installation
 
@@ -17,6 +13,7 @@ ACManager plugin is the frontend of the bot only. The backend is controlled via 
 1. **(Recommended)** This can be automatically handled using the installer found [here](https://github.com/patri0t86/ACManager/releases). The uninstaller will then remove all files created throughout the lifecycle of the plugin/filter, giving you a clean uninstall.
 2. You can manually install everything from the same location above, just using the .dlls like you would any other plugin.
     1. **Both** dlls are required for bot functionality!
+    2. Make sure both dlls are contained in the same folder when running the bot.
 
 ## Usage
 
