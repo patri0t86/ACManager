@@ -22,8 +22,8 @@ ACManager plugin is the frontend of the bot only. The backend is controlled via 
 
 1. Use the ACManager plugin to easily edit the portal mapping to your characters.
    1. This can be accessed by checking the "Portal Bot" check box on the "Controls" tab. Pressing this check box does **not** start the bot.
-2. Once your ties are set up for each character, type `/acm start` and the bot will start.
-3. To stop your bot, type `/acm stop` or completely close your client.
+2. Once your ties are set up for each character, type `/acm bot enable` and the bot will start.
+3. To stop your bot, type `/acm bot disable` or completely close your client.
 
 ## Assumptions 
 
@@ -44,12 +44,14 @@ The bot does handle mana management, but then it also assumes:
 
 These recommendations will allow the bot to restart automatically, even on server crashes and reboots.
 
-- ThwargFilter installed in Decal.
+- ThwargFilter added in Decal.
 - Have your portal bot account set to login automatically (Auto Relaunch).
-- Set your On-Login command for the default character to `/acm start`.
+- Set your On-Login command for the default character to `/acm bot enable`.
+- Set any other commands you want to customize your bot with, i.e. `/acm ads interval 6.67` if you want ads every 6.67 minutes.
 
 ## FAQs
-
+- What other plugins do I need to have enabled for this to work?
+  - You do not require any other plugins to be enabled. This plugin/filter combo is completely self-contained. The only pre-requisite is Decal and the Virindi Bundle being installed.
 - Do I need to escape characters?
   - No need to worry about character escaping. You type anything you want into descriptions, keywords, or advertisements as you want them to be displayed.
 - Do I need to fill all character slots?
@@ -65,9 +67,3 @@ These recommendations will allow the bot to restart automatically, even on serve
    2. *Auto Respond* has some minor functionality built-in. Whisper "comps" to get a status on comps. Or whisper any in-game name and the bot will respond with how many of those items it currently possesses, i.e. "Prismatic Taper" or "Brood Matron Carapace".
    3. EXP Tracker should be totally self-explanatory.
    4. *Low Comp. Logoff* gives you the ability to log off a character automatically if it runs low on a component. You have the option to broadcast your disconnect to your fellowship.
-
-### For What It's Worth
-
-The original plugin, that the bot piggybacked on, was intended for general gameplay/personal use. The plan is to refactor it completely into cleaner, more maintainable code. It's ugly in its current form!
-
-My plan is for this project to grow and evolve to help the entire AC community. If you have any issues, or feature requests, please record them here so I can properly track and respond. As the project name implies, my intention was for this bot to be your best friend, and manager of AC :)
