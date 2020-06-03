@@ -9,7 +9,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("ACManager")]
 [assembly: AssemblyProduct("ACManager")]
-[assembly: AssemblyCopyright("ACManager 2020")]
+[assembly: AssemblyCopyright("Copyright © ACManager 2020")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
