@@ -19,6 +19,10 @@ namespace ACManager.Views
         internal HudTextBox PrimaryDescription { get; set; }
         internal HudTextBox SecondaryDescription { get; set; }
         internal HudTextBox NewAdvertisement { get; set; }
+        internal HudTextBox PrimaryHeading { get; set; }
+        internal HudTextBox SecondaryHeading { get; set; }
+        internal HudTextBox PrimaryLevel { get; set; }
+        internal HudTextBox SecondaryLevel { get; set; }
         internal HudList Advertisements { get; set; }
         internal HudButton AddAdvertisement { get; set; }
 
@@ -48,6 +52,18 @@ namespace ACManager.Views
 
                 NewAdvertisement = View != null ? (HudTextBox)View["NewAdvertisementText"] : new HudTextBox();
 
+                PrimaryHeading = View != null ? (HudTextBox)View["PrimaryHeading"] : new HudTextBox();
+                PrimaryHeading.Change += PrimaryHeading_Change;
+
+                SecondaryHeading = View != null ? (HudTextBox)View["SecondaryHeading"] : new HudTextBox();
+                SecondaryHeading.Change += SecondaryHeading_Change;
+
+                PrimaryLevel = View != null ? (HudTextBox)View["PrimaryLevel"] : new HudTextBox();
+                PrimaryLevel.Change += PrimaryLevel_Change;
+
+                SecondaryLevel = View != null ? (HudTextBox)View["SecondaryLevel"] : new HudTextBox();
+                SecondaryLevel.Change += SecondaryLevel_Change;
+
                 AddAdvertisement = View != null ? (HudButton)View["AddAdvertisement"] : new HudButton();
                 AddAdvertisement.Hit += AddAdvertisement_Hit;
 
@@ -59,6 +75,84 @@ namespace ACManager.Views
 
                 GetCharacters();
                 GetAdvertisements();
+            }
+            catch (Exception ex) { Plugin.Utility.LogError(ex); }
+        }
+
+        private void PrimaryLevel_Change(object sender, EventArgs e)
+        {
+            try
+            {
+                if (!CharacterChoice.Current.Equals(0))
+                {
+                    using (HudStaticText selectedCharacter = (HudStaticText)CharacterChoice[CharacterChoice.Current])
+                    {
+                        Character character = CharacterExistsOrNew(selectedCharacter.Text);
+                        if (int.TryParse(PrimaryLevel.Text, out int result))
+                        {
+                            if (result >= 275)
+                            {
+                                result = 275;
+                                UpdatePortalLevel(character, PortalType.Primary, result);
+                                PrimaryLevel.Text = result.ToString();
+                            }
+                            else if (result < 0)
+                            {
+                                result = 0;
+                                UpdatePortalLevel(character, PortalType.Primary, result);
+                                PrimaryLevel.Text = result.ToString();
+                            }
+                            else
+                            {
+                                UpdatePortalLevel(character, PortalType.Primary, result);
+                            }
+                        }
+                        else
+                        {
+                            PrimaryLevel.Text = $"{default(int)}";
+                            UpdatePortalLevel(character, PortalType.Primary, default);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex) { Plugin.Utility.LogError(ex); }
+        }
+
+        private void SecondaryLevel_Change(object sender, EventArgs e)
+        {
+            try
+            {
+                if (!CharacterChoice.Current.Equals(0))
+                {
+                    using (HudStaticText selectedCharacter = (HudStaticText)CharacterChoice[CharacterChoice.Current])
+                    {
+                        Character character = CharacterExistsOrNew(selectedCharacter.Text);
+                        if (int.TryParse(SecondaryLevel.Text, out int result))
+                        {
+                            if (result >= 275)
+                            {
+                                result = 275;
+                                UpdatePortalLevel(character, PortalType.Secondary, result);
+                                SecondaryLevel.Text = result.ToString();
+                            }
+                            else if (result < 0)
+                            {
+                                result = 0;
+                                UpdatePortalLevel(character, PortalType.Secondary, result);
+                                SecondaryLevel.Text = result.ToString();
+                            }
+                            else
+                            {
+                                UpdatePortalLevel(character, PortalType.Secondary, result);
+                            }
+                        }
+                        else
+                        {
+                            SecondaryLevel.Text = $"{default(int)}";
+                            UpdatePortalLevel(character, PortalType.Secondary, default);
+                        }
+                    }
+                }
             }
             catch (Exception ex) { Plugin.Utility.LogError(ex); }
         }
@@ -123,6 +217,88 @@ namespace ACManager.Views
             catch (Exception ex) { Plugin.Utility.LogError(ex); }
         }
 
+        private void PrimaryHeading_Change(object sender, EventArgs e)
+        {
+            try
+            {
+                if (!CharacterChoice.Current.Equals(0))
+                {
+                    HudStaticText selectedCharacter = (HudStaticText)CharacterChoice[CharacterChoice.Current];
+                    Character character = CharacterExistsOrNew(selectedCharacter.Text);
+                    if (double.TryParse(PrimaryHeading.Text, out double result))
+                    {
+                        if (result >= 360)
+                        {
+                            result = 0;
+                            UpdatePortalHeading(character, PortalType.Primary, result);
+                            PrimaryHeading.Text = result.ToString();
+                        }
+                        else if (result <= -1)
+                        {
+                            result = -1;
+                            UpdatePortalHeading(character, PortalType.Primary, result);
+                            PrimaryHeading.Text = result.ToString();
+                        }
+                        else
+                        {
+                            UpdatePortalHeading(character, PortalType.Primary, result);
+                        }
+                    }
+                    else
+                    {
+                        PrimaryHeading.Text = $"{default(double)}";
+                        UpdatePortalHeading(character, PortalType.Primary, default);
+                    }
+                    selectedCharacter.Dispose();
+                }
+            }
+            catch (Exception ex)
+            {
+                Plugin.Utility.LogError(ex);
+            }
+        }
+
+        private void SecondaryHeading_Change(object sender, EventArgs e)
+        {
+            try
+            {
+                if (!CharacterChoice.Current.Equals(0))
+                {
+                    HudStaticText selectedCharacter = (HudStaticText)CharacterChoice[CharacterChoice.Current];
+                    Character character = CharacterExistsOrNew(selectedCharacter.Text);
+                    if (double.TryParse(SecondaryHeading.Text, out double result))
+                    {
+                        if (result >= 360)
+                        {
+                            result = 0;
+                            UpdatePortalHeading(character, PortalType.Secondary, result);
+                            SecondaryHeading.Text = result.ToString();
+                        }
+                        else if (result <= -1)
+                        {
+                            result = -1;
+                            UpdatePortalHeading(character, PortalType.Secondary, result);
+                            SecondaryHeading.Text = result.ToString();
+                        }
+                        else
+                        {
+                            UpdatePortalHeading(character, PortalType.Secondary, result);
+                        }
+                    }
+                    else
+                    {
+                        SecondaryHeading.Text = $"{default(double)}";
+                        UpdatePortalHeading(character, PortalType.Secondary, default);
+                    }
+                    selectedCharacter.Dispose();
+                }
+            }
+            catch (Exception ex)
+            {
+                Plugin.Utility.LogError(ex);
+            }
+        }
+
         private void AddAdvertisement_Hit(object sender, EventArgs e)
         {
             try
@@ -179,6 +355,10 @@ namespace ACManager.Views
             SecondaryKeyword.Text = "";
             PrimaryDescription.Text = "";
             SecondaryDescription.Text = "";
+            PrimaryHeading.Text = "";
+            SecondaryHeading.Text = "";
+            PrimaryLevel.Text = "";
+            SecondaryLevel.Text = "";
         }
 
         private void CharacterChoice_Change(object sender, EventArgs e)
@@ -197,11 +377,15 @@ namespace ACManager.Views
                         {
                             PrimaryKeyword.Text = portal.Keyword;
                             PrimaryDescription.Text = portal.Description;
+                            PrimaryHeading.Text = portal.Heading.ToString();
+                            PrimaryLevel.Text = portal.Level.ToString();
                         }
                         else
                         {
                             SecondaryKeyword.Text = portal.Keyword;
                             SecondaryDescription.Text = portal.Description;
+                            SecondaryHeading.Text = portal.Heading.ToString();
+                            SecondaryLevel.Text = portal.Level.ToString();
                         }
                     }
 
@@ -358,6 +542,97 @@ namespace ACManager.Views
             Plugin.Utility.SaveSettings();
         }
 
+        private void UpdatePortalHeading(Character character, PortalType type, double value)
+        {
+            Portal portal = null;
+            for (int i = 0; i < character.Portals.Count; i++)
+            {
+                if (character.Portals[i].Type.Equals(type))
+                {
+                    portal = character.Portals[i];
+                    character.Portals.RemoveAt(i);
+                    break;
+                }
+            }
+
+            if (portal != null)
+            {
+                portal.Heading = value;
+            }
+            else
+            {
+                portal = new Portal
+                {
+                    Type = type,
+                    Heading = value
+                };
+            }
+            character.Portals.Add(portal);
+
+            if (Plugin.Utility.AllSettings.Characters.Contains(character))
+            {
+                for (int i = 0; i < Plugin.Utility.AllSettings.Characters.Count; i++)
+                {
+                    if (Plugin.Utility.AllSettings.Characters[i].Equals(character))
+                    {
+                        Plugin.Utility.AllSettings.Characters[i] = character;
+                        break;
+                    }
+                }
+            }
+            else
+            {
+                Plugin.Utility.AllSettings.Characters.Add(character);
+            }
+
+            Plugin.Utility.SaveSettings();
+        }
+
+        private void UpdatePortalLevel(Character character, PortalType type, int value)
+        {
+            Portal portal = null;
+            for (int i = 0; i < character.Portals.Count; i++)
+            {
+                if (character.Portals[i].Type.Equals(type))
+                {
+                    portal = character.Portals[i];
+                    character.Portals.RemoveAt(i);
+                    break;
+                }
+            }
+
+            if (portal != null)
+            {
+                portal.Level = value;
+            }
+            else
+            {
+                portal = new Portal
+                {
+                    Type = type,
+                    Level = value
+                };
+            }
+            character.Portals.Add(portal);
+
+            if (Plugin.Utility.AllSettings.Characters.Contains(character))
+            {
+                for (int i = 0; i < Plugin.Utility.AllSettings.Characters.Count; i++)
+                {
+                    if (Plugin.Utility.AllSettings.Characters[i].Equals(character))
+                    {
+                        Plugin.Utility.AllSettings.Characters[i] = character;
+                        break;
+                    }
+                }
+            }
+            else
+            {
+                Plugin.Utility.AllSettings.Characters.Add(character);
+            }
+            Plugin.Utility.SaveSettings();
+        }
+
         #region IDisposable Support
         private bool disposedValue = false;
 
@@ -372,6 +647,10 @@ namespace ACManager.Views
                     SecondaryKeyword.Change -= SecondaryKeyword_Change;
                     PrimaryDescription.Change -= PrimaryDescription_Change;
                     SecondaryDescription.Change -= SecondaryDescription_Change;
+                    PrimaryHeading.Change -= PrimaryHeading_Change;
+                    SecondaryHeading.Change -= SecondaryHeading_Change;
+                    PrimaryLevel.Change -= PrimaryLevel_Change;
+                    SecondaryLevel.Change -= SecondaryLevel_Change;
                     AddAdvertisement.Hit -= AddAdvertisement_Hit;
                     Advertisements.Click -= Advertisements_Click;
                     CharacterChoice.Change -= CharacterChoice_Change;
