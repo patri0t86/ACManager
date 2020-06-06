@@ -109,10 +109,6 @@ namespace ACManager.Views
             {
                 Plugin.CurrentCharacter.AutoFellow = AutoFellow.Checked;
                 Plugin.Utility.SaveSettings();
-                if (AutoFellow.Checked && Plugin.FellowshipControl.FellowStatus.Equals(FellowshipEventType.Create))
-                {
-                    CoreManager.Current.Actions.FellowshipSetOpen(true);
-                }
             }
             catch (Exception ex) { Plugin.Utility.LogError(ex); }
         }

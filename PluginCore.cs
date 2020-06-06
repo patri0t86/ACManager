@@ -73,10 +73,6 @@ namespace ACManager
                         }
                     }
                 }
-                else
-                {
-                    Utility.SaveSettings();
-                }
 
                 InventoryTracker = new InventoryTracker(this);
                 FellowshipControl = new FellowshipControl(this);
