@@ -35,6 +35,7 @@ namespace ACManager
         {
             try
             {
+                LoadSettings();
                 using (XmlTextWriter writer = new XmlTextWriter(SettingsPath, Encoding.UTF8))
                 {
                     writer.Formatting = Formatting.Indented;

@@ -75,7 +75,6 @@ namespace ACManager
                 }
                 else
                 {
-                    Utility.AllSettings.Characters.Add(CurrentCharacter);
                     Utility.SaveSettings();
                 }
 
