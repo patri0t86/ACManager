@@ -98,7 +98,7 @@ namespace ACManager.Views
             try
             {
                 Plugin.CurrentCharacter.Password = Password.Text;
-                Plugin.Utility.SaveSettings();
+                Plugin.Utility.SaveCharacterSettings();
             }
             catch (Exception ex) { Plugin.Utility.LogError(ex); }
         }
@@ -108,7 +108,7 @@ namespace ACManager.Views
             try
             {
                 Plugin.CurrentCharacter.AutoFellow = AutoFellow.Checked;
-                Plugin.Utility.SaveSettings();
+                Plugin.Utility.SaveCharacterSettings();
             }
             catch (Exception ex) { Plugin.Utility.LogError(ex); }
         }
@@ -118,7 +118,7 @@ namespace ACManager.Views
             try
             {
                 Plugin.CurrentCharacter.AutoRespond = AutoRespond.Checked;
-                Plugin.Utility.SaveSettings();
+                Plugin.Utility.SaveCharacterSettings();
             }
             catch (Exception ex) { Plugin.Utility.LogError(ex); }
         }
@@ -128,7 +128,7 @@ namespace ACManager.Views
             try
             {
                 Plugin.CurrentCharacter.AnnounceLogoff = AnnounceLogoff.Checked;
-                Plugin.Utility.SaveSettings();
+                Plugin.Utility.SaveCharacterSettings();
             }
             catch (Exception ex) { Plugin.Utility.LogError(ex); }
         }
@@ -174,7 +174,7 @@ namespace ACManager.Views
                     LeadScarabText.Text = "0";
                 }
                 Plugin.CurrentCharacter.LeadScarabs = int.Parse(LeadScarabText.Text);
-                Plugin.Utility.SaveSettings();
+                Plugin.Utility.SaveCharacterSettings();
             }
             catch (Exception ex) { Plugin.Utility.LogError(ex); }
         }
@@ -188,7 +188,7 @@ namespace ACManager.Views
                     IronScarabText.Text = "0";
                 }
                 Plugin.CurrentCharacter.IronScarabs = int.Parse(IronScarabText.Text);
-                Plugin.Utility.SaveSettings();
+                Plugin.Utility.SaveCharacterSettings();
             }
             catch (Exception ex) { Plugin.Utility.LogError(ex); }
         }
@@ -202,7 +202,7 @@ namespace ACManager.Views
                     CopperScarabText.Text = "0";
                 }
                 Plugin.CurrentCharacter.CopperScarabs = int.Parse(CopperScarabText.Text);
-                Plugin.Utility.SaveSettings();
+                Plugin.Utility.SaveCharacterSettings();
             }
             catch (Exception ex) { Plugin.Utility.LogError(ex); }
         }
@@ -216,7 +216,7 @@ namespace ACManager.Views
                     SilverScarabText.Text = "0";
                 }
                 Plugin.CurrentCharacter.SilverScarabs = int.Parse(SilverScarabText.Text);
-                Plugin.Utility.SaveSettings();
+                Plugin.Utility.SaveCharacterSettings();
             }
             catch (Exception ex) { Plugin.Utility.LogError(ex); }
         }
@@ -230,7 +230,7 @@ namespace ACManager.Views
                     GoldScarabText.Text = "0";
                 }
                 Plugin.CurrentCharacter.GoldScarabs = int.Parse(GoldScarabText.Text);
-                Plugin.Utility.SaveSettings();
+                Plugin.Utility.SaveCharacterSettings();
             }
             catch (Exception ex) { Plugin.Utility.LogError(ex); }
         }
@@ -244,7 +244,7 @@ namespace ACManager.Views
                     PyrealScarabText.Text = "0";
                 }
                 Plugin.CurrentCharacter.PyrealScarabs = int.Parse(PyrealScarabText.Text);
-                Plugin.Utility.SaveSettings();
+                Plugin.Utility.SaveCharacterSettings();
             }
             catch (Exception ex) { Plugin.Utility.LogError(ex); }
         }
@@ -258,7 +258,7 @@ namespace ACManager.Views
                     PlatinumScarabText.Text = "0";
                 }
                 Plugin.CurrentCharacter.PlatinumScarabs = int.Parse(PlatinumScarabText.Text);
-                Plugin.Utility.SaveSettings();
+                Plugin.Utility.SaveCharacterSettings();
             }
             catch (Exception ex) { Plugin.Utility.LogError(ex); }
         }
@@ -272,7 +272,7 @@ namespace ACManager.Views
                     ManaScarabText.Text = "0";
                 }
                 Plugin.CurrentCharacter.ManaScarabs = int.Parse(ManaScarabText.Text);
-                Plugin.Utility.SaveSettings();
+                Plugin.Utility.SaveCharacterSettings();
             }
             catch (Exception ex) { Plugin.Utility.LogError(ex); }
         }
@@ -286,7 +286,7 @@ namespace ACManager.Views
                     TaperText.Text = "0";
                 }
                 Plugin.CurrentCharacter.Tapers = int.Parse(TaperText.Text);
-                Plugin.Utility.SaveSettings();
+                Plugin.Utility.SaveCharacterSettings();
             }
             catch (Exception ex) { Plugin.Utility.LogError(ex); }
         }

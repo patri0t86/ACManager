@@ -319,7 +319,7 @@ namespace ACManager.Views
                         };
 
                         Plugin.Utility.AllSettings.Advertisements.Add(advertisement);
-                        Plugin.Utility.SaveSettings();
+                        Plugin.Utility.SaveCharacterSettings();
                         advertisement = null;
                     }
                 }
@@ -343,7 +343,7 @@ namespace ACManager.Views
                     }
                 }
 
-                Plugin.Utility.SaveSettings();
+                Plugin.Utility.SaveCharacterSettings();
                 adToDelete.Dispose();
             }
             catch (Exception ex) { Plugin.Utility.LogError(ex); }
@@ -493,7 +493,7 @@ namespace ACManager.Views
                 Plugin.Utility.AllSettings.Characters.Add(character);
             }
 
-            Plugin.Utility.SaveSettings();
+            Plugin.Utility.SaveCharacterSettings();
         }
 
         private void UpdatePortalDescription(Character character, PortalType type, string value)
@@ -539,7 +539,7 @@ namespace ACManager.Views
                 Plugin.Utility.AllSettings.Characters.Add(character);
             }
 
-            Plugin.Utility.SaveSettings();
+            Plugin.Utility.SaveCharacterSettings();
         }
 
         private void UpdatePortalHeading(Character character, PortalType type, double value)
@@ -585,7 +585,7 @@ namespace ACManager.Views
                 Plugin.Utility.AllSettings.Characters.Add(character);
             }
 
-            Plugin.Utility.SaveSettings();
+            Plugin.Utility.SaveCharacterSettings();
         }
 
         private void UpdatePortalLevel(Character character, PortalType type, int value)
@@ -630,7 +630,7 @@ namespace ACManager.Views
             {
                 Plugin.Utility.AllSettings.Characters.Add(character);
             }
-            Plugin.Utility.SaveSettings();
+            Plugin.Utility.SaveCharacterSettings();
         }
 
         #region IDisposable Support

@@ -86,9 +86,6 @@
     <Compile Include="VirindiViews\Wrapper_WireupHelper.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="README.md" />
-  </ItemGroup>
-  <ItemGroup>
     <EmbeddedResource Include="Views\mainView.xml" />
     <EmbeddedResource Include="Views\portalBotView.xml" />
     <EmbeddedResource Include="Views\expTrackerView.xml" />

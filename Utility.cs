@@ -13,52 +13,101 @@ namespace ACManager
     internal class Utility
     {
         private PluginCore Plugin { get; set; }
-        private string SettingsFile { get; set; } = "settings.xml";
-        private string SettingsPath { get; set; }
+        private string AllSettingsPath { get; set; }
+        private string OldSettingsFile { get; set; } = "settings.xml";
+        private string OldSettingsPath { get; set; }
+        private string CharacterSettingsFile { get; set; } = "acm_settings.xml";
+        private string CharacterSettingsPath { get; set; }
+        private string BotSettingsFile { get; set; } = "acm_bot_settings.xml";
+        private string BotSettingsPath { get; set; }
         private string ErrorFile { get; set; } = "errors.txt";
         private string ErrorPath { get; set; }
-        private string CrashFile { get; set; } = "crashlog.txt";
-        private string CrashPath { get; set; }
         internal string Version { get; set; }
         internal AllSettings AllSettings { get; set; } = new AllSettings();
 
         public Utility(PluginCore parent)
         {
             Plugin = parent;
-            SettingsPath = Path.Combine(Plugin.Path, SettingsFile);
-            ErrorPath = Path.Combine(Plugin.Path, ErrorFile);
-            CrashPath = Path.Combine(Plugin.Path, CrashFile);
+            CreateSettingsPath();
+            OldSettingsPath = Path.Combine(Plugin.Path, OldSettingsFile); // remove eventually
+            CharacterSettingsPath = Path.Combine(AllSettingsPath, CharacterSettingsFile);
+            ErrorPath = Path.Combine(AllSettingsPath, ErrorFile);
             GetVersion();
         }
 
-        public void SaveSettings()
+        private void CreateSettingsPath()
         {
             try
             {
-                LoadSettings();
-                using (XmlTextWriter writer = new XmlTextWriter(SettingsPath, Encoding.UTF8))
-                {
-                    writer.Formatting = Formatting.Indented;
-                    writer.WriteStartDocument();
+                string intermediatePath = Path.Combine(Plugin.Path, CoreManager.Current.CharacterFilter.AccountName);
+                AllSettingsPath = Path.Combine(intermediatePath, CoreManager.Current.CharacterFilter.Server);
+            }
+            catch (Exception ex) { LogError(ex); }
+        }
 
-                    if (AllSettings.Characters.Contains(Plugin.CurrentCharacter))
+        private bool SettingsPathExists()
+        {
+            try
+            {
+                DirectoryInfo di = Directory.CreateDirectory(AllSettingsPath);
+                if (di.Exists)
+                {
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+            catch (Exception ex)
+            {
+                WriteToChat(ex.Message);
+                return false;
+            }
+        }
+
+        public void SaveCharacterSettings()
+        {
+            try
+            {
+                if (SettingsPathExists())
+                {
+                    using (XmlTextWriter writer = new XmlTextWriter(CharacterSettingsPath, Encoding.UTF8))
                     {
-                        for (int i = 0; i < AllSettings.Characters.Count; i++)
+                        writer.Formatting = Formatting.Indented;
+                        writer.WriteStartDocument();
+
+                        if (AllSettings.Characters.Contains(Plugin.CurrentCharacter))
                         {
-                            if (AllSettings.Characters[i].Equals(Plugin.CurrentCharacter))
+                            for (int i = 0; i < AllSettings.Characters.Count; i++)
                             {
-                                AllSettings.Characters[i] = Plugin.CurrentCharacter;
-                                break;
+                                if (AllSettings.Characters[i].Equals(Plugin.CurrentCharacter))
+                                {
+                                    AllSettings.Characters[i] = Plugin.CurrentCharacter;
+                                    break;
+                                }
                             }
                         }
-                    }
-                    else
-                    {
-                        AllSettings.Characters.Add(Plugin.CurrentCharacter);
-                    }
+                        else
+                        {
+                            AllSettings.Characters.Add(Plugin.CurrentCharacter);
+                        }
 
-                    XmlSerializer xmlSerializer = new XmlSerializer(typeof(AllSettings));
-                    xmlSerializer.Serialize(writer, AllSettings);
+                        // remove this chunk of code in a future release (2.0?)
+                        AllSettings temp = new AllSettings();
+
+                        foreach (Character ch in AllSettings.Characters)
+                        {
+                            if (ch.Account.Equals(CoreManager.Current.CharacterFilter.AccountName) && ch.Server.Equals(CoreManager.Current.CharacterFilter.Server))
+                            {
+                                temp.Characters.Add(ch);
+                            }
+                        }
+                        // end remove code
+
+                        XmlSerializer xmlSerializer = new XmlSerializer(typeof(AllSettings));
+                        xmlSerializer.Serialize(writer, temp); // change this back to AllSettings from temp, when removing above code
+                    }
                 }
             }
             catch (Exception ex)
@@ -71,9 +120,17 @@ namespace ACManager
         {
             try
             {
-                if (File.Exists(SettingsPath))
+                if (File.Exists(CharacterSettingsPath)) // read the new settings file
                 {
-                    using (XmlTextReader reader = new XmlTextReader(SettingsPath))
+                    using (XmlTextReader reader = new XmlTextReader(CharacterSettingsPath))
+                    {
+                        XmlSerializer xmlSerializer = new XmlSerializer(typeof(AllSettings));
+                        AllSettings = (AllSettings)xmlSerializer.Deserialize(reader);
+                    }
+                }
+                else if (File.Exists(OldSettingsPath)) // read the old settings.xml file 
+                {
+                    using (XmlTextReader reader = new XmlTextReader(OldSettingsPath))
                     {
                         XmlSerializer xmlSerializer = new XmlSerializer(typeof(AllSettings));
                         AllSettings = (AllSettings)xmlSerializer.Deserialize(reader);
