@@ -32,4 +32,10 @@ namespace ACManager.Settings
 
         public List<Advertisement> Advertisements = new List<Advertisement>();
     }
+
+    public class Advertisement
+    {
+        [XmlElement(IsNullable = false)]
+        public string Message;
+    }
 }

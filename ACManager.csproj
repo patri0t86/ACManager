@@ -85,10 +85,7 @@
     <Compile Include="Settings\BotSettings.cs" />
     <Compile Include="StateMachine\ChatManager.cs" />
     <Compile Include="Debug.cs" />
-    <Compile Include="Settings\Advertisement.cs" />
     <Compile Include="Settings\CharacterSettings.cs" />
-    <Compile Include="Settings\Character.cs" />
-    <Compile Include="Settings\Portal.cs" />
     <Compile Include="StateMachine\Interpreter.cs" />
     <Compile Include="StateMachine\States\Casting.cs" />
     <Compile Include="StateMachine\States\IState.cs" />
