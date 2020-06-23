@@ -48,7 +48,7 @@
         <control progid="DecalControls.StaticText"                              left="70"   top="184"   width="50"  height="16" text="Lvl" />
         <control progid="DecalControls.Edit"        name="SecondaryLevel"       left="70"   top="201"   width="30"  height="19" text="" />
 
-        <control progid="DecalControls.CheckBox"    name="GeneralChatResponse"  left="5"    top="223"   width="200" height="16" text="Respond to General Chat" />
+        <control progid="DecalControls.CheckBox"    name="GeneralChatResponse"  left="5"    top="223"   width="200" height="16" text="Respond to Local Chat" />
 
         <control progid="DecalControls.StaticText"                              left="5"    top="242"   width="200" height="16" text="Verbosity" />
         <control progid="DecalControls.StaticText"                              left="5"    top="261"   width="20"  height="16" text="Min" />
