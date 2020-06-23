@@ -1,6 +1,7 @@
 ﻿using ACManager.Settings;
-using Decal.Adapter;
+using ACManager.StateMachine;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
@@ -10,41 +11,51 @@ using System.Xml.Serialization;
 
 namespace ACManager
 {
+    /// <summary>
+    /// Static class to handle miscellaneous tasks, outside of the client.
+    /// </summary>
     internal class Utility
     {
-        private PluginCore Plugin { get; set; }
+        private Machine Machine { get; set; }
         private string AllSettingsPath { get; set; }
-        private string OldSettingsFile { get; set; } = "settings.xml";
-        private string OldSettingsPath { get; set; }
-        private string CharacterSettingsFile { get; set; } = "acm_settings.xml";
+        private string CharacterSettingsFile { get { return "acm_settings.xml"; } }
         private string CharacterSettingsPath { get; set; }
-        private string BotSettingsFile { get; set; } = "acm_bot_settings.xml";
+        private string BotSettingsFile { get { return "acm_bot_settings.xml"; } }
         private string BotSettingsPath { get; set; }
-        private string ErrorFile { get; set; } = "errors.txt";
-        private string ErrorPath { get; set; }
+        internal CharacterSettings CharacterSettings { get; set; } = new CharacterSettings();
+        internal BotSettings BotSettings { get; set; } = new BotSettings();
         internal string Version { get; set; }
-        internal AllSettings AllSettings { get; set; } = new AllSettings();
+        internal bool BackCompat { get; set; } = false;
 
-        public Utility(PluginCore parent)
+        public Utility(Machine machine, string path, string account, string server)
         {
-            Plugin = parent;
-            CreateSettingsPath();
-            OldSettingsPath = Path.Combine(Plugin.Path, OldSettingsFile); // remove eventually
-            CharacterSettingsPath = Path.Combine(AllSettingsPath, CharacterSettingsFile);
-            ErrorPath = Path.Combine(AllSettingsPath, ErrorFile);
-            GetVersion();
+            Machine = machine;
+            CreatePaths(path, account, server);
+            Version = FileVersionInfo.GetVersionInfo(Assembly.GetExecutingAssembly().Location).ProductVersion;
         }
 
-        private void CreateSettingsPath()
+        /// <summary>
+        /// Creates the paths necessary to save/load settings.
+        /// </summary>
+        /// <param name="root">Root path of the plugin.</param>
+        /// <param name="account">Account name of the currently logged in account.</param>
+        /// <param name="server">Server name of teh currently logged in account.</param>
+        private void CreatePaths(string root, string account, string server)
         {
             try
             {
-                string intermediatePath = Path.Combine(Plugin.Path, CoreManager.Current.CharacterFilter.AccountName);
-                AllSettingsPath = Path.Combine(intermediatePath, CoreManager.Current.CharacterFilter.Server);
+                string intermediatePath = Path.Combine(root, account);
+                AllSettingsPath = Path.Combine(intermediatePath, server);
+                CharacterSettingsPath = Path.Combine(AllSettingsPath, CharacterSettingsFile);
+                BotSettingsPath = Path.Combine(AllSettingsPath, BotSettingsFile);
             }
-            catch (Exception ex) { LogError(ex); }
+            catch (Exception ex) { Debug.LogException(ex); }
         }
 
+        /// <summary>
+        /// Creates the directory path if it does not exist.
+        /// </summary>
+        /// <returns>Boolean whether or not the directory path exists.</returns>
         private bool SettingsPathExists()
         {
             try
@@ -61,11 +72,14 @@ namespace ACManager
             }
             catch (Exception ex)
             {
-                WriteToChat(ex.Message);
+                Debug.ToChat(ex.Message);
                 return false;
             }
         }
 
+        /// <summary>
+        /// Saves the per character settings to file.
+        /// </summary>
         public void SaveCharacterSettings()
         {
             try
@@ -76,108 +90,114 @@ namespace ACManager
                     {
                         writer.Formatting = Formatting.Indented;
                         writer.WriteStartDocument();
-
-                        if (AllSettings.Characters.Contains(Plugin.CurrentCharacter))
+                        if (CharacterSettings.Characters.Contains(Machine.CurrentCharacter))
                         {
-                            for (int i = 0; i < AllSettings.Characters.Count; i++)
+                            for (int i = 0; i < CharacterSettings.Characters.Count; i++)
                             {
-                                if (AllSettings.Characters[i].Equals(Plugin.CurrentCharacter))
+                                if (CharacterSettings.Characters[i].Equals(Machine.CurrentCharacter))
                                 {
-                                    AllSettings.Characters[i] = Plugin.CurrentCharacter;
+                                    CharacterSettings.Characters[i] = Machine.CurrentCharacter;
                                     break;
                                 }
                             }
                         }
                         else
                         {
-                            AllSettings.Characters.Add(Plugin.CurrentCharacter);
+                            CharacterSettings.Characters.Add(Machine.CurrentCharacter);
                         }
-
-                        // remove this chunk of code in a future release (2.0?)
-                        AllSettings temp = new AllSettings();
-
-                        foreach (Character ch in AllSettings.Characters)
-                        {
-                            if (ch.Account.Equals(CoreManager.Current.CharacterFilter.AccountName) && ch.Server.Equals(CoreManager.Current.CharacterFilter.Server))
-                            {
-                                temp.Characters.Add(ch);
-                            }
-                        }
-                        // end remove code
-
-                        XmlSerializer xmlSerializer = new XmlSerializer(typeof(AllSettings));
-                        xmlSerializer.Serialize(writer, temp); // change this back to AllSettings from temp, when removing above code
+                        XmlSerializer xmlSerializer = new XmlSerializer(typeof(CharacterSettings));
+                        xmlSerializer.Serialize(writer, CharacterSettings);
                     }
                 }
             }
             catch (Exception ex)
             {
-                WriteToChat(ex.Message);
+                Debug.ToChat(ex.Message);
             }
         }
 
-        public void LoadSettings()
+        /// <summary>
+        /// Loads the character settings file if it exists.
+        /// </summary>
+        /// <returns>AllSettings</returns>
+        internal CharacterSettings LoadCharacterSettings()
         {
             try
             {
-                if (File.Exists(CharacterSettingsPath)) // read the new settings file
+                if (File.Exists(CharacterSettingsPath))
                 {
                     using (XmlTextReader reader = new XmlTextReader(CharacterSettingsPath))
                     {
-                        XmlSerializer xmlSerializer = new XmlSerializer(typeof(AllSettings));
-                        AllSettings = (AllSettings)xmlSerializer.Deserialize(reader);
+                        XmlSerializer xmlSerializer = new XmlSerializer(typeof(CharacterSettings));
+                        return (CharacterSettings)xmlSerializer.Deserialize(reader);
                     }
                 }
-                else if (File.Exists(OldSettingsPath)) // read the old settings.xml file 
+                return new CharacterSettings();
+            }
+            catch (Exception ex)
+            {
+                Debug.ToChat(ex.Message);
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Saves the bot settings to file.
+        /// </summary>
+        public void SaveBotSettings()
+        {
+            try
+            {
+                if (SettingsPathExists())
                 {
-                    using (XmlTextReader reader = new XmlTextReader(OldSettingsPath))
+                    using (XmlTextWriter writer = new XmlTextWriter(BotSettingsPath, Encoding.UTF8))
                     {
-                        XmlSerializer xmlSerializer = new XmlSerializer(typeof(AllSettings));
-                        AllSettings = (AllSettings)xmlSerializer.Deserialize(reader);
+                        writer.Formatting = Formatting.Indented;
+                        writer.WriteStartDocument();
+
+                        XmlSerializer xmlSerializer = new XmlSerializer(typeof(BotSettings));
+                        xmlSerializer.Serialize(writer, BotSettings);
                     }
                 }
             }
             catch (Exception ex)
             {
-                WriteToChat(ex.Message);
+                Debug.ToChat(ex.Message);
             }
         }
 
-        internal void WriteToChat(string message)
+        /// <summary>
+        /// Loads the bot settings file if it exists.
+        /// </summary>
+        /// <returns>AllSettings</returns>
+        internal BotSettings LoadBotSettings()
         {
             try
             {
-                CoreManager.Current.Actions.AddChatText(" <{ " + PluginCore.PluginName + " }>: " + message, 5);
-            }
-            catch (Exception ex) { LogError(ex); }
-        }
-
-        internal void LogError(Exception ex)
-        {
-            try
-            {
-                using (StreamWriter writer = new StreamWriter(ErrorPath, true))
+                if (File.Exists(BotSettingsPath))
                 {
-                    writer.WriteLine("============================================================================");
-                    writer.WriteLine(DateTime.Now.ToString());
-                    writer.WriteLine("Error: " + ex.Message);
-                    writer.WriteLine("Source: " + ex.Source);
-                    writer.WriteLine("Stack: " + ex.StackTrace);
-                    if (ex.InnerException != null)
+                    using (XmlTextReader reader = new XmlTextReader(BotSettingsPath))
                     {
-                        writer.WriteLine("Inner: " + ex.InnerException.Message);
-                        writer.WriteLine("Inner Stack: " + ex.InnerException.StackTrace);
-                    }
-                    writer.WriteLine("============================================================================");
-                    writer.WriteLine("");
-                }
-            }
-            catch { }
-        }
+                        XmlSerializer xmlSerializer = new XmlSerializer(typeof(BotSettings));
 
-        internal void GetVersion()
-        {
-            Version = FileVersionInfo.GetVersionInfo(Assembly.GetExecutingAssembly().Location).ProductVersion;
+                        BotSettings settings = (BotSettings)xmlSerializer.Deserialize(reader);
+                        if (CharacterSettings.Advertisements.Count > 0 && settings.Advertisements.Count == 0)
+                        {
+                            settings.Advertisements = new List<Advertisement>(CharacterSettings.Advertisements);
+                            CharacterSettings.Advertisements.Clear();
+                            SaveCharacterSettings();
+                            BackCompat = true;
+                        }
+                        return settings;
+                    }
+                }
+                return new BotSettings();
+            }
+            catch (Exception ex)
+            {
+                Debug.ToChat(ex.Message);
+                return null;
+            }
         }
     }
 }

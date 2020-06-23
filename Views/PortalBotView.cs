@@ -11,8 +11,20 @@ namespace ACManager.Views
     internal class PortalBotView : IDisposable
     {
         internal const string Module = "PortalBot";
-        internal PluginCore Plugin { get; set; }
+        private FilterCore Filter { get; set; }
+        private CoreManager Core { get; set; }
         internal HudView View { get; set; }
+        internal HudCheckBox BotEnabled { get; set; }
+        internal HudCheckBox RespondToGeneralChat { get; set; }
+        internal HudCheckBox AdsEnabled { get; set; }
+        internal HudTextBox AdInterval { get; set; }
+        internal HudButton SetHeading { get; set; }
+        internal HudTextBox DefaultHeading { get; set; }
+        internal HudHSlider Verbosity { get; set; }
+        internal HudHSlider ManaThreshold { get; set; }
+        internal HudHSlider StaminaThreshold { get; set; }
+        internal HudStaticText ManaThresholdText { get; set; }
+        internal HudStaticText StamThresholdText { get; set; }
         internal HudCombo CharacterChoice { get; set; }
         internal HudTextBox PrimaryKeyword { get; set; }
         internal HudTextBox SecondaryKeyword { get; set; }
@@ -26,18 +38,50 @@ namespace ACManager.Views
         internal HudList Advertisements { get; set; }
         internal HudButton AddAdvertisement { get; set; }
 
-        public PortalBotView(PluginCore parent)
+        public PortalBotView(FilterCore parent, CoreManager core)
         {
             try
             {
-                Plugin = parent;
-
+                Filter = parent;
+                Core = core;
                 VirindiViewService.XMLParsers.Decal3XMLParser parser = new VirindiViewService.XMLParsers.Decal3XMLParser();
                 parser.ParseFromResource("ACManager.Views.portalBotView.xml", out ViewProperties Properties, out ControlGroup Controls);
 
                 View = new HudView(Properties, Controls);
-                View.ShowInBar = false;
 
+                #region Config
+                BotEnabled = View != null ? (HudCheckBox)View["Bot"] : new HudCheckBox();
+                BotEnabled.Change += BotEnabled_Change;
+
+                RespondToGeneralChat = View != null ? (HudCheckBox)View["GeneralChatResponse"] : new HudCheckBox();
+                RespondToGeneralChat.Change += RespondToGeneralChat_Change;
+
+                AdsEnabled = View != null ? (HudCheckBox)View["AdsEnabled"] : new HudCheckBox();
+                AdsEnabled.Change += AdsEnabled_Change;
+
+                AdInterval = View != null ? (HudTextBox)View["AdInterval"] : new HudTextBox();
+                AdInterval.Change += AdInterval_Change;
+
+                SetHeading = View != null ? (HudButton)View["SetHeading"] : new HudButton();
+                SetHeading.Hit += SetHeading_Hit;
+
+                DefaultHeading = View != null ? (HudTextBox)View["DefaultHeading"] : new HudTextBox();
+                DefaultHeading.Change += DefaultHeading_Change;
+
+                Verbosity = View != null ? (HudHSlider)View["Verbosity"] : new HudHSlider();
+                Verbosity.Changed += Verbosity_Changed;
+
+                ManaThreshold = View != null ? (HudHSlider)View["ManaThresh"] : new HudHSlider();
+                ManaThreshold.Changed += ManaThreshhold_Changed;
+
+                StaminaThreshold = View != null ? (HudHSlider)View["StamThresh"] : new HudHSlider();
+                StaminaThreshold.Changed += StaminaThreshhold_Changed;
+
+                ManaThresholdText = View != null ? (HudStaticText)View["ManaThreshText"] : new HudStaticText();
+                StamThresholdText = View != null ? (HudStaticText)View["StamThreshText"] : new HudStaticText();
+                #endregion
+
+                #region Portal Settings
                 PrimaryKeyword = View != null ? (HudTextBox)View["PrimaryKeyword"] : new HudTextBox();
                 PrimaryKeyword.Change += PrimaryKeyword_Change;
 
@@ -49,8 +93,6 @@ namespace ACManager.Views
 
                 SecondaryDescription = View != null ? (HudTextBox)View["SecondaryDescription"] : new HudTextBox();
                 SecondaryDescription.Change += SecondaryDescription_Change;
-
-                NewAdvertisement = View != null ? (HudTextBox)View["NewAdvertisementText"] : new HudTextBox();
 
                 PrimaryHeading = View != null ? (HudTextBox)View["PrimaryHeading"] : new HudTextBox();
                 PrimaryHeading.Change += PrimaryHeading_Change;
@@ -72,11 +114,201 @@ namespace ACManager.Views
 
                 CharacterChoice = View != null ? (HudCombo)View["CharacterChoice"] : new HudCombo(new ControlGroup());
                 CharacterChoice.Change += CharacterChoice_Change;
+                #endregion
+
+                NewAdvertisement = View != null ? (HudTextBox)View["NewAdvertisementText"] : new HudTextBox();
 
                 GetCharacters();
                 GetAdvertisements();
+
+                LoadSettings();
             }
-            catch (Exception ex) { Plugin.Utility.LogError(ex); }
+            catch (Exception ex) { Debug.LogException(ex); }
+        }
+
+        private void SetHeading_Hit(object sender, EventArgs e)
+        {
+            try
+            {
+                Filter.Machine.DefaultHeading = Filter.Machine.Utility.BotSettings.DefaultHeading = Math.Round(Filter.Machine.Core.Actions.Heading, 0);
+                DefaultHeading.Text = Math.Round(Filter.Machine.Core.Actions.Heading, 0).ToString();
+                Filter.Machine.Utility.SaveBotSettings();
+            }
+            catch (Exception ex)
+            {
+                Debug.LogException(ex);
+            }
+        }
+
+        private void DefaultHeading_Change(object sender, EventArgs e)
+        {
+            try
+            {
+                if (double.TryParse(DefaultHeading.Text, out double result))
+                {
+                    if (result >= 360)
+                    {
+                        DefaultHeading.Text = "0";
+                        result = 0;
+                    }
+                    else if (result <= -1)
+                    {
+                        result = 0;
+                    }
+                    Filter.Machine.DefaultHeading = Filter.Machine.Utility.BotSettings.DefaultHeading = result;
+                }
+                else
+                {
+                    DefaultHeading.Text = "0";
+                    Filter.Machine.DefaultHeading = Filter.Machine.Utility.BotSettings.DefaultHeading = 0;
+                }
+                Filter.Machine.Utility.SaveBotSettings();
+            }
+            catch (Exception ex)
+            {
+                Debug.LogException(ex);
+            }
+        }
+
+        private void AdsEnabled_Change(object sender, EventArgs e)
+        {
+            try
+            {
+                Filter.Machine.Advertise = Filter.Machine.Utility.BotSettings.AdsEnabled = AdsEnabled.Checked;
+                Filter.Machine.Utility.SaveBotSettings();
+                Debug.ToChat($"The bot will {(Filter.Machine.Utility.BotSettings.AdsEnabled ? "now" : "no longer")} broadcast advertisements.");
+            }
+            catch (Exception ex)
+            {
+                Debug.LogException(ex);
+            }
+        }
+
+        private void StaminaThreshhold_Changed(int min, int max, int pos)
+        {
+            try
+            {
+                Filter.Machine.StaminaThreshold = Filter.Machine.Utility.BotSettings.StaminaThreshold = (double)StaminaThreshold.Position / 100;
+                StamThresholdText.Text = $"{StaminaThreshold.Position}%";
+                Filter.Machine.Utility.SaveBotSettings();
+                Debug.ToChat($"The bot will now recover stamina at {StaminaThreshold.Position}%.");
+            }
+            catch (Exception ex)
+            {
+                Debug.LogException(ex);
+            }
+        }
+
+        private void ManaThreshhold_Changed(int min, int max, int pos)
+        {
+            try
+            {
+                Filter.Machine.ManaThreshold = Filter.Machine.Utility.BotSettings.ManaThreshold = (double)ManaThreshold.Position / 100;
+                ManaThresholdText.Text = $"{ManaThreshold.Position}%";
+                Filter.Machine.Utility.SaveBotSettings();
+                Debug.ToChat($"The bot will now recover mana at {ManaThreshold.Position}%.");
+            }
+            catch (Exception ex)
+            {
+                Debug.LogException(ex);
+            }
+        }
+
+        private void LoadSettings()
+        {
+            try
+            {
+                RespondToGeneralChat.Checked = Filter.Machine.Utility.BotSettings.RespondToGeneralChat;
+                Verbosity.Position = Filter.Machine.Utility.BotSettings.Verbosity;
+                AdInterval.Text = Filter.Machine.Utility.BotSettings.AdInterval.ToString();
+                DefaultHeading.Text = Filter.Machine.Utility.BotSettings.DefaultHeading.ToString();
+                ManaThreshold.Position = (int)(Filter.Machine.Utility.BotSettings.ManaThreshold * 100);
+                StaminaThreshold.Position = (int)(Filter.Machine.Utility.BotSettings.StaminaThreshold * 100);
+                ManaThresholdText.Text = $"{ManaThreshold.Position}%";
+                StamThresholdText.Text = $"{StaminaThreshold.Position}%";
+                AdsEnabled.Checked = Filter.Machine.Utility.BotSettings.AdsEnabled;
+                BotEnabled.Checked = Filter.Machine.Utility.BotSettings.BotEnabled;
+            }
+            catch (Exception ex)
+            {
+                Debug.LogException(ex);
+            }
+        }
+
+        private void RespondToGeneralChat_Change(object sender, EventArgs e)
+        {
+            try
+            {
+                Filter.Machine.RespondToOpenChat = Filter.Machine.Utility.BotSettings.RespondToGeneralChat = RespondToGeneralChat.Checked;
+                Filter.Machine.Utility.SaveBotSettings();
+                Debug.ToChat($"The bot will {(Filter.Machine.Utility.BotSettings.RespondToGeneralChat ? "now" : "no longer")} summon portals based on keyword requests said in local chat.");
+            }
+            catch (Exception ex)
+            {
+                Debug.LogException(ex);
+            }
+        }
+
+        private void Verbosity_Changed(int min, int max, int pos)
+        {
+            try
+            {
+                Filter.Machine.Verbosity = Filter.Machine.Utility.BotSettings.Verbosity = Verbosity.Position;
+                Filter.Machine.Utility.SaveBotSettings();
+                Debug.ToChat($"The bot will now respond with {Filter.Machine.Utility.BotSettings.Verbosity + 1} portals per response line to 'whereto' commands. Adjust this lower if portals are being truncated due to max character limits. " +
+                    $"Adjust higher if bot is being server muted.");
+            }
+            catch (Exception ex)
+            {
+                Debug.LogException(ex);
+            }
+        }
+
+        private void AdInterval_Change(object sender, EventArgs e)
+        {
+            try
+            {
+                if (double.TryParse(AdInterval.Text, out double result))
+                {
+                    if (result <= 5)
+                    {
+                        Filter.Machine.AdInterval = Filter.Machine.Utility.BotSettings.AdInterval = 5;
+                    }
+                    else
+                    {
+                        Filter.Machine.AdInterval = Filter.Machine.Utility.BotSettings.AdInterval = result;
+                    }
+                }
+                else
+                {
+                    Filter.Machine.AdInterval = Filter.Machine.Utility.BotSettings.AdInterval = 10;
+                }
+                Filter.Machine.Utility.SaveBotSettings();
+                Debug.ToChat($"The bot will now broadcast an advertisement every {Filter.Machine.Utility.BotSettings.AdInterval} minutes.");
+            }
+            catch (Exception ex)
+            {
+                Debug.LogException(ex);
+            }
+        }
+
+        private void BotEnabled_Change(object sender, EventArgs e)
+        {
+            try
+            {
+                Filter.Machine.Enabled = Filter.Machine.Utility.BotSettings.BotEnabled = BotEnabled.Checked;
+                Debug.ToChat($"{(Filter.Machine.Utility.BotSettings.BotEnabled ? "Starting machine..." : "Stopping machine...")}");
+                if (Filter.Machine.Utility.BotSettings.BotEnabled)
+                {
+                    Filter.Machine.ChatManager.Broadcast($"/me is running ACManager Bot {Filter.Machine.Utility.Version}. Whisper /help to get started.");
+                    Filter.Machine.LastBroadcast = DateTime.Now;
+                }
+                Filter.Machine.Utility.SaveBotSettings();
+            }
+            catch (Exception ex)
+            {
+                Debug.LogException(ex);
+            }
         }
 
         private void PrimaryLevel_Change(object sender, EventArgs e)
@@ -115,7 +347,7 @@ namespace ACManager.Views
                     }
                 }
             }
-            catch (Exception ex) { Plugin.Utility.LogError(ex); }
+            catch (Exception ex) { Debug.LogException(ex); }
         }
 
         private void SecondaryLevel_Change(object sender, EventArgs e)
@@ -154,7 +386,7 @@ namespace ACManager.Views
                     }
                 }
             }
-            catch (Exception ex) { Plugin.Utility.LogError(ex); }
+            catch (Exception ex) { Debug.LogException(ex); }
         }
 
         private void PrimaryKeyword_Change(object sender, EventArgs e)
@@ -169,7 +401,7 @@ namespace ACManager.Views
                     selectedCharacter.Dispose();
                 }
             }
-            catch (Exception ex) { Plugin.Utility.LogError(ex); }
+            catch (Exception ex) { Debug.LogException(ex); }
         }
 
         private void SecondaryKeyword_Change(object sender, EventArgs e)
@@ -184,7 +416,7 @@ namespace ACManager.Views
                     selectedCharacter.Dispose();
                 }
             }
-            catch (Exception ex) { Plugin.Utility.LogError(ex); }
+            catch (Exception ex) { Debug.LogException(ex); }
         }
 
         private void PrimaryDescription_Change(object sender, EventArgs e)
@@ -199,7 +431,7 @@ namespace ACManager.Views
                     selectedCharacter.Dispose();
                 }
             }
-            catch (Exception ex) { Plugin.Utility.LogError(ex); }
+            catch (Exception ex) { Debug.LogException(ex); }
         }
 
         private void SecondaryDescription_Change(object sender, EventArgs e)
@@ -214,7 +446,7 @@ namespace ACManager.Views
                     selectedCharacter.Dispose();
                 }
             }
-            catch (Exception ex) { Plugin.Utility.LogError(ex); }
+            catch (Exception ex) { Debug.LogException(ex); }
         }
 
         private void PrimaryHeading_Change(object sender, EventArgs e)
@@ -254,7 +486,7 @@ namespace ACManager.Views
             }
             catch (Exception ex)
             {
-                Plugin.Utility.LogError(ex);
+                Debug.LogException(ex);
             }
         }
 
@@ -295,7 +527,7 @@ namespace ACManager.Views
             }
             catch (Exception ex)
             {
-                Plugin.Utility.LogError(ex);
+                Debug.LogException(ex);
             }
         }
 
@@ -317,14 +549,12 @@ namespace ACManager.Views
                         {
                             Message = ad
                         };
-
-                        Plugin.Utility.AllSettings.Advertisements.Add(advertisement);
-                        Plugin.Utility.SaveCharacterSettings();
-                        advertisement = null;
+                        Filter.Machine.Utility.BotSettings.Advertisements.Add(advertisement);
+                        Filter.Machine.Utility.SaveBotSettings();
                     }
                 }
             }
-            catch (Exception ex) { Plugin.Utility.LogError(ex); }
+            catch (Exception ex) { Debug.LogException(ex); }
         }
 
         private void Advertisements_Click(object sender, int row, int col)
@@ -334,19 +564,19 @@ namespace ACManager.Views
                 HudStaticText adToDelete = (HudStaticText)Advertisements[row][0];
                 Advertisements.RemoveRow(row);
 
-                for (int i = 0; i < Plugin.Utility.AllSettings.Advertisements.Count; i++)
+                for (int i = 0; i < Filter.Machine.Utility.BotSettings.Advertisements.Count; i++)
                 {
-                    if (Plugin.Utility.AllSettings.Advertisements[i].Message.Equals(adToDelete.Text))
+                    if (Filter.Machine.Utility.BotSettings.Advertisements[i].Message.Equals(adToDelete.Text))
                     {
-                        Plugin.Utility.AllSettings.Advertisements.RemoveAt(i);
+                        Filter.Machine.Utility.BotSettings.Advertisements.RemoveAt(i);
                         break;
                     }
                 }
 
-                Plugin.Utility.SaveCharacterSettings();
+                Filter.Machine.Utility.SaveBotSettings();
                 adToDelete.Dispose();
             }
-            catch (Exception ex) { Plugin.Utility.LogError(ex); }
+            catch (Exception ex) { Debug.LogException(ex); }
         }
 
         public void ClearUI()
@@ -392,13 +622,13 @@ namespace ACManager.Views
                     selectedCharacter.Dispose();
                 }
             }
-            catch (Exception ex) { Plugin.Utility.LogError(ex); }
+            catch (Exception ex) { Debug.LogException(ex); }
         }
 
         private void GetCharacters()
         {
             List<string> characterList = new List<string>();
-            IndexedCollection<CharFilterIndex, int, AccountCharInfo> accountChars = CoreManager.Current.CharacterFilter.Characters;
+            IndexedCollection<CharFilterIndex, int, AccountCharInfo> accountChars = Core.CharacterFilter.Characters;
             for (int i = 0; i < accountChars.Count; i++)
             {
                 characterList.Add(accountChars[i].Name);
@@ -416,13 +646,12 @@ namespace ACManager.Views
         private void GetAdvertisements()
         {
             HudStaticText row;
-            for (int i = 0; i < Plugin.Utility.AllSettings.Advertisements.Count; i++)
+            for (int i = 0; i < Filter.Machine.Utility.BotSettings.Advertisements.Count; i++)
             {
-                Plugin.Utility.WriteToChat(Plugin.Utility.AllSettings.Advertisements[i].Message);
                 HudList.HudListRowAccessor rowAccessor = Advertisements.AddRow();
                 row = new HudStaticText
                 {
-                    Text = Plugin.Utility.AllSettings.Advertisements[i].Message
+                    Text = Filter.Machine.Utility.BotSettings.Advertisements[i].Message
                 };
                 rowAccessor[0] = row;
             }
@@ -433,13 +662,13 @@ namespace ACManager.Views
             Character character = new Character
             {
                 Name = name,
-                Account = CoreManager.Current.CharacterFilter.AccountName,
-                Server = CoreManager.Current.CharacterFilter.Server
+                Account = Core.CharacterFilter.AccountName,
+                Server = Core.CharacterFilter.Server
             };
 
-            if (Plugin.Utility.AllSettings.Characters.Contains(character))
+            if (Filter.Machine.Utility.CharacterSettings.Characters.Contains(character))
             {
-                foreach (Character ch in Plugin.Utility.AllSettings.Characters)
+                foreach (Character ch in Filter.Machine.Utility.CharacterSettings.Characters)
                 {
                     if (character.Equals(ch))
                     {
@@ -477,23 +706,23 @@ namespace ACManager.Views
             }
             character.Portals.Add(portal);
 
-            if (Plugin.Utility.AllSettings.Characters.Contains(character))
+            if (Filter.Machine.Utility.CharacterSettings.Characters.Contains(character))
             {
-                for (int i = 0; i < Plugin.Utility.AllSettings.Characters.Count; i++)
+                for (int i = 0; i < Filter.Machine.Utility.CharacterSettings.Characters.Count; i++)
                 {
-                    if (Plugin.Utility.AllSettings.Characters[i].Equals(character))
+                    if (Filter.Machine.Utility.CharacterSettings.Characters[i].Equals(character))
                     {
-                        Plugin.Utility.AllSettings.Characters[i] = character;
+                        Filter.Machine.Utility.CharacterSettings.Characters[i] = character;
                         break;
                     }
                 }
             }
             else
             {
-                Plugin.Utility.AllSettings.Characters.Add(character);
+                Filter.Machine.Utility.CharacterSettings.Characters.Add(character);
             }
 
-            Plugin.Utility.SaveCharacterSettings();
+            Filter.Machine.Utility.SaveCharacterSettings();
         }
 
         private void UpdatePortalDescription(Character character, PortalType type, string value)
@@ -523,23 +752,23 @@ namespace ACManager.Views
             }
             character.Portals.Add(portal);
 
-            if (Plugin.Utility.AllSettings.Characters.Contains(character))
+            if (Filter.Machine.Utility.CharacterSettings.Characters.Contains(character))
             {
-                for (int i = 0; i < Plugin.Utility.AllSettings.Characters.Count; i++)
+                for (int i = 0; i < Filter.Machine.Utility.CharacterSettings.Characters.Count; i++)
                 {
-                    if (Plugin.Utility.AllSettings.Characters[i].Equals(character))
+                    if (Filter.Machine.Utility.CharacterSettings.Characters[i].Equals(character))
                     {
-                        Plugin.Utility.AllSettings.Characters[i] = character;
+                        Filter.Machine.Utility.CharacterSettings.Characters[i] = character;
                         break;
                     }
                 }
             }
             else
             {
-                Plugin.Utility.AllSettings.Characters.Add(character);
+                Filter.Machine.Utility.CharacterSettings.Characters.Add(character);
             }
 
-            Plugin.Utility.SaveCharacterSettings();
+            Filter.Machine.Utility.SaveCharacterSettings();
         }
 
         private void UpdatePortalHeading(Character character, PortalType type, double value)
@@ -569,23 +798,23 @@ namespace ACManager.Views
             }
             character.Portals.Add(portal);
 
-            if (Plugin.Utility.AllSettings.Characters.Contains(character))
+            if (Filter.Machine.Utility.CharacterSettings.Characters.Contains(character))
             {
-                for (int i = 0; i < Plugin.Utility.AllSettings.Characters.Count; i++)
+                for (int i = 0; i < Filter.Machine.Utility.CharacterSettings.Characters.Count; i++)
                 {
-                    if (Plugin.Utility.AllSettings.Characters[i].Equals(character))
+                    if (Filter.Machine.Utility.CharacterSettings.Characters[i].Equals(character))
                     {
-                        Plugin.Utility.AllSettings.Characters[i] = character;
+                        Filter.Machine.Utility.CharacterSettings.Characters[i] = character;
                         break;
                     }
                 }
             }
             else
             {
-                Plugin.Utility.AllSettings.Characters.Add(character);
+                Filter.Machine.Utility.CharacterSettings.Characters.Add(character);
             }
 
-            Plugin.Utility.SaveCharacterSettings();
+            Filter.Machine.Utility.SaveCharacterSettings();
         }
 
         private void UpdatePortalLevel(Character character, PortalType type, int value)
@@ -615,22 +844,22 @@ namespace ACManager.Views
             }
             character.Portals.Add(portal);
 
-            if (Plugin.Utility.AllSettings.Characters.Contains(character))
+            if (Filter.Machine.Utility.CharacterSettings.Characters.Contains(character))
             {
-                for (int i = 0; i < Plugin.Utility.AllSettings.Characters.Count; i++)
+                for (int i = 0; i < Filter.Machine.Utility.CharacterSettings.Characters.Count; i++)
                 {
-                    if (Plugin.Utility.AllSettings.Characters[i].Equals(character))
+                    if (Filter.Machine.Utility.CharacterSettings.Characters[i].Equals(character))
                     {
-                        Plugin.Utility.AllSettings.Characters[i] = character;
+                        Filter.Machine.Utility.CharacterSettings.Characters[i] = character;
                         break;
                     }
                 }
             }
             else
             {
-                Plugin.Utility.AllSettings.Characters.Add(character);
+                Filter.Machine.Utility.CharacterSettings.Characters.Add(character);
             }
-            Plugin.Utility.SaveCharacterSettings();
+            Filter.Machine.Utility.SaveCharacterSettings();
         }
 
         #region IDisposable Support
@@ -642,7 +871,16 @@ namespace ACManager.Views
             {
                 if (disposing)
                 {
-                    Plugin = null;
+                    Filter = null;
+                    BotEnabled.Change -= BotEnabled_Change;
+                    RespondToGeneralChat.Change -= RespondToGeneralChat_Change;
+                    AdsEnabled.Change -= AdsEnabled_Change;
+                    AdInterval.Change -= AdInterval_Change;
+                    SetHeading.Hit -= SetHeading_Hit;
+                    DefaultHeading.Change -= DefaultHeading_Change;
+                    Verbosity.Changed -= Verbosity_Changed;
+                    ManaThreshold.Changed -= ManaThreshhold_Changed;
+                    StaminaThreshold.Changed -= StaminaThreshhold_Changed;
                     PrimaryKeyword.Change -= PrimaryKeyword_Change;
                     SecondaryKeyword.Change -= SecondaryKeyword_Change;
                     PrimaryDescription.Change -= PrimaryDescription_Change;

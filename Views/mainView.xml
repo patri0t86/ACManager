@@ -4,8 +4,9 @@
 
     <page label="Controls">
       <control progid="DecalControls.FixedLayout" clipped="">
-        <control progid="DecalControls.CheckBox"    name="PortalBot"      left="5" top="5"    width="165" height="16" text="Portal Bot" />
-        <control progid="DecalControls.CheckBox"    name="ExpTracker"     left="5" top="24"   width="165" height="16" text="Exp Tracker" />
+        <control progid="DecalControls.StaticText"                        left="5" top="5"    width="165" height="16" text="Toggle Decal Views" />
+        <control progid="DecalControls.CheckBox"    name="PortalBot"      left="5" top="24"   width="165" height="16" text="Bot Config" />
+        <control progid="DecalControls.CheckBox"    name="ExpTracker"     left="5" top="43"   width="165" height="16" text="Exp Tracker" />
         <control progid="DecalControls.StaticText"  name="Version"        left="5" top="235"  width="165" height="16" text="" />
       </control>
     </page>

@@ -6,7 +6,7 @@ namespace ACManager.Views
 {
     internal class ExpTrackerView : IDisposable
     {
-        internal PluginCore Plugin { get; set; }
+        internal FilterCore Filter { get; set; }
         internal HudView View { get; set; }
         internal HudStaticText XpAtLogonText { get; set; }
         internal HudStaticText XpSinceLogonText { get; set; }
@@ -21,17 +21,16 @@ namespace ACManager.Views
         internal HudButton XpAlleg { get; set; }
         internal HudButton XpLocal { get; set; }
 
-        public ExpTrackerView(PluginCore parent)
+        public ExpTrackerView(FilterCore parent)
         {
             try
             {
-                Plugin = parent;
+                Filter = parent;
 
                 VirindiViewService.XMLParsers.Decal3XMLParser parser = new VirindiViewService.XMLParsers.Decal3XMLParser();
                 parser.ParseFromResource("ACManager.Views.expTrackerView.xml", out ViewProperties Properties, out ControlGroup Controls);
 
                 View = new HudView(Properties, Controls);
-                View.ShowInBar = false;
 
                 XpAtLogonText = View != null ? (HudStaticText)View["XpAtLogon"] : new HudStaticText();
                 XpSinceLogonText = View != null ? (HudStaticText)View["XpSinceLogon"] : new HudStaticText();
@@ -54,48 +53,48 @@ namespace ACManager.Views
                 XpLocal = View != null ? (HudButton)View["XpLocal"] : new HudButton();
                 XpLocal.Hit += XpLocal_Hit;
             }
-            catch (Exception ex) { Plugin.Utility.LogError(ex); }
+            catch (Exception ex) { Debug.LogException(ex); }
         }
 
         private void XpReset_Hit(object sender, EventArgs e)
         {
             try
             {
-                Plugin.ExpTracker.Reset();
+                Filter.ExpTracker.Reset();
                 XpLast5Text.Text = "0";
                 XpPerHourText.Text = "0";
                 XpSinceResetText.Text = "0";
                 TimeToNextLevelText.Text = string.Format("{0:D2}d {1:D2}h {2:D2}m {3:D2}s", 0, 0, 0, 0);
                 TimeSinceResetText.Text = string.Format("{0:D2}d {1:D2}h {2:D2}m {3:D2}s", 0, 0, 0, 0);
             }
-            catch (Exception ex) { Plugin.Utility.LogError(ex); }
+            catch (Exception ex) { Debug.LogException(ex); }
         }
 
         private void XpFellow_Hit(object sender, EventArgs e)
         {
             try
             {
-                Plugin.ExpTracker.Report("/f");
+                Filter.ExpTracker.Report("/f");
             }
-            catch (Exception ex) { Plugin.Utility.LogError(ex); }
+            catch (Exception ex) { Debug.LogException(ex); }
         }
 
         private void XpAlleg_Hit(object sender, EventArgs e)
         {
             try
             {
-                Plugin.ExpTracker.Report("/a");
+                Filter.ExpTracker.Report("/a");
             }
-            catch (Exception ex) { Plugin.Utility.LogError(ex); }
+            catch (Exception ex) { Debug.LogException(ex); }
         }
 
         private void XpLocal_Hit(object sender, EventArgs e)
         {
             try
             {
-                Plugin.ExpTracker.Report();
+                Filter.ExpTracker.Report();
             }
-            catch (Exception ex) { Plugin.Utility.LogError(ex); }
+            catch (Exception ex) { Debug.LogException(ex); }
         }
 
         #region IDisposable Support
@@ -107,7 +106,7 @@ namespace ACManager.Views
             {
                 if (disposing)
                 {
-                    Plugin = null;
+                    Filter = null;
                     XpReset.Hit -= XpReset_Hit;
                     XpFellow.Hit -= XpFellow_Hit;
                     XpAlleg.Hit -= XpAlleg_Hit;

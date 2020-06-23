@@ -698,6 +698,7 @@ namespace MyClasses.MetaViewWrappers.DecalControls
 
         #region ISlider Members
 
+        [Obsolete]
         public int Position
         {
             get

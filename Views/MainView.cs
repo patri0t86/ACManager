@@ -1,6 +1,4 @@
-﻿using Decal.Adapter;
-using Decal.Adapter.Wrappers;
-using System;
+﻿using System;
 using VirindiViewService;
 using VirindiViewService.Controls;
 
@@ -8,7 +6,7 @@ namespace ACManager.Views
 {
     internal class MainView : IDisposable
     {
-        internal PluginCore Plugin { get; set; }
+        internal FilterCore Filter { get; set; }
         private HudView View { get; set; }
         internal HudStaticText Version { get; set; }
         internal HudCheckBox AutoFellow { get; set; }
@@ -28,11 +26,11 @@ namespace ACManager.Views
         internal HudTextBox ManaScarabText { get; set; }
         internal HudTextBox TaperText { get; set; }
 
-        public MainView(PluginCore parent)
+        public MainView(FilterCore parent)
         {
             try
             {
-                Plugin = parent;
+                Filter = parent;
 
                 VirindiViewService.XMLParsers.Decal3XMLParser parser = new VirindiViewService.XMLParsers.Decal3XMLParser();
                 parser.ParseFromResource("ACManager.Views.mainView.xml", out ViewProperties Properties, out ControlGroup Controls);
@@ -40,7 +38,7 @@ namespace ACManager.Views
                 View = new HudView(Properties, Controls);
 
                 Version = View != null ? (HudStaticText)View["Version"] : new HudStaticText();
-                Version.Text = $"v{Plugin.Utility.Version}";
+                Version.Text = $"v{Filter.Machine.Utility.Version}";
 
                 Password = View != null ? (HudTextBox)View["Password"] : new HudTextBox();
                 Password.Change += Password_Change;
@@ -89,48 +87,54 @@ namespace ACManager.Views
                 TaperText = View != null ? (HudTextBox)View["TaperCount"] : new HudTextBox();
                 TaperText.Change += TaperText_Change;
 
+                // Update the UI from settings
+                PortalBotCheckBox.Checked = true;
+                ExpTrackerCheckBox.Checked = true;
+                AutoFellow.Checked = Filter.Machine.CurrentCharacter.AutoFellow;
+                AutoRespond.Checked = Filter.Machine.CurrentCharacter.AutoRespond;
+                AnnounceLogoff.Checked = Filter.Machine.CurrentCharacter.AnnounceLogoff;
             }
-            catch (Exception ex) { Plugin.Utility.LogError(ex); }
+            catch (Exception ex) { Debug.LogException(ex); }
         }
 
         private void Password_Change(object sender, EventArgs e)
         {
             try
             {
-                Plugin.CurrentCharacter.Password = Password.Text;
-                Plugin.Utility.SaveCharacterSettings();
+                Filter.Machine.CurrentCharacter.Password = Password.Text;
+                Filter.Machine.Utility.SaveCharacterSettings();
             }
-            catch (Exception ex) { Plugin.Utility.LogError(ex); }
+            catch (Exception ex) { Debug.LogException(ex); }
         }
 
         private void AutoFellow_Change(object sender, EventArgs e)
         {
             try
             {
-                Plugin.CurrentCharacter.AutoFellow = AutoFellow.Checked;
-                Plugin.Utility.SaveCharacterSettings();
+                Filter.Machine.CurrentCharacter.AutoFellow = AutoFellow.Checked;
+                Filter.Machine.Utility.SaveCharacterSettings();
             }
-            catch (Exception ex) { Plugin.Utility.LogError(ex); }
+            catch (Exception ex) { Debug.LogException(ex); }
         }
 
         private void AutoRespond_Change(object sender, EventArgs e)
         {
             try
             {
-                Plugin.CurrentCharacter.AutoRespond = AutoRespond.Checked;
-                Plugin.Utility.SaveCharacterSettings();
+                Filter.Machine.CurrentCharacter.AutoRespond = AutoRespond.Checked;
+                Filter.Machine.Utility.SaveCharacterSettings();
             }
-            catch (Exception ex) { Plugin.Utility.LogError(ex); }
+            catch (Exception ex) { Debug.LogException(ex); }
         }
 
         private void AnnounceLogoff_Change(object sender, EventArgs e)
         {
             try
             {
-                Plugin.CurrentCharacter.AnnounceLogoff = AnnounceLogoff.Checked;
-                Plugin.Utility.SaveCharacterSettings();
+                Filter.Machine.CurrentCharacter.AnnounceLogoff = AnnounceLogoff.Checked;
+                Filter.Machine.Utility.SaveCharacterSettings();
             }
-            catch (Exception ex) { Plugin.Utility.LogError(ex); }
+            catch (Exception ex) { Debug.LogException(ex); }
         }
 
         private void PortalBotCheckBox_Change(object sender, EventArgs e)
@@ -139,14 +143,14 @@ namespace ACManager.Views
             {
                 if (PortalBotCheckBox.Checked)
                 {
-                    Plugin.PortalBotView.View.ShowInBar = true;
+                    Filter.PortalBotView.View.ShowInBar = true;
                 }
                 else
                 {
-                    Plugin.PortalBotView.View.ShowInBar = false;
+                    Filter.PortalBotView.View.ShowInBar = false;
                 }
             }
-            catch (Exception ex) { Plugin.Utility.LogError(ex); }
+            catch (Exception ex) { Debug.LogException(ex); }
         }
 
         private void ExpTrackerCheckBox_Change(object sender, EventArgs e)
@@ -155,14 +159,14 @@ namespace ACManager.Views
             {
                 if (ExpTrackerCheckBox.Checked)
                 {
-                    Plugin.ExpTrackerView.View.ShowInBar = true;
+                    Filter.ExpTrackerView.View.ShowInBar = true;
                 }
                 else
                 {
-                    Plugin.ExpTrackerView.View.ShowInBar = false;
+                    Filter.ExpTrackerView.View.ShowInBar = false;
                 }
             }
-            catch (Exception ex) { Plugin.Utility.LogError(ex); }
+            catch (Exception ex) { Debug.LogException(ex); }
         }
 
         private void LeadScarabText_Change(object sender, EventArgs e)
@@ -173,10 +177,10 @@ namespace ACManager.Views
                 {
                     LeadScarabText.Text = "0";
                 }
-                Plugin.CurrentCharacter.LeadScarabs = int.Parse(LeadScarabText.Text);
-                Plugin.Utility.SaveCharacterSettings();
+                Filter.Machine.CurrentCharacter.LeadScarabs = int.Parse(LeadScarabText.Text);
+                Filter.Machine.Utility.SaveCharacterSettings();
             }
-            catch (Exception ex) { Plugin.Utility.LogError(ex); }
+            catch (Exception ex) { Debug.LogException(ex); }
         }
 
         private void IronScarabText_Change(object sender, EventArgs e)
@@ -187,10 +191,10 @@ namespace ACManager.Views
                 {
                     IronScarabText.Text = "0";
                 }
-                Plugin.CurrentCharacter.IronScarabs = int.Parse(IronScarabText.Text);
-                Plugin.Utility.SaveCharacterSettings();
+                Filter.Machine.CurrentCharacter.IronScarabs = int.Parse(IronScarabText.Text);
+                Filter.Machine.Utility.SaveCharacterSettings();
             }
-            catch (Exception ex) { Plugin.Utility.LogError(ex); }
+            catch (Exception ex) { Debug.LogException(ex); }
         }
 
         private void CopperScarabText_Change(object sender, EventArgs e)
@@ -201,10 +205,10 @@ namespace ACManager.Views
                 {
                     CopperScarabText.Text = "0";
                 }
-                Plugin.CurrentCharacter.CopperScarabs = int.Parse(CopperScarabText.Text);
-                Plugin.Utility.SaveCharacterSettings();
+                Filter.Machine.CurrentCharacter.CopperScarabs = int.Parse(CopperScarabText.Text);
+                Filter.Machine.Utility.SaveCharacterSettings();
             }
-            catch (Exception ex) { Plugin.Utility.LogError(ex); }
+            catch (Exception ex) { Debug.LogException(ex); }
         }
 
         private void SilverScarabText_Change(object sender, EventArgs e)
@@ -215,10 +219,10 @@ namespace ACManager.Views
                 {
                     SilverScarabText.Text = "0";
                 }
-                Plugin.CurrentCharacter.SilverScarabs = int.Parse(SilverScarabText.Text);
-                Plugin.Utility.SaveCharacterSettings();
+                Filter.Machine.CurrentCharacter.SilverScarabs = int.Parse(SilverScarabText.Text);
+                Filter.Machine.Utility.SaveCharacterSettings();
             }
-            catch (Exception ex) { Plugin.Utility.LogError(ex); }
+            catch (Exception ex) { Debug.LogException(ex); }
         }
 
         private void GoldScarabText_Change(object sender, EventArgs e)
@@ -229,10 +233,10 @@ namespace ACManager.Views
                 {
                     GoldScarabText.Text = "0";
                 }
-                Plugin.CurrentCharacter.GoldScarabs = int.Parse(GoldScarabText.Text);
-                Plugin.Utility.SaveCharacterSettings();
+                Filter.Machine.CurrentCharacter.GoldScarabs = int.Parse(GoldScarabText.Text);
+                Filter.Machine.Utility.SaveCharacterSettings();
             }
-            catch (Exception ex) { Plugin.Utility.LogError(ex); }
+            catch (Exception ex) { Debug.LogException(ex); }
         }
 
         private void PyrealScarabText_Change(object sender, EventArgs e)
@@ -243,10 +247,10 @@ namespace ACManager.Views
                 {
                     PyrealScarabText.Text = "0";
                 }
-                Plugin.CurrentCharacter.PyrealScarabs = int.Parse(PyrealScarabText.Text);
-                Plugin.Utility.SaveCharacterSettings();
+                Filter.Machine.CurrentCharacter.PyrealScarabs = int.Parse(PyrealScarabText.Text);
+                Filter.Machine.Utility.SaveCharacterSettings();
             }
-            catch (Exception ex) { Plugin.Utility.LogError(ex); }
+            catch (Exception ex) { Debug.LogException(ex); }
         }
 
         private void PlatinumScarabText_Change(object sender, EventArgs e)
@@ -257,10 +261,10 @@ namespace ACManager.Views
                 {
                     PlatinumScarabText.Text = "0";
                 }
-                Plugin.CurrentCharacter.PlatinumScarabs = int.Parse(PlatinumScarabText.Text);
-                Plugin.Utility.SaveCharacterSettings();
+                Filter.Machine.CurrentCharacter.PlatinumScarabs = int.Parse(PlatinumScarabText.Text);
+                Filter.Machine.Utility.SaveCharacterSettings();
             }
-            catch (Exception ex) { Plugin.Utility.LogError(ex); }
+            catch (Exception ex) { Debug.LogException(ex); }
         }
 
         private void ManaScarabText_Change(object sender, EventArgs e)
@@ -271,10 +275,10 @@ namespace ACManager.Views
                 {
                     ManaScarabText.Text = "0";
                 }
-                Plugin.CurrentCharacter.ManaScarabs = int.Parse(ManaScarabText.Text);
-                Plugin.Utility.SaveCharacterSettings();
+                Filter.Machine.CurrentCharacter.ManaScarabs = int.Parse(ManaScarabText.Text);
+                Filter.Machine.Utility.SaveCharacterSettings();
             }
-            catch (Exception ex) { Plugin.Utility.LogError(ex); }
+            catch (Exception ex) { Debug.LogException(ex); }
         }
 
         private void TaperText_Change(object sender, EventArgs e)
@@ -285,10 +289,10 @@ namespace ACManager.Views
                 {
                     TaperText.Text = "0";
                 }
-                Plugin.CurrentCharacter.Tapers = int.Parse(TaperText.Text);
-                Plugin.Utility.SaveCharacterSettings();
+                Filter.Machine.CurrentCharacter.Tapers = int.Parse(TaperText.Text);
+                Filter.Machine.Utility.SaveCharacterSettings();
             }
-            catch (Exception ex) { Plugin.Utility.LogError(ex); }
+            catch (Exception ex) { Debug.LogException(ex); }
         }
 
         #region IDisposable Support
@@ -300,7 +304,7 @@ namespace ACManager.Views
             {
                 if (disposing)
                 {
-                    Plugin = null;
+                    Filter = null;
                     Password.Change -= Password_Change;
                     AutoFellow.Change -= AutoFellow_Change;
                     AutoRespond.Change -= AutoRespond_Change;
