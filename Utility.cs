@@ -191,7 +191,18 @@ namespace ACManager
                         return settings;
                     }
                 }
-                return new BotSettings();
+                else
+                {
+                    BotSettings botSettings = new BotSettings();
+                    if (CharacterSettings.Advertisements.Count > 0 && botSettings.Advertisements.Count == 0)
+                    {
+                        botSettings.Advertisements = new List<Advertisement>(CharacterSettings.Advertisements);
+                        CharacterSettings.Advertisements.Clear();
+                        SaveCharacterSettings();
+                        BackCompat = true;
+                    }
+                    return botSettings;
+                }
             }
             catch (Exception ex)
             {
