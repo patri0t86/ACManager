@@ -128,12 +128,13 @@ namespace ACManager
                         Debug.ToChat($"At any time, type /acm help for more information.");
 
                         Machine.AdInterval = Machine.Utility.BotSettings.AdInterval;
-                        Machine.AdInterval = Machine.Utility.BotSettings.AdInterval;
+                        Machine.Advertise = Machine.Utility.BotSettings.AdsEnabled;
                         Machine.RespondToOpenChat = Machine.Utility.BotSettings.RespondToGeneralChat;
                         Machine.Verbosity = Machine.Utility.BotSettings.Verbosity;
                         Machine.Enabled = Machine.Utility.BotSettings.BotEnabled;
                         Machine.ManaThreshold = Machine.Utility.BotSettings.ManaThreshold;
                         Machine.StaminaThreshold = Machine.Utility.BotSettings.StaminaThreshold;
+                        Machine.DefaultHeading = Machine.Utility.BotSettings.DefaultHeading;
 
                         Machine.LoggedIn = true;
                     }

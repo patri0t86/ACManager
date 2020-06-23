@@ -50,7 +50,7 @@
 
         <control progid="DecalControls.CheckBox"    name="GeneralChatResponse"  left="5"    top="223"   width="200" height="16" text="Respond to Local Chat" />
 
-        <control progid="DecalControls.StaticText"                              left="5"    top="242"   width="200" height="16" text="Verbosity" />
+        <control progid="DecalControls.StaticText"                              left="5"    top="242"   width="350" height="16" text="Portals per Response Line" />
         <control progid="DecalControls.StaticText"                              left="5"    top="261"   width="20"  height="16" text="Min" />
         <control progid="DecalControls.Slider"      name="Verbosity"            left="30"   top="261"   width="100" height="16" minimum="0" maximum="5" />
         <control progid="DecalControls.StaticText"                              left="135"  top="261"   width="25"  height="16" text="Max" />
