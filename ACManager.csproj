@@ -91,6 +91,7 @@
     <Compile Include="StateMachine\States\IState.cs" />
     <Compile Include="StateMachine\States\Idle.cs" />
     <Compile Include="StateMachine\Machine.cs" />
+    <Compile Include="StateMachine\States\Positioning.cs" />
     <Compile Include="StateMachine\States\StateBase.cs" />
     <Compile Include="StateMachine\States\StateTemplate.cs" />
     <Compile Include="StateMachine\States\SwitchingCharacters.cs" />

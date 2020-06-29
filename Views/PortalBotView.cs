@@ -15,8 +15,12 @@ namespace ACManager.Views
         private CoreManager Core { get; set; }
         internal HudView View { get; set; }
         internal HudCheckBox BotEnabled { get; set; }
+        internal HudButton ClearLocation { get; set; }
+        internal HudButton SetLocation { get; set; }
+        internal HudStaticText LocationSetpoint { get; set; }
         internal HudCheckBox RespondToGeneralChat { get; set; }
         internal HudCheckBox AdsEnabled { get; set; }
+        internal HudCheckBox BotPositioning { get; set; }
         internal HudTextBox AdInterval { get; set; }
         internal HudButton SetHeading { get; set; }
         internal HudTextBox DefaultHeading { get; set; }
@@ -53,11 +57,23 @@ namespace ACManager.Views
                 BotEnabled = View != null ? (HudCheckBox)View["Bot"] : new HudCheckBox();
                 BotEnabled.Change += BotEnabled_Change;
 
+                ClearLocation = View != null ? (HudButton)View["ClearLocation"] : new HudButton();
+                ClearLocation.Hit += ClearLocation_Hit;
+
+                LocationSetpoint = View != null ? (HudStaticText)View["LocationSetpoint"] : new HudStaticText();
+                LocationSetpoint.TextAlignment = VirindiViewService.WriteTextFormats.Center;
+
+                SetLocation = View != null ? (HudButton)View["SetLocation"] : new HudButton();
+                SetLocation.Hit += SetLocation_Hit;
+
                 RespondToGeneralChat = View != null ? (HudCheckBox)View["GeneralChatResponse"] : new HudCheckBox();
                 RespondToGeneralChat.Change += RespondToGeneralChat_Change;
 
                 AdsEnabled = View != null ? (HudCheckBox)View["AdsEnabled"] : new HudCheckBox();
                 AdsEnabled.Change += AdsEnabled_Change;
+
+                BotPositioning = View != null ? (HudCheckBox)View["BotPositioning"] : new HudCheckBox();
+                BotPositioning.Change += BotPositioning_Change;
 
                 AdInterval = View != null ? (HudTextBox)View["AdInterval"] : new HudTextBox();
                 AdInterval.Change += AdInterval_Change;
@@ -122,6 +138,43 @@ namespace ACManager.Views
                 GetAdvertisements();
 
                 LoadSettings();
+            }
+            catch (Exception ex) { Debug.LogException(ex); }
+        }
+
+        private void ClearLocation_Hit(object sender, EventArgs e)
+        {
+            try
+            {
+                Filter.Machine.DesiredLandBlock = Filter.Machine.Utility.BotSettings.DesiredLandBlock = 0;
+                Filter.Machine.DesiredBotLocationX = Filter.Machine.Utility.BotSettings.DesiredBotLocationX = 0;
+                Filter.Machine.DesiredBotLocationY = Filter.Machine.Utility.BotSettings.DesiredBotLocationY = 0;
+                LocationSetpoint.Text = "No location set";
+                Filter.Machine.Utility.SaveBotSettings();
+            }
+            catch (Exception ex) { Debug.LogException(ex); }
+        }
+
+        private void BotPositioning_Change(object sender, EventArgs e)
+        {
+            try
+            {
+                Filter.Machine.EnablePositioning = Filter.Machine.Utility.BotSettings.BotPositioning = BotPositioning.Checked;
+                Filter.Machine.Utility.SaveBotSettings();
+                Debug.ToChat($"The bot will {(Filter.Machine.EnablePositioning ? "now" : "no longer")} try to automatically position itself to the set navigation point.");
+            }
+            catch (Exception ex) { Debug.LogException(ex); }
+        }
+
+        private void SetLocation_Hit(object sender, EventArgs e)
+        {
+            try
+            {
+                Filter.Machine.DesiredLandBlock = Filter.Machine.Utility.BotSettings.DesiredLandBlock = Filter.Machine.Core.Actions.Landcell;
+                Filter.Machine.DesiredBotLocationX = Filter.Machine.Utility.BotSettings.DesiredBotLocationX = Filter.Machine.Core.Actions.LocationX;
+                Filter.Machine.DesiredBotLocationY = Filter.Machine.Utility.BotSettings.DesiredBotLocationY = Filter.Machine.Core.Actions.LocationY;
+                LocationSetpoint.Text = $"{Filter.Machine.DesiredLandBlock.ToString("X").Substring(0, 4)} - X: { Math.Round(Filter.Machine.DesiredBotLocationX, 2)} Y: {Math.Round(Filter.Machine.DesiredBotLocationY, 2)}";
+                Filter.Machine.Utility.SaveBotSettings();
             }
             catch (Exception ex) { Debug.LogException(ex); }
         }
@@ -228,6 +281,8 @@ namespace ACManager.Views
                 StamThresholdText.Text = $"{StaminaThreshold.Position}%";
                 AdsEnabled.Checked = Filter.Machine.Utility.BotSettings.AdsEnabled;
                 BotEnabled.Checked = Filter.Machine.Utility.BotSettings.BotEnabled;
+                BotPositioning.Checked = Filter.Machine.Utility.BotSettings.BotPositioning;
+                LocationSetpoint.Text = $"{Filter.Machine.Utility.BotSettings.DesiredLandBlock.ToString("X").Substring(0,4)} - X: { Math.Round(Filter.Machine.Utility.BotSettings.DesiredBotLocationX, 2)} Y: {Math.Round(Filter.Machine.Utility.BotSettings.DesiredBotLocationY, 2)}";
             }
             catch (Exception ex)
             {
@@ -297,7 +352,6 @@ namespace ACManager.Views
             try
             {
                 Filter.Machine.Enabled = Filter.Machine.Utility.BotSettings.BotEnabled = BotEnabled.Checked;
-                Debug.ToChat($"{(Filter.Machine.Utility.BotSettings.BotEnabled ? "Starting machine..." : "Stopping machine...")}");
                 if (Filter.Machine.Utility.BotSettings.BotEnabled)
                 {
                     Filter.Machine.ChatManager.Broadcast($"/me is running ACManager Bot {Filter.Machine.Utility.Version}. Whisper /help to get started.");
@@ -873,8 +927,11 @@ namespace ACManager.Views
                 {
                     Filter = null;
                     BotEnabled.Change -= BotEnabled_Change;
+                    ClearLocation.Hit -= ClearLocation_Hit;
+                    SetLocation.Hit -= SetHeading_Hit;
                     RespondToGeneralChat.Change -= RespondToGeneralChat_Change;
                     AdsEnabled.Change -= AdsEnabled_Change;
+                    BotPositioning.Change -= BotPositioning_Change;
                     AdInterval.Change -= AdInterval_Change;
                     SetHeading.Hit -= SetHeading_Hit;
                     DefaultHeading.Change -= DefaultHeading_Change;

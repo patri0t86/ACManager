@@ -27,7 +27,21 @@ namespace ACManager.StateMachine.States
         {
             if (machine.Enabled)
             {
-                if (machine.SpellsToCast.Count > 0 && machine.Core.CharacterFilter.Name.Equals(machine.NextCharacter)) // If there is a portal in the queue and it is on this character, enter casting state
+                if (!(machine.Core.Actions.Landcell == machine.DesiredLandBlock && Math.Abs(machine.Core.Actions.LocationX - machine.DesiredBotLocationX) < 1 && Math.Abs(machine.Core.Actions.LocationY - machine.DesiredBotLocationY) < 1) && machine.EnablePositioning) // If bot is not in the correct spot, get there
+                {
+                    if (machine.DesiredLandBlock.Equals(0) && machine.DesiredBotLocationX.Equals(0) && machine.DesiredBotLocationY.Equals(0)) // no location settings, use current location
+                    {
+                        machine.DesiredLandBlock = machine.Core.Actions.Landcell;
+                        machine.DesiredBotLocationX = machine.Core.Actions.LocationX;
+                        machine.DesiredBotLocationY = machine.Core.Actions.LocationY;
+                        Debug.ToChat("Bot location set to current location since one was not set previously.");
+                    }
+                    else // location settings were set - reposition the bot
+                    {
+                        machine.NextState = Positioning.GetInstance;
+                    }
+                }
+                else if (machine.SpellsToCast.Count > 0 && machine.Core.CharacterFilter.Name.Equals(machine.NextCharacter)) // If there is a portal in the queue and it is on this character, enter casting state
                 {
                     if ((machine.Core.Actions.Heading <= machine.NextHeading + 2 && machine.Core.Actions.Heading >= machine.NextHeading - 2) || machine.NextHeading.Equals(-1))
                     {

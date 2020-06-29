@@ -30,6 +30,18 @@ namespace ACManager.Settings
         [XmlElement(IsNullable = false)]
         public double DefaultHeading;
 
+        [XmlElement(IsNullable = false)]
+        public int DesiredLandBlock;
+
+        [XmlElement(IsNullable = false)]
+        public double DesiredBotLocationX;
+
+        [XmlElement(IsNullable = false)]
+        public double DesiredBotLocationY;
+
+        [XmlElement(IsNullable = false)]
+        public bool BotPositioning = false;
+
         public List<Advertisement> Advertisements = new List<Advertisement>();
     }
 

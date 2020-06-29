@@ -135,6 +135,10 @@ namespace ACManager
                         Machine.ManaThreshold = Machine.Utility.BotSettings.ManaThreshold;
                         Machine.StaminaThreshold = Machine.Utility.BotSettings.StaminaThreshold;
                         Machine.DefaultHeading = Machine.Utility.BotSettings.DefaultHeading;
+                        Machine.DesiredLandBlock = Machine.Utility.BotSettings.DesiredLandBlock;
+                        Machine.DesiredBotLocationX = Machine.Utility.BotSettings.DesiredBotLocationX;
+                        Machine.DesiredBotLocationY = Machine.Utility.BotSettings.DesiredBotLocationY;
+                        Machine.EnablePositioning = Machine.Utility.BotSettings.BotPositioning;
 
                         Machine.LoggedIn = true;
                     }

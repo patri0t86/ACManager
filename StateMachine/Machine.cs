@@ -189,6 +189,26 @@ namespace ACManager.StateMachine
         public double DefaultHeading { get; set; }
 
         /// <summary>
+        /// Navigation landblock to maintain.
+        /// </summary>
+        public int DesiredLandBlock { get; set; }
+
+        /// <summary>
+        /// X coordinate in the landblock to maintain.
+        /// </summary>
+        public double DesiredBotLocationX { get; set; }
+
+        /// <summary>
+        /// Y coordinate in the landblock to maintain.
+        /// </summary>
+        public double DesiredBotLocationY { get; set; }
+
+        /// <summary>
+        /// Enable/disable navigation.
+        /// </summary>
+        public bool EnablePositioning { get; set; } = false;
+
+        /// <summary>
         /// Create the state machine in the StoppedState and begin processing commands on intervals (every time a frame is rendered).
         /// </summary>
         public Machine(CoreManager core, string path)
@@ -221,7 +241,7 @@ namespace ACManager.StateMachine
 
                 // Gets the character's skill levels
                 Skills = Core.CharacterFilter.EffectiveSkill;
-
+               
                 if (NextState == null)
                 {
                     CurrentState.Process(this);
