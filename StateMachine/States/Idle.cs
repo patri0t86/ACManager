@@ -9,12 +9,21 @@ namespace ACManager.StateMachine.States
     /// </summary>
     internal class Idle : StateBase<Idle>, IState
     {
+        private bool wandEquipped = false;
+        private int wandId;
+
         public void Enter(Machine machine)
         {
             machine.DecliningCommands = false;
             if (machine.Core.Actions.CombatMode != CombatState.Peace)
             {
                 machine.Core.Actions.SetCombatMode(CombatState.Peace);
+            }
+
+            if (wandEquipped)
+            {
+                machine.Core.Actions.MoveItem(wandId, machine.Core.CharacterFilter.Id);
+                wandEquipped = false;
             }
         }
 
@@ -45,7 +54,30 @@ namespace ACManager.StateMachine.States
                 {
                     if ((machine.Core.Actions.Heading <= machine.NextHeading + 2 && machine.Core.Actions.Heading >= machine.NextHeading - 2) || machine.NextHeading.Equals(-1))
                     {
-                        machine.NextState = Casting.GetInstance;
+                        // new
+                        using (WorldObjectCollection wands = machine.Core.WorldFilter.GetByObjectClass(ObjectClass.WandStaffOrb)) // get any wand in the inventory and equip it
+                        {
+                            foreach (WorldObject wand in wands)
+                            {
+                                if (wand.Values(LongValueKey.EquippedSlots) > 0)
+                                {
+                                    machine.NextState = Casting.GetInstance;
+                                    wandEquipped = true;
+                                    wandId = wand.Id;
+                                    break;
+                                }
+
+                                if (!wandEquipped)
+                                {
+                                    machine.Core.Actions.AutoWield(wand.Id);
+                                    wandEquipped = true;
+                                    wandId = wand.Id;
+                                }
+                            }
+                        }
+
+                        // new
+                        //machine.NextState = Casting.GetInstance;
                     }
                     else
                     {

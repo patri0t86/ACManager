@@ -62,7 +62,19 @@ namespace ACManager.StateMachine.States
                     }
                     else
                     {
-                        machine.Core.Actions.CastSpell(machine.SpellsToCast[0], 0);
+                        if (machine.Core.CharacterFilter.IsSpellKnown(machine.SpellsToCast[0]))
+                        {
+                            machine.Core.Actions.CastSpell(machine.SpellsToCast[0], 0);
+                        }
+                        else
+                        {
+                            Debug.ToChat($"You do not know the spell with SpellID = {machine.SpellsToCast[0]}. Removing spell from current casting session.");
+                            machine.SpellsToCast.RemoveAt(0);
+                            if (machine.SpellsToCast.Count.Equals(0))
+                            {
+                                machine.NextState = Idle.GetInstance;
+                            }
+                        }
                     }
                 }
             }

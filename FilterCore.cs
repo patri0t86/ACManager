@@ -68,14 +68,14 @@ namespace ACManager
             {
                 if (e.Message.Value<int>("action") == 0x00A1) // Materialize character
                 {
-                    if (Machine == null)
+                    if (Machine == null) // first time initialization of the bot on startup
                     {
                         Debug.Init(Path);
                         Machine = new Machine(Core, Path);
                         CommandLineText += Machine.Interpreter.Command;
                     }
 
-                    if (!Machine.LoggedIn)
+                    if (!Machine.LoggedIn) // perform these actions when logging in only, not when the character is taking a portal
                     {
                         Machine.AccountCharacters = AccountCharacters;
                         Machine.TotalSlots = TotalSlots;
