@@ -22,7 +22,7 @@ namespace ACManager
             SpellComponentIDs comps = RequiredComponents(spellId);
             Dictionary<string, int> compCounts = ComponentsPerSpell(comps);
 
-            foreach (KeyValuePair<string,int> compRequired in compCounts)
+            foreach (KeyValuePair<string, int> compRequired in compCounts)
             {
                 if (compRequired.Key.Contains("Scarab"))
                 {
@@ -48,7 +48,10 @@ namespace ACManager
             {
                 return true;
             }
-            return false;
+            else
+            { 
+                return false; 
+            }
         }
 
         private bool HaveTapers(string scarab)
@@ -102,7 +105,7 @@ namespace ACManager
             return compDict;
         }
 
-        internal bool HaveFociOrAugmentation(int spellId)
+        private bool HaveFociOrAugmentation(int spellId)
         {
             string school = SpellSchool(spellId).Name;
 
@@ -110,17 +113,17 @@ namespace ACManager
             using (WorldObjectCollection inventory = Core.WorldFilter.GetInventory())
             {
                 inventory.SetFilter(new ByObjectClassFilter(ObjectClass.Foci));
-                foreach (WorldObject item in inventory)
+                foreach (WorldObject foci in inventory)
                 {
-                    if (item.Name.Equals("Foci of Enchantment") && school.Equals("Creature Enchantment"))
+                    if (foci.Name.Equals("Foci of Enchantment") && school.Equals("Creature Enchantment"))
                     {
                         return true;
                     }
-                    else if (item.Name.Equals("Foci of Artifice") && school.Equals("Item Enchantment"))
+                    else if (foci.Name.Equals("Foci of Artifice") && school.Equals("Item Enchantment"))
                     {
                         return true;
                     }
-                    else if (item.Name.Equals("Foci of Verdancy") && school.Equals("Life Magic"))
+                    else if (foci.Name.Equals("Foci of Verdancy") && school.Equals("Life Magic"))
                     {
                         return true;
                     }

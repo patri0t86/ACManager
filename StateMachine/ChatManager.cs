@@ -1,5 +1,7 @@
 ﻿using ACManager.Settings;
 using Decal.Adapter;
+using Decal.Adapter.Wrappers;
+using Decal.Filters;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -103,6 +105,28 @@ namespace ACManager.StateMachine
                 else if (message.Equals("help"))
                 {
                     SendTell(Machine.CharacterMakingRequest, "You can /t me 'whereto' to get a list of portals. Then /t me any keyword for me to summon the portal you request.");
+                } 
+                else if (message.Equals("comps"))
+                {
+                    for (int i = 0; i < Machine.Core.Filter<FileService>().ComponentTable.Length; i++)
+                    {
+                        using (WorldObjectCollection collection = Machine.Core.WorldFilter.GetInventory())
+                        {
+                            collection.SetFilter(new ByNameFilter(Machine.Core.Filter<FileService>().ComponentTable[i].Name));
+                            if (collection.Quantity.Equals(0))
+                            {
+                                continue;
+                            }
+                            else if (collection.Quantity.Equals(1))
+                            {
+                                SendTell(Machine.CharacterMakingRequest, $"I have {collection.Quantity} {collection.First.Name}.");
+                            }
+                            else
+                            {
+                                SendTell(Machine.CharacterMakingRequest, $"I have {collection.Quantity} {collection.First.Name}{(collection.Quantity > 1 ? "s" : "")}.");
+                            }
+                        }
+                    }
                 }
                 else
                 {
