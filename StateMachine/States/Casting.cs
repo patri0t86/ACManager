@@ -12,10 +12,6 @@ namespace ACManager.StateMachine.States
             machine.Fizzled = false;
             machine.CastCompleted = false;
             machine.CastStarted = false;
-            if (machine.Core.Actions.CombatMode != CombatState.Magic)
-            {
-                machine.Core.Actions.SetCombatMode(CombatState.Magic);
-            }
         }
 
         public void Exit(Machine machine)
@@ -27,7 +23,11 @@ namespace ACManager.StateMachine.States
         {
             if (machine.Enabled)
             {
-                if (machine.CastStarted && machine.CastCompleted && !machine.Fizzled)
+                if (machine.Core.Actions.CombatMode != CombatState.Magic)
+                {
+                    machine.Core.Actions.SetCombatMode(CombatState.Magic);
+                }
+                else if (machine.CastStarted && machine.CastCompleted && !machine.Fizzled)
                 {
                     if (machine.SpellsToCast[0].Equals(157) || machine.SpellsToCast[0].Equals(2648))
                     {
