@@ -53,6 +53,7 @@
     </Reference>
     <Reference Include="Decal.FileService">
       <HintPath>..\..\..\..\..\Program Files (x86)\Decal 3.0\Decal.FileService.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="Decal.Interop.Core, Version=2.9.7.5, Culture=neutral, PublicKeyToken=481f17d392f1fb65, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -87,6 +88,7 @@
     <Compile Include="FellowshipControl.cs" />
     <Compile Include="InventoryTracker.cs" />
     <Compile Include="Settings\BotSettings.cs" />
+    <Compile Include="Settings\GUISettings.cs" />
     <Compile Include="StateMachine\ChatManager.cs" />
     <Compile Include="Debug.cs" />
     <Compile Include="Settings\CharacterSettings.cs" />

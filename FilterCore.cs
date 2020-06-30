@@ -80,7 +80,6 @@ namespace ACManager
                         Machine.AccountCharacters = AccountCharacters;
                         Machine.TotalSlots = TotalSlots;
                         Machine.Core = Core;
-                        Machine.Utility.CharacterSettings = Machine.Utility.LoadCharacterSettings();
 
                         Machine.CurrentCharacter = new Character
                         {
@@ -100,8 +99,6 @@ namespace ACManager
                                 }
                             }
                         }
-
-                        Machine.Utility.BotSettings = Machine.Utility.LoadBotSettings();
 
                         if (Machine.Utility.BackCompat)
                         {

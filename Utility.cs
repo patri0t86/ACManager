@@ -22,8 +22,11 @@ namespace ACManager
         private string CharacterSettingsPath { get; set; }
         private string BotSettingsFile { get { return "acm_bot_settings.xml"; } }
         private string BotSettingsPath { get; set; }
+        private string GUISettingsFile { get { return "acm_gui_settings.xml"; } }
+        private string GUISettingsPath { get; set; }
         internal CharacterSettings CharacterSettings { get; set; } = new CharacterSettings();
         internal BotSettings BotSettings { get; set; } = new BotSettings();
+        internal GUISettings GUISettings { get; set; } = new GUISettings();
         internal string Version { get; set; }
         internal bool BackCompat { get; set; } = false;
 
@@ -32,6 +35,9 @@ namespace ACManager
             Machine = machine;
             CreatePaths(path, account, server);
             Version = FileVersionInfo.GetVersionInfo(Assembly.GetExecutingAssembly().Location).ProductVersion;
+            CharacterSettings = LoadCharacterSettings();
+            BotSettings = LoadBotSettings();
+            GUISettings = LoadGUISettings();
         }
 
         /// <summary>
@@ -48,6 +54,7 @@ namespace ACManager
                 AllSettingsPath = Path.Combine(intermediatePath, server);
                 CharacterSettingsPath = Path.Combine(AllSettingsPath, CharacterSettingsFile);
                 BotSettingsPath = Path.Combine(AllSettingsPath, BotSettingsFile);
+                GUISettingsPath = Path.Combine(AllSettingsPath, GUISettingsFile);
             }
             catch (Exception ex) { Debug.LogException(ex); }
         }
@@ -203,6 +210,56 @@ namespace ACManager
                     }
                     return botSettings;
                 }
+            }
+            catch (Exception ex)
+            {
+                Debug.ToChat(ex.Message);
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Saves the GUI settings for views to be visible or not, etc.
+        /// </summary>
+        internal void SaveGUISettings()
+        {
+            try
+            {
+                if (SettingsPathExists())
+                {
+                    using (XmlTextWriter writer = new XmlTextWriter(GUISettingsPath, Encoding.UTF8))
+                    {
+                        writer.Formatting = Formatting.Indented;
+                        writer.WriteStartDocument();
+
+                        XmlSerializer xmlSerializer = new XmlSerializer(typeof(GUISettings));
+                        xmlSerializer.Serialize(writer, GUISettings);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.ToChat(ex.Message);
+            }
+        }
+
+        /// <summary>
+        /// Loads the GUI settings for views to be visible by default or not, etc.
+        /// </summary>
+        /// <returns></returns>
+        internal GUISettings LoadGUISettings()
+        {
+            try
+            {
+                if (File.Exists(GUISettingsPath))
+                {
+                    using (XmlTextReader reader = new XmlTextReader(GUISettingsPath))
+                    {
+                        XmlSerializer xmlSerializer = new XmlSerializer(typeof(GUISettings));
+                        return (GUISettings)xmlSerializer.Deserialize(reader);
+                    }
+                }
+                return new GUISettings();
             }
             catch (Exception ex)
             {

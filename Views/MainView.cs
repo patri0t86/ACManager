@@ -88,8 +88,8 @@ namespace ACManager.Views
                 TaperText.Change += TaperText_Change;
 
                 // Update the UI from settings
-                PortalBotCheckBox.Checked = true;
-                ExpTrackerCheckBox.Checked = true;
+                PortalBotCheckBox.Checked = Filter.Machine.Utility.GUISettings.BotConfigVisible;
+                ExpTrackerCheckBox.Checked = Filter.Machine.Utility.GUISettings.ExpTrackerVisible;
                 AutoFellow.Checked = Filter.Machine.CurrentCharacter.AutoFellow;
                 AutoRespond.Checked = Filter.Machine.CurrentCharacter.AutoRespond;
                 AnnounceLogoff.Checked = Filter.Machine.CurrentCharacter.AnnounceLogoff;
@@ -143,12 +143,13 @@ namespace ACManager.Views
             {
                 if (PortalBotCheckBox.Checked)
                 {
-                    Filter.PortalBotView.View.ShowInBar = true;
+                    Filter.PortalBotView.View.ShowInBar = Filter.Machine.Utility.GUISettings.BotConfigVisible = true;
                 }
                 else
                 {
-                    Filter.PortalBotView.View.ShowInBar = false;
+                    Filter.PortalBotView.View.ShowInBar = Filter.Machine.Utility.GUISettings.BotConfigVisible = false;
                 }
+                Filter.Machine.Utility.SaveGUISettings();
             }
             catch (Exception ex) { Debug.LogException(ex); }
         }
@@ -159,12 +160,13 @@ namespace ACManager.Views
             {
                 if (ExpTrackerCheckBox.Checked)
                 {
-                    Filter.ExpTrackerView.View.ShowInBar = true;
+                    Filter.ExpTrackerView.View.ShowInBar = Filter.Machine.Utility.GUISettings.ExpTrackerVisible = true;
                 }
                 else
                 {
-                    Filter.ExpTrackerView.View.ShowInBar = false;
+                    Filter.ExpTrackerView.View.ShowInBar = Filter.Machine.Utility.GUISettings.ExpTrackerVisible = false;
                 }
+                Filter.Machine.Utility.SaveGUISettings();
             }
             catch (Exception ex) { Debug.LogException(ex); }
         }

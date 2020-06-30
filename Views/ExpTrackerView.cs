@@ -32,6 +32,8 @@ namespace ACManager.Views
 
                 View = new HudView(Properties, Controls);
 
+                View.ShowInBar = Filter.Machine.Utility.GUISettings.ExpTrackerVisible;
+
                 XpAtLogonText = View != null ? (HudStaticText)View["XpAtLogon"] : new HudStaticText();
                 XpSinceLogonText = View != null ? (HudStaticText)View["XpSinceLogon"] : new HudStaticText();
                 XpSinceResetText = View != null ? (HudStaticText)View["XpSinceReset"] : new HudStaticText();

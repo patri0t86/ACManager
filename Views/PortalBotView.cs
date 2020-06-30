@@ -271,6 +271,7 @@ namespace ACManager.Views
         {
             try
             {
+                View.ShowInBar = Filter.Machine.Utility.GUISettings.BotConfigVisible;
                 RespondToGeneralChat.Checked = Filter.Machine.Utility.BotSettings.RespondToGeneralChat;
                 Verbosity.Position = Filter.Machine.Utility.BotSettings.Verbosity;
                 AdInterval.Text = Filter.Machine.Utility.BotSettings.AdInterval.ToString();
