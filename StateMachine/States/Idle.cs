@@ -19,18 +19,24 @@ namespace ACManager.StateMachine.States
             {
                 machine.Core.Actions.SetCombatMode(CombatState.Peace);
             }
-
-            if (wandEquipped)
-            {
-                machine.Core.Actions.MoveItem(wandId, machine.Core.CharacterFilter.Id);
-                wandEquipped = false;
-            }
         }
 
         public void Exit(Machine machine)
         {
             machine.DecliningCommands = true;
         }
+
+        /// <summary>
+        /// Order of operations:
+        /// Move the bot to the correct location in the world
+        /// Cast summon portal from this character - turn character to the correct heading - equip wand
+        /// Switch characters if portal is not on this character
+        /// Turn character to the default heading if not doing anything
+        /// If a wand is equipped, unequip it
+        /// Broadcast advertisement
+        /// </summary>
+        /// <param name="machine"></param>
+
 
         public void Process(Machine machine)
         {
@@ -54,9 +60,10 @@ namespace ACManager.StateMachine.States
                 {
                     if ((machine.Core.Actions.Heading <= machine.NextHeading + 2 && machine.Core.Actions.Heading >= machine.NextHeading - 2) || machine.NextHeading.Equals(-1))
                     {
-                        // new
-                        using (WorldObjectCollection wands = machine.Core.WorldFilter.GetByObjectClass(ObjectClass.WandStaffOrb)) // get any wand in the inventory and equip it
+                        using (WorldObjectCollection wands = machine.Core.WorldFilter.GetInventory()) // get any wand in the inventory and equip it
                         {
+                            wands.SetFilter(new ByObjectClassFilter(ObjectClass.WandStaffOrb));
+
                             foreach (WorldObject wand in wands)
                             {
                                 if (wand.Values(LongValueKey.EquippedSlots) > 0)
@@ -75,9 +82,6 @@ namespace ACManager.StateMachine.States
                                 }
                             }
                         }
-
-                        // new
-                        //machine.NextState = Casting.GetInstance;
                     }
                     else
                     {
@@ -88,9 +92,14 @@ namespace ACManager.StateMachine.States
                 {
                     machine.NextState = SwitchingCharacters.GetInstance;
                 }
-                else if (!(machine.Core.Actions.Heading <= machine.DefaultHeading + 2 && machine.Core.Actions.Heading >= machine.DefaultHeading - 2)) // if totally idle, reset position
+                else if (!(machine.Core.Actions.Heading <= machine.DefaultHeading + 2 && machine.Core.Actions.Heading >= machine.DefaultHeading - 2)) // if totally idle, reset heading
                 {
                     machine.Core.Actions.Heading = machine.DefaultHeading;
+                }
+                else if (wandEquipped)
+                {
+                    machine.Core.Actions.MoveItem(wandId, machine.Core.CharacterFilter.Id);
+                    wandEquipped = false;
                 }
                 else if (machine.Advertise && machine.Update() && DateTime.Now - machine.LastBroadcast > TimeSpan.FromMinutes(machine.AdInterval)) // Advertisement/spam timing control
                 {

@@ -38,7 +38,7 @@ namespace ACManager.StateMachine.States
                         }
                     }
                     machine.SpellsToCast.RemoveAt(0);
-                    if (machine.SpellsToCast.Count == 0)
+                    if (machine.SpellsToCast.Count.Equals(0))
                     {
                         machine.NextState = Idle.GetInstance;
                     }
@@ -64,7 +64,16 @@ namespace ACManager.StateMachine.States
                     {
                         if (machine.Core.CharacterFilter.IsSpellKnown(machine.SpellsToCast[0]))
                         {
-                            machine.Core.Actions.CastSpell(machine.SpellsToCast[0], 0);
+                            if (machine.ComponentChecker.HaveComponents(machine.SpellsToCast[0]))
+                            {
+                                machine.Core.Actions.CastSpell(machine.SpellsToCast[0], 0);
+                            }
+                            else
+                            {
+                                machine.ChatManager.Broadcast($"I have run out of spell components.");
+                                machine.SpellsToCast.Clear();
+                                machine.NextState = Idle.GetInstance;
+                            }
                         }
                         else
                         {

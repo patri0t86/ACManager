@@ -64,9 +64,9 @@ namespace ACManager
         /// <param name="e"></param>
         private void FilterCore_ClientDispatch(object sender, NetworkMessageEventArgs e)
         {
-            if (e.Message.Type == 0xF7B1)
+            if (e.Message.Type.Equals(0xF7B1))
             {
-                if (e.Message.Value<int>("action") == 0x00A1) // Materialize character
+                if (e.Message.Value<int>("action").Equals(0x00A1)) // Materialize character
                 {
                     if (Machine == null) // first time initialization of the bot on startup
                     {
@@ -144,7 +144,7 @@ namespace ACManager
                     }
                 }
 
-                if (Convert.ToInt32(e.Message.Value<int>("action")) == 0x004A) // Start casting
+                if (Convert.ToInt32(e.Message.Value<int>("action")).Equals(0x004A)) // Start casting
                 {
                     Machine.CastStarted = true;
                 }
@@ -164,7 +164,7 @@ namespace ACManager
         /// <param name="e"></param>
         private void FilterCore_ServerDispatch(object sender, NetworkMessageEventArgs e)
         {
-            if (e.Message.Type == 0xF653) // End 3D Mode and return to character screen
+            if (e.Message.Type.Equals(0xF653)) // End 3D Mode and return to character screen
             {
                 ChatBoxMessage -= FellowshipControl.ChatActions;
                 ChatBoxMessage -= InventoryTracker.ParseChat;
@@ -182,7 +182,7 @@ namespace ACManager
                 Machine.CurrentCharacter = null;
             }
 
-            if (e.Message.Type == 0xF658) // Received the character list from the server
+            if (e.Message.Type.Equals(0xF658)) // Received the character list from the server
             {
                 AccountCharacters.Clear();
                 // determine total number of slots available
@@ -200,28 +200,28 @@ namespace ACManager
                 AccountCharacters.Sort();
             }
 
-            if (e.Message.Type == 0xF746) // Login Character
+            if (e.Message.Type.Equals(0xF746)) // Login Character
             {
                 LogonTimer.Stop();
             }
-
-            if (e.Message.Type == 0xF7B0) // Game events
+            
+            if (e.Message.Type.Equals(0xF7B0)) // Game events
             {
-                if (Convert.ToInt32(e.Message["event"]) == 0x01C7) // Action complete
+                if (Convert.ToInt32(e.Message["event"]).Equals(0x01C7)) // Action complete
                 {
                     Machine.CastCompleted = true;
                 }
 
-                if (Convert.ToInt32(e.Message["event"]) == 0x028A) // Status messages
+                if (Convert.ToInt32(e.Message["event"]).Equals(0x028A)) // Status messages
                 {
-                    if (Convert.ToInt32(e.Message[3]) == 0x0402) // Your spell fizzled.
+                    if (Convert.ToInt32(e.Message[3]).Equals(0x0402)) // Your spell fizzled.
                     {
                         Machine.Fizzled = true;
                     }
                 }
             }
 
-            if (e.Message.Type == 0xF7E1 && Machine.CurrentState == SwitchingCharacters.GetInstance) // Server Name (last server message sent when logging out)
+            if (e.Message.Type.Equals(0xF7E1) && Machine.CurrentState == SwitchingCharacters.GetInstance) // Server Name (last server message sent when logging out)
             {
                 LogonTimer.Start();
             }

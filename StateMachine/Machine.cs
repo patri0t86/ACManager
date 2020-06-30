@@ -209,6 +209,11 @@ namespace ACManager.StateMachine
         public bool EnablePositioning { get; set; } = false;
 
         /// <summary>
+        /// Class to check for component status on spellcast.
+        /// </summary>
+        public ComponentChecker ComponentChecker { get; set; }
+
+        /// <summary>
         /// Create the state machine in the StoppedState and begin processing commands on intervals (every time a frame is rendered).
         /// </summary>
         public Machine(CoreManager core, string path)
@@ -217,6 +222,7 @@ namespace ACManager.StateMachine
             Utility = new Utility(this, path, Core.CharacterFilter.AccountName, Core.CharacterFilter.Server);
             Interpreter = new Interpreter(this);
             ChatManager = new ChatManager(this);
+            ComponentChecker = new ComponentChecker(Core);
             RandomNumber = new Random();
             CurrentState = Stopped.GetInstance;
             Core.RenderFrame += Clock;
