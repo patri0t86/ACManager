@@ -44,7 +44,7 @@ namespace ACManager
             {
                 return true;
             }
-            else if (haveScarabs && HaveTapers(scarabType) && (HaveFoci(spellId) || HaveAugmentation())) // need to check for augmentation as well!!
+            else if (haveScarabs && HaveTapers(scarabType) && (HaveFociOrAugmentation(spellId)))
             {
                 return true;
             }
@@ -102,9 +102,11 @@ namespace ACManager
             return compDict;
         }
 
-        internal bool HaveFoci(int spellId)
+        internal bool HaveFociOrAugmentation(int spellId)
         {
             string school = SpellSchool(spellId).Name;
+
+            // Foci check
             using (WorldObjectCollection inventory = Core.WorldFilter.GetInventory())
             {
                 inventory.SetFilter(new ByObjectClassFilter(ObjectClass.Foci));
@@ -124,12 +126,21 @@ namespace ACManager
                     }
                 }
             }
-            return false;
-        }
 
-        private bool HaveAugmentation()
-        {
-            // need to find out how to get the augmentation status of the character
+            // Infused Augmentation check
+            if (school.Equals("Creature Enchantment") && Core.CharacterFilter.GetCharProperty((int)Augmentations.InfusedCreature) > 0)
+            {
+                return true;
+            }
+            else if (school.Equals("Item Enchantment") && Core.CharacterFilter.GetCharProperty((int)Augmentations.InfusedItem) > 0)
+            {
+                return true;
+            }
+            else if (school.Equals("Life Magic") && Core.CharacterFilter.GetCharProperty((int)Augmentations.InfusedLife) > 0)
+            {
+                return true;
+            }
+
             return false;
         }
 
