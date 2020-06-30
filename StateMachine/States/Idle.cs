@@ -15,10 +15,6 @@ namespace ACManager.StateMachine.States
         public void Enter(Machine machine)
         {
             machine.DecliningCommands = false;
-            if (machine.Core.Actions.CombatMode != CombatState.Peace)
-            {
-                machine.Core.Actions.SetCombatMode(CombatState.Peace);
-            }
         }
 
         public void Exit(Machine machine)
@@ -37,12 +33,15 @@ namespace ACManager.StateMachine.States
         /// </summary>
         /// <param name="machine"></param>
 
-
         public void Process(Machine machine)
         {
             if (machine.Enabled)
             {
-                if (!(machine.Core.Actions.Landcell == machine.DesiredLandBlock && Math.Abs(machine.Core.Actions.LocationX - machine.DesiredBotLocationX) < 1 && Math.Abs(machine.Core.Actions.LocationY - machine.DesiredBotLocationY) < 1) && machine.EnablePositioning) // If bot is not in the correct spot, get there
+                if (machine.Core.Actions.CombatMode != CombatState.Peace)
+                {
+                    machine.Core.Actions.SetCombatMode(CombatState.Peace);
+                }
+                else if (!(machine.Core.Actions.Landcell == machine.DesiredLandBlock && Math.Abs(machine.Core.Actions.LocationX - machine.DesiredBotLocationX) < 1 && Math.Abs(machine.Core.Actions.LocationY - machine.DesiredBotLocationY) < 1) && machine.EnablePositioning) // If bot is not in the correct spot, get there
                 {
                     if (machine.DesiredLandBlock.Equals(0) && machine.DesiredBotLocationX.Equals(0) && machine.DesiredBotLocationY.Equals(0)) // no location settings, use current location
                     {
@@ -92,15 +91,15 @@ namespace ACManager.StateMachine.States
                 {
                     machine.NextState = SwitchingCharacters.GetInstance;
                 }
-                else if (!(machine.Core.Actions.Heading <= machine.DefaultHeading + 2 && machine.Core.Actions.Heading >= machine.DefaultHeading - 2)) // if totally idle, reset heading
-                {
-                    machine.Core.Actions.Heading = machine.DefaultHeading;
-                }
                 else if (wandEquipped)
                 {
                     machine.Core.Actions.MoveItem(wandId, machine.Core.CharacterFilter.Id);
                     wandEquipped = false;
                 }
+                else if (!(machine.Core.Actions.Heading <= machine.DefaultHeading + 2 && machine.Core.Actions.Heading >= machine.DefaultHeading - 2)) // if totally idle, reset heading
+                {
+                    machine.Core.Actions.Heading = machine.DefaultHeading;
+                } 
                 else if (machine.Advertise && machine.Update() && DateTime.Now - machine.LastBroadcast > TimeSpan.FromMinutes(machine.AdInterval)) // Advertisement/spam timing control
                 {
                     machine.LastBroadcast = DateTime.Now;
