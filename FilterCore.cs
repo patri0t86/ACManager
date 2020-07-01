@@ -124,19 +124,7 @@ namespace ACManager
                         Debug.ToChat($"Currently running version {Machine.Utility.Version}. Check out the latest on the project at https://github.com/patri0t86/ACManager.");
                         Debug.ToChat($"At any time, type /acm help for more information.");
 
-                        Machine.AdInterval = Machine.Utility.BotSettings.AdInterval;
-                        Machine.Advertise = Machine.Utility.BotSettings.AdsEnabled;
-                        Machine.RespondToOpenChat = Machine.Utility.BotSettings.RespondToGeneralChat;
-                        Machine.Verbosity = Machine.Utility.BotSettings.Verbosity;
                         Machine.Enabled = Machine.Utility.BotSettings.BotEnabled;
-                        Machine.ManaThreshold = Machine.Utility.BotSettings.ManaThreshold;
-                        Machine.StaminaThreshold = Machine.Utility.BotSettings.StaminaThreshold;
-                        Machine.DefaultHeading = Machine.Utility.BotSettings.DefaultHeading;
-                        Machine.DesiredLandBlock = Machine.Utility.BotSettings.DesiredLandBlock;
-                        Machine.DesiredBotLocationX = Machine.Utility.BotSettings.DesiredBotLocationX;
-                        Machine.DesiredBotLocationY = Machine.Utility.BotSettings.DesiredBotLocationY;
-                        Machine.EnablePositioning = Machine.Utility.BotSettings.BotPositioning;
-
                         Machine.LoggedIn = true;
                     }
                 }

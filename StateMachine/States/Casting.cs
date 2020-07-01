@@ -13,6 +13,10 @@ namespace ACManager.StateMachine.States
             machine.Fizzled = false;
             machine.CastCompleted = false;
             machine.CastStarted = false;
+            if (machine.Inventory.IsLowOnComponents)
+            {
+                machine.ChatManager.Broadcast($"I'm low on spell components, please '/t {machine.Core.CharacterFilter.Name}, comps' to see what I'm low on.");
+            }
         }
 
         public void Exit(Machine machine)

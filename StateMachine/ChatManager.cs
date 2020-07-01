@@ -117,13 +117,16 @@ namespace ACManager.StateMachine
                             {
                                 continue;
                             }
-                            else if (collection.Quantity.Equals(1))
-                            {
-                                SendTell(Machine.CharacterMakingRequest, $"I have {collection.Quantity} {collection.First.Name}.");
-                            }
                             else
                             {
-                                SendTell(Machine.CharacterMakingRequest, $"I have {collection.Quantity} {collection.First.Name}{(collection.Quantity > 1 ? "s" : "")}.");
+                                if (collection.First.Name.Contains("Scarab"))
+                                {
+                                    SendTell(Machine.CharacterMakingRequest, $"I have {collection.Quantity} {collection.First.Name}{(collection.Quantity > 1 ? "s" : "")}. {(collection.Quantity < Machine.Inventory.LowScarabThreshold ? "(low)" : "")}");
+                                }
+                                else
+                                {
+                                    SendTell(Machine.CharacterMakingRequest, $"I have {collection.Quantity} {collection.First.Name}{(collection.Quantity > 1 ? "s" : "")}. {(collection.Quantity < Machine.Inventory.LowTaperThreshhold ? "(low)" : "")}");
+                                }
                             }
                         }
                     }

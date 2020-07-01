@@ -26,6 +26,18 @@ namespace ACManager.StateMachine.States
                 machine.Core.Actions.SetIdleTime(Double.MaxValue);
                 machine.Core.ChatBoxMessage += machine.ChatManager.Current_ChatBoxMessage;
 
+                machine.AdInterval = machine.Utility.BotSettings.AdInterval;
+                machine.Advertise = machine.Utility.BotSettings.AdsEnabled;
+                machine.RespondToOpenChat = machine.Utility.BotSettings.RespondToGeneralChat;
+                machine.Verbosity = machine.Utility.BotSettings.Verbosity;
+                machine.ManaThreshold = machine.Utility.BotSettings.ManaThreshold;
+                machine.StaminaThreshold = machine.Utility.BotSettings.StaminaThreshold;
+                machine.DefaultHeading = machine.Utility.BotSettings.DefaultHeading;
+                machine.DesiredLandBlock = machine.Utility.BotSettings.DesiredLandBlock;
+                machine.DesiredBotLocationX = machine.Utility.BotSettings.DesiredBotLocationX;
+                machine.DesiredBotLocationY = machine.Utility.BotSettings.DesiredBotLocationY;
+                machine.EnablePositioning = machine.Utility.BotSettings.BotPositioning;
+
                 Debug.ToChat("Started successfully.");
             }
         }

@@ -214,6 +214,11 @@ namespace ACManager.StateMachine
         public ComponentChecker ComponentChecker { get; set; }
 
         /// <summary>
+        /// Holds the currently logged in character's relevant inventory.
+        /// </summary>
+        public Inventory Inventory { get; set; }
+
+        /// <summary>
         /// Create the state machine in the StoppedState and begin processing commands on intervals (every time a frame is rendered).
         /// </summary>
         public Machine(CoreManager core, string path)
@@ -223,6 +228,7 @@ namespace ACManager.StateMachine
             Interpreter = new Interpreter(this);
             ChatManager = new ChatManager(this);
             ComponentChecker = new ComponentChecker(Core);
+            Inventory = new Inventory(Core);
             RandomNumber = new Random();
             CurrentState = Stopped.GetInstance;
             Core.RenderFrame += Clock;

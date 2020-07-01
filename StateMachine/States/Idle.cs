@@ -15,6 +15,8 @@ namespace ACManager.StateMachine.States
         public void Enter(Machine machine)
         {
             machine.DecliningCommands = false;
+
+            machine.Inventory.GetComponentLevels();
         }
 
         public void Exit(Machine machine)
@@ -102,8 +104,15 @@ namespace ACManager.StateMachine.States
                 } 
                 else if (machine.Advertise && machine.Update() && DateTime.Now - machine.LastBroadcast > TimeSpan.FromMinutes(machine.AdInterval)) // Advertisement/spam timing control
                 {
-                    machine.LastBroadcast = DateTime.Now;
-                    machine.ChatManager.Broadcast(machine.Utility.BotSettings.Advertisements[machine.RandomNumber.Next(0, machine.Utility.BotSettings.Advertisements.Count)].Message);
+                    machine.LastBroadcast = DateTime.Now;                    
+                    if (machine.Utility.BotSettings.Advertisements.Count > 0)
+                    {
+                        machine.ChatManager.Broadcast(machine.Utility.BotSettings.Advertisements[machine.RandomNumber.Next(0, machine.Utility.BotSettings.Advertisements.Count)].Message);
+                    }
+                    if (machine.Inventory.IsLowOnComponents)
+                    {
+                        machine.ChatManager.Broadcast($"I'm low on spell components, please '/t {machine.Core.CharacterFilter.Name}, comps' to see what I'm low on.");
+                    }
                 }
             }
             else
