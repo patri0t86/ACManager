@@ -1,4 +1,5 @@
 ﻿using Decal.Adapter.Wrappers;
+using Decal.Filters;
 
 namespace ACManager.StateMachine.States
 {
@@ -77,7 +78,7 @@ namespace ACManager.StateMachine.States
                         }
                         else
                         {
-                            Debug.ToChat($"You do not know the spell with SpellID = {machine.SpellsToCast[0]}. Removing spell from current casting session.");
+                            Debug.ToChat($"You do not know the spell {machine.Core.Filter<FileService>().SpellTable.GetById(machine.SpellsToCast[0]).Name}. Removing from current casting session.");
                             machine.SpellsToCast.RemoveAt(0);
                             if (machine.SpellsToCast.Count.Equals(0))
                             {

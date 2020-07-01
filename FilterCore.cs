@@ -120,7 +120,7 @@ namespace ACManager
                         ChatBoxMessage += InventoryTracker.ParseChat;
                         Core.RenderFrame += Core_RenderFrame;
 
-                        Debug.ToChat("Running ACManager by Shem of Harvestgain.");
+                        Debug.ToChat("Running ACManager by Shem of Harvestgain (now Coldeve).");
                         Debug.ToChat($"Currently running version {Machine.Utility.Version}. Check out the latest on the project at https://github.com/patri0t86/ACManager.");
                         Debug.ToChat($"At any time, type /acm help for more information.");
 

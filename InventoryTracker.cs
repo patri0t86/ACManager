@@ -1,7 +1,7 @@
 ﻿using Decal.Adapter;
 using Decal.Adapter.Wrappers;
+using Decal.Filters;
 using System;
-using System.Globalization;
 using System.Text.RegularExpressions;
 
 namespace ACManager
@@ -45,64 +45,38 @@ namespace ACManager
             }
         }
 
-
         public void ParseChat(object sender, ChatTextInterceptEventArgs e)
         {
-            string message = Regex.Replace(e.Text, @"[^\w:/ ']", string.Empty);
-
             if (Filter.MainView.AutoRespond.Checked)
             {
-                // refactor to go to InventoryTracker
-                Match match;
-                string singleCompResponse = "/t {0}, I currently have {1} {2}.";
-                string pluralCompResponse = "/t {0}, I currently have {1} {2}s.";
-                TextInfo textInfo = CultureInfo.CurrentCulture.TextInfo;
-
-                // checking spell components
-                string componentsPattern = string.Format(@"(?<guid>\d+):(?<dupleName>.+?)Tell\s(?<msg>tells)\syou\s(?<secret>.*)");
-
-                match = new Regex(componentsPattern).Match(message);
+                string sanitizedInput = Regex.Replace(e.Text.ToLower(), @"[^\w:/ ']", string.Empty);
+                Match match = new Regex("(?<guid>\\d+):(?<dupleName>.+?)tell tells you (?<message>.*$)").Match(sanitizedInput);
+                string message = match.Groups["message"].Value;
+                int guid = Convert.ToInt32(match.Groups["guid"].Value);
+                string name = match.Groups["dupleName"].Value.Substring(0, match.Groups["dupleName"].Value.Length / 2);
                 if (match.Success)
                 {
-                    string name = match.Groups["dupleName"].Value.Substring(0, match.Groups["dupleName"].Value.Length / 2);
-                    if (match.Groups["secret"].Value.Equals("comps"))
+                    if (message.Equals("comps"))
                     {
-                        string[] comps = {
-                            "Lead Scarab",
-                            "Iron Scarab",
-                            "Copper Scarab",
-                            "Silver Scarab",
-                            "Gold Scarab",
-                            "Pyreal Scarab",
-                            "Platinum Scarab",
-                            "Mana Scarab",
-                            "Prismatic Taper"
-                            };
-                        foreach (string comp in comps)
+                        for (int i = 0; i < Core.Filter<FileService>().ComponentTable.Length; i++)
                         {
-                            WorldObjectCollection collection = Core.WorldFilter.GetInventory();
-                            collection.SetFilter(new ByNameFilter(comp));
-                            if (collection.Quantity == 0) continue;
-                            Core.Actions.InvokeChatParser(
-                                collection.Quantity == 1 ?
-                                string.Format(singleCompResponse, name, collection.Quantity.ToString(), collection.First.Name) :
-                                string.Format(pluralCompResponse, name, collection.Quantity.ToString(), collection.First.Name)
-                            );
-                            collection.Dispose();
+                            using (WorldObjectCollection collection = Core.WorldFilter.GetInventory())
+                            {
+                                collection.SetFilter(new ByNameFilter(Core.Filter<FileService>().ComponentTable[i].Name));
+                                if (collection.Quantity.Equals(0))
+                                {
+                                    continue;
+                                }
+                                else if (collection.Quantity.Equals(1))
+                                {
+                                    Filter.Machine.ChatManager.SendTell(name, $"I have {collection.Quantity} {collection.First.Name}.");
+                                }
+                                else
+                                {
+                                    Filter.Machine.ChatManager.SendTell(name, $"I have {collection.Quantity} {collection.First.Name}{(collection.Quantity > 1 ? "s" : "")}.");
+                                }
+                            }
                         }
-                    }
-                    else
-                    {
-                        WorldObjectCollection collection = Core.WorldFilter.GetInventory();
-                        collection.SetFilter(new ByNameFilter(textInfo.ToTitleCase(match.Groups["secret"].Value)));
-                        if (collection.Count > 0)
-                        {
-                            Core.Actions.InvokeChatParser(collection.Quantity == 1 ?
-                                string.Format(singleCompResponse, name, collection.Quantity.ToString(), collection.First.Name) :
-                                string.Format(pluralCompResponse, name, collection.Quantity.ToString(), collection.First.Name)
-                            );
-                        }
-                        collection.Dispose();
                     }
                 }
             }
