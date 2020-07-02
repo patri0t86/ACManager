@@ -2,6 +2,9 @@
 
 This project was designed from the ground up to be the new defacto multicharacter bot for Asheron's Call. The idea for the project was it was to be completed within Decal only, requiring no other plugins (except for the Virindi View System) or programs. If you know how to add a plugin to Decal, you are already halfway to running your bot!
 
+## What It Does
+This provides multicharacter portal bot functionality to an account on Asheron's Call. You set a portal keyword (only requirement), and a description, level, and heading (optional)
+
 ## Prerequisites
 
 1. Asheron's Call/ThwargLauncher/Decal Installed and working properly.
@@ -22,11 +25,6 @@ You have two choices: you can install automatically using the installer or manua
 3. To start/stop the bot, simply toggle the *Start/Stop* checkbox in the *Config* tab of the *Bot Manager*.
 
 ## Assumptions
-
-- Your characters know Summon Primary Portal 1.
-- Your characters know Summon Secondary Portal 1.
-- Your characters have wands equipped.
-- Your characters have components.
 
 The bot does handle mana management, but then it also assumes:
 

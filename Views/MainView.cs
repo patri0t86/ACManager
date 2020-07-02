@@ -143,11 +143,11 @@ namespace ACManager.Views
             {
                 if (PortalBotCheckBox.Checked)
                 {
-                    Filter.PortalBotView.View.ShowInBar = Filter.Machine.Utility.GUISettings.BotConfigVisible = true;
+                    Filter.BotManagerView.View.ShowInBar = Filter.Machine.Utility.GUISettings.BotConfigVisible = true;
                 }
                 else
                 {
-                    Filter.PortalBotView.View.ShowInBar = Filter.Machine.Utility.GUISettings.BotConfigVisible = false;
+                    Filter.BotManagerView.View.ShowInBar = Filter.Machine.Utility.GUISettings.BotConfigVisible = false;
                 }
                 Filter.Machine.Utility.SaveGUISettings();
             }

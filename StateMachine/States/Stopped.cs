@@ -26,7 +26,7 @@ namespace ACManager.StateMachine.States
                 machine.Core.Actions.SetIdleTime(Double.MaxValue);
                 machine.Core.ChatBoxMessage += machine.ChatManager.Current_ChatBoxMessage;
 
-                machine.AdInterval = machine.Utility.BotSettings.AdInterval;
+                machine.AdInterval = machine.Utility.BotSettings.AdInterval >= 5 ? machine.Utility.BotSettings.AdInterval : 5;
                 machine.Advertise = machine.Utility.BotSettings.AdsEnabled;
                 machine.RespondToOpenChat = machine.Utility.BotSettings.RespondToGeneralChat;
                 machine.Verbosity = machine.Utility.BotSettings.Verbosity;

@@ -25,7 +25,7 @@ namespace ACManager.StateMachine
         public Inventory(Machine machine)
         {
             Machine = machine;
-            ComponentThreshold = Machine.Utility.BotSettings.TaperThreshold;
+            ComponentThreshold = Machine.Utility.BotSettings.ComponentThreshold;
             LeadScarabThreshold = Machine.Utility.BotSettings.LeadScarabThreshold;
             IronScarabThreshold = Machine.Utility.BotSettings.IronScarabThreshold;
             CopperScarabThreshold = Machine.Utility.BotSettings.CopperScarabThreshold;

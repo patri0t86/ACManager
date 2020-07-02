@@ -8,12 +8,13 @@ using VirindiViewService.Controls;
 
 namespace ACManager.Views
 {
-    internal class PortalBotView : IDisposable
+    internal class BotManagerView : IDisposable
     {
-        internal const string Module = "PortalBot";
         private FilterCore Filter { get; set; }
         private CoreManager Core { get; set; }
         internal HudView View { get; set; }
+
+        #region Config Variable Declaration
         internal HudCheckBox BotEnabled { get; set; }
         internal HudButton ClearLocation { get; set; }
         internal HudButton SetLocation { get; set; }
@@ -29,6 +30,18 @@ namespace ACManager.Views
         internal HudHSlider StaminaThreshold { get; set; }
         internal HudStaticText ManaThresholdText { get; set; }
         internal HudStaticText StamThresholdText { get; set; }
+        internal HudTextBox LeadScarabThreshold { get; set; }
+        internal HudTextBox IronScarabThreshold { get; set; }
+        internal HudTextBox CopperScarabThreshold { get; set; }
+        internal HudTextBox SilverScarabThreshold { get; set; }
+        internal HudTextBox GoldScarabThreshold { get; set; }
+        internal HudTextBox PyrealScarabThreshold { get; set; }
+        internal HudTextBox PlatinumScarabThreshold { get; set; }
+        internal HudTextBox ManaScarabThreshold { get; set; }
+        internal HudTextBox ComponentThreshold { get; set; }
+        #endregion
+
+        #region Portal Options Variable Declarations
         internal HudCombo CharacterChoice { get; set; }
         internal HudTextBox PrimaryKeyword { get; set; }
         internal HudTextBox SecondaryKeyword { get; set; }
@@ -39,17 +52,21 @@ namespace ACManager.Views
         internal HudTextBox SecondaryHeading { get; set; }
         internal HudTextBox PrimaryLevel { get; set; }
         internal HudTextBox SecondaryLevel { get; set; }
+        #endregion
+
+        #region Advertisement Variable Declarations
         internal HudList Advertisements { get; set; }
         internal HudButton AddAdvertisement { get; set; }
+        #endregion
 
-        public PortalBotView(FilterCore parent, CoreManager core)
+        public BotManagerView(FilterCore parent, CoreManager core)
         {
             try
             {
                 Filter = parent;
                 Core = core;
                 VirindiViewService.XMLParsers.Decal3XMLParser parser = new VirindiViewService.XMLParsers.Decal3XMLParser();
-                parser.ParseFromResource("ACManager.Views.portalBotView.xml", out ViewProperties Properties, out ControlGroup Controls);
+                parser.ParseFromResource("ACManager.Views.botManagerView.xml", out ViewProperties Properties, out ControlGroup Controls);
 
                 View = new HudView(Properties, Controls);
 
@@ -95,6 +112,34 @@ namespace ACManager.Views
 
                 ManaThresholdText = View != null ? (HudStaticText)View["ManaThreshText"] : new HudStaticText();
                 StamThresholdText = View != null ? (HudStaticText)View["StamThreshText"] : new HudStaticText();
+
+                LeadScarabThreshold = View != null ? (HudTextBox)View["LeadScarabThreshold"] : new HudTextBox();
+                LeadScarabThreshold.Change += LeadScarabThreshold_Change;
+
+                IronScarabThreshold = View != null ? (HudTextBox)View["IronScarabThreshold"] : new HudTextBox();
+                IronScarabThreshold.Change += IronScarabThreshold_Change;
+
+                CopperScarabThreshold = View != null ? (HudTextBox)View["CopperScarabThreshold"] : new HudTextBox();
+                CopperScarabThreshold.Change += CopperScarabThreshold_Change;
+
+                SilverScarabThreshold = View != null ? (HudTextBox)View["SilverScarabThreshold"] : new HudTextBox();
+                SilverScarabThreshold.Change += SilverScarabThreshold_Change;
+
+                GoldScarabThreshold = View != null ? (HudTextBox)View["GoldScarabThreshold"] : new HudTextBox();
+                GoldScarabThreshold.Change += GoldScarabThreshold_Change;
+
+                PyrealScarabThreshold = View != null ? (HudTextBox)View["PyrealScarabThreshold"] : new HudTextBox();
+                PyrealScarabThreshold.Change += PyrealScarabThreshold_Change;
+
+                PlatinumScarabThreshold = View != null ? (HudTextBox)View["PlatinumScarabThreshold"] : new HudTextBox();
+                PlatinumScarabThreshold.Change += PlatinumScarabThreshold_Change;
+
+                ManaScarabThreshold = View != null ? (HudTextBox)View["ManaScarabThreshold"] : new HudTextBox();
+                ManaScarabThreshold.Change += ManaScarabThreshold_Change;
+
+                ComponentThreshold = View != null ? (HudTextBox)View["ComponentThreshold"] : new HudTextBox();
+                ComponentThreshold.Change += ComponentThreshold_Change;
+
                 #endregion
 
                 #region Portal Settings
@@ -125,14 +170,16 @@ namespace ACManager.Views
                 AddAdvertisement = View != null ? (HudButton)View["AddAdvertisement"] : new HudButton();
                 AddAdvertisement.Hit += AddAdvertisement_Hit;
 
-                Advertisements = View != null ? (HudList)View["AdvertisementList"] : new HudList();
-                Advertisements.Click += Advertisements_Click;
-
                 CharacterChoice = View != null ? (HudCombo)View["CharacterChoice"] : new HudCombo(new ControlGroup());
                 CharacterChoice.Change += CharacterChoice_Change;
                 #endregion
 
+                #region Advertisements
                 NewAdvertisement = View != null ? (HudTextBox)View["NewAdvertisementText"] : new HudTextBox();
+
+                Advertisements = View != null ? (HudList)View["AdvertisementList"] : new HudList();
+                Advertisements.Click += Advertisements_Click;
+                #endregion
 
                 GetCharacters();
                 GetAdvertisements();
@@ -140,6 +187,231 @@ namespace ACManager.Views
                 LoadSettings();
             }
             catch (Exception ex) { Debug.LogException(ex); }
+        }
+
+        private void ComponentThreshold_Change(object sender, EventArgs e)
+        {
+            try
+            {
+                if (int.TryParse(ComponentThreshold.Text, out int result))
+                {
+                    if (result < 0)
+                    {
+                        result = 0;
+                    }
+                    Filter.Machine.Inventory.ComponentThreshold = Filter.Machine.Utility.BotSettings.ComponentThreshold = result;
+                }
+                else
+                {
+                    ComponentThreshold.Text = "0";
+                    Filter.Machine.Inventory.ComponentThreshold = Filter.Machine.Utility.BotSettings.ComponentThreshold = 0;
+                }
+                Filter.Machine.Utility.SaveBotSettings();
+            }
+            catch (Exception ex)
+            {
+                Debug.LogException(ex);
+            }
+        }
+
+        private void ManaScarabThreshold_Change(object sender, EventArgs e)
+        {
+            try
+            {
+                if (int.TryParse(ManaScarabThreshold.Text, out int result))
+                {
+                    if (result < 0)
+                    {
+                        result = 0;
+                    }
+                    Filter.Machine.Inventory.ManaScarabThreshold = Filter.Machine.Utility.BotSettings.ManaScarabThreshold = result;
+                }
+                else
+                {
+                    ManaScarabThreshold.Text = "0";
+                    Filter.Machine.Inventory.ManaScarabThreshold = Filter.Machine.Utility.BotSettings.ManaScarabThreshold = 0;
+                }
+                Filter.Machine.Utility.SaveBotSettings();
+            }
+            catch (Exception ex)
+            {
+                Debug.LogException(ex);
+            }
+        }
+
+        private void PlatinumScarabThreshold_Change(object sender, EventArgs e)
+        {
+            try
+            {
+                if (int.TryParse(PlatinumScarabThreshold.Text, out int result))
+                {
+                    if (result < 0)
+                    {
+                        result = 0;
+                    }
+                    Filter.Machine.Inventory.PlatinumScarabThreshold = Filter.Machine.Utility.BotSettings.PlatinumScarabThreshold = result;
+                }
+                else
+                {
+                    PlatinumScarabThreshold.Text = "0";
+                    Filter.Machine.Inventory.PlatinumScarabThreshold = Filter.Machine.Utility.BotSettings.PlatinumScarabThreshold = 0;
+                }
+                Filter.Machine.Utility.SaveBotSettings();
+            }
+            catch (Exception ex)
+            {
+                Debug.LogException(ex);
+            }
+        }
+
+        private void PyrealScarabThreshold_Change(object sender, EventArgs e)
+        {
+            try
+            {
+                if (int.TryParse(PyrealScarabThreshold.Text, out int result))
+                {
+                    if (result < 0)
+                    {
+                        result = 0;
+                    }
+                    Filter.Machine.Inventory.PyrealScarabThreshold = Filter.Machine.Utility.BotSettings.PyrealScarabThreshold = result;
+                }
+                else
+                {
+                    PyrealScarabThreshold.Text = "0";
+                    Filter.Machine.Inventory.PyrealScarabThreshold = Filter.Machine.Utility.BotSettings.PyrealScarabThreshold = 0;
+                }
+                Filter.Machine.Utility.SaveBotSettings();
+            }
+            catch (Exception ex)
+            {
+                Debug.LogException(ex);
+            }
+        }
+
+        private void GoldScarabThreshold_Change(object sender, EventArgs e)
+        {
+            try
+            {
+                if (int.TryParse(GoldScarabThreshold.Text, out int result))
+                {
+                    if (result < 0)
+                    {
+                        result = 0;
+                    }
+                    Filter.Machine.Inventory.GoldScarabThreshold = Filter.Machine.Utility.BotSettings.GoldScarabThreshold = result;
+                }
+                else
+                {
+                    GoldScarabThreshold.Text = "0";
+                    Filter.Machine.Inventory.GoldScarabThreshold = Filter.Machine.Utility.BotSettings.GoldScarabThreshold = 0;
+                }
+                Filter.Machine.Utility.SaveBotSettings();
+            }
+            catch (Exception ex)
+            {
+                Debug.LogException(ex);
+            }
+        }
+
+        private void SilverScarabThreshold_Change(object sender, EventArgs e)
+        {
+            try
+            {
+                if (int.TryParse(SilverScarabThreshold.Text, out int result))
+                {
+                    if (result < 0)
+                    {
+                        result = 0;
+                    }
+                    Filter.Machine.Inventory.SilverScarabThreshold = Filter.Machine.Utility.BotSettings.SilverScarabThreshold = result;
+                }
+                else
+                {
+                    SilverScarabThreshold.Text = "0";
+                    Filter.Machine.Inventory.SilverScarabThreshold = Filter.Machine.Utility.BotSettings.SilverScarabThreshold = 0;
+                }
+                Filter.Machine.Utility.SaveBotSettings();
+            }
+            catch (Exception ex)
+            {
+                Debug.LogException(ex);
+            }
+        }
+
+        private void CopperScarabThreshold_Change(object sender, EventArgs e)
+        {
+            try
+            {
+                if (int.TryParse(CopperScarabThreshold.Text, out int result))
+                {
+                    if (result < 0)
+                    {
+                        result = 0;
+                    }
+                    Filter.Machine.Inventory.CopperScarabThreshold = Filter.Machine.Utility.BotSettings.CopperScarabThreshold = result;
+                }
+                else
+                {
+                    CopperScarabThreshold.Text = "0";
+                    Filter.Machine.Inventory.CopperScarabThreshold = Filter.Machine.Utility.BotSettings.CopperScarabThreshold = 0;
+                }
+                Filter.Machine.Utility.SaveBotSettings();
+            }
+            catch (Exception ex)
+            {
+                Debug.LogException(ex);
+            }
+        }
+
+        private void IronScarabThreshold_Change(object sender, EventArgs e)
+        {
+            try
+            {
+                if (int.TryParse(IronScarabThreshold.Text, out int result))
+                {
+                    if (result < 0)
+                    {
+                        result = 0;
+                    }
+                    Filter.Machine.Inventory.IronScarabThreshold = Filter.Machine.Utility.BotSettings.IronScarabThreshold = result;
+                }
+                else
+                {
+                    IronScarabThreshold.Text = "0";
+                    Filter.Machine.Inventory.IronScarabThreshold = Filter.Machine.Utility.BotSettings.IronScarabThreshold = 0;
+                }
+                Filter.Machine.Utility.SaveBotSettings();
+            }
+            catch (Exception ex)
+            {
+                Debug.LogException(ex);
+            }
+        }
+
+        private void LeadScarabThreshold_Change(object sender, EventArgs e)
+        {
+            try
+            {
+                if (int.TryParse(LeadScarabThreshold.Text, out int result))
+                {
+                    if (result < 0)
+                    {
+                        result = 0;
+                    }
+                    Filter.Machine.Inventory.LeadScarabThreshold = Filter.Machine.Utility.BotSettings.LeadScarabThreshold = result;
+                }
+                else
+                {
+                    LeadScarabThreshold.Text = "0";
+                    Filter.Machine.Inventory.LeadScarabThreshold = Filter.Machine.Utility.BotSettings.LeadScarabThreshold = 0;
+                }
+                Filter.Machine.Utility.SaveBotSettings();
+            }
+            catch (Exception ex)
+            {
+                Debug.LogException(ex);
+            }
         }
 
         private void ClearLocation_Hit(object sender, EventArgs e)
@@ -271,19 +543,28 @@ namespace ACManager.Views
         {
             try
             {
+                BotEnabled.Checked = Filter.Machine.Utility.BotSettings.BotEnabled;
                 View.ShowInBar = Filter.Machine.Utility.GUISettings.BotConfigVisible;
                 RespondToGeneralChat.Checked = Filter.Machine.Utility.BotSettings.RespondToGeneralChat;
                 Verbosity.Position = Filter.Machine.Utility.BotSettings.Verbosity;
-                AdInterval.Text = Filter.Machine.Utility.BotSettings.AdInterval.ToString();
-                DefaultHeading.Text = Filter.Machine.Utility.BotSettings.DefaultHeading.ToString();
+                AdInterval.Text = Filter.Machine.Utility.BotSettings.AdInterval >= 5 ? Filter.Machine.Utility.BotSettings.AdInterval.ToString() : 5.ToString();
                 ManaThreshold.Position = (int)(Filter.Machine.Utility.BotSettings.ManaThreshold * 100);
                 StaminaThreshold.Position = (int)(Filter.Machine.Utility.BotSettings.StaminaThreshold * 100);
                 ManaThresholdText.Text = $"{ManaThreshold.Position}%";
                 StamThresholdText.Text = $"{StaminaThreshold.Position}%";
                 AdsEnabled.Checked = Filter.Machine.Utility.BotSettings.AdsEnabled;
-                BotEnabled.Checked = Filter.Machine.Utility.BotSettings.BotEnabled;
                 BotPositioning.Checked = Filter.Machine.Utility.BotSettings.BotPositioning;
-                LocationSetpoint.Text = $"{Filter.Machine.Utility.BotSettings.DesiredLandBlock.ToString("X").Substring(0,4)} - X: { Math.Round(Filter.Machine.Utility.BotSettings.DesiredBotLocationX, 2)} Y: {Math.Round(Filter.Machine.Utility.BotSettings.DesiredBotLocationY, 2)}";
+                DefaultHeading.Text = Filter.Machine.Utility.BotSettings.DefaultHeading.ToString();
+                LocationSetpoint.Text = Filter.Machine.Utility.BotSettings.GetType().GetProperty("DesiredLandBlock") != null ? $"{Filter.Machine.Utility.BotSettings.DesiredLandBlock.ToString("X").Substring(0,4)} - X: { Math.Round(Filter.Machine.Utility.BotSettings.DesiredBotLocationX, 2)} Y: {Math.Round(Filter.Machine.Utility.BotSettings.DesiredBotLocationY, 2)}" : "No location set";
+                LeadScarabThreshold.Text = Filter.Machine.Utility.BotSettings.LeadScarabThreshold.ToString();
+                IronScarabThreshold.Text = Filter.Machine.Utility.BotSettings.IronScarabThreshold.ToString();
+                CopperScarabThreshold.Text = Filter.Machine.Utility.BotSettings.CopperScarabThreshold.ToString();
+                SilverScarabThreshold.Text = Filter.Machine.Utility.BotSettings.SilverScarabThreshold.ToString();
+                GoldScarabThreshold.Text = Filter.Machine.Utility.BotSettings.GoldScarabThreshold.ToString();
+                PyrealScarabThreshold.Text = Filter.Machine.Utility.BotSettings.PyrealScarabThreshold.ToString();
+                PlatinumScarabThreshold.Text = Filter.Machine.Utility.BotSettings.PlatinumScarabThreshold.ToString();
+                ManaScarabThreshold.Text = Filter.Machine.Utility.BotSettings.ManaScarabThreshold.ToString();
+                ComponentThreshold.Text = Filter.Machine.Utility.BotSettings.ComponentThreshold.ToString();
             }
             catch (Exception ex)
             {
@@ -329,6 +610,7 @@ namespace ACManager.Views
                     if (result <= 5)
                     {
                         Filter.Machine.AdInterval = Filter.Machine.Utility.BotSettings.AdInterval = 5;
+                        AdInterval.Text = 5.ToString();
                     }
                     else
                     {
@@ -338,6 +620,7 @@ namespace ACManager.Views
                 else
                 {
                     Filter.Machine.AdInterval = Filter.Machine.Utility.BotSettings.AdInterval = 10;
+                    AdInterval.Text = 10.ToString();
                 }
                 Filter.Machine.Utility.SaveBotSettings();
                 Debug.ToChat($"The bot will now broadcast an advertisement every {Filter.Machine.Utility.BotSettings.AdInterval} minutes.");
@@ -927,6 +1210,8 @@ namespace ACManager.Views
                 if (disposing)
                 {
                     Filter = null;
+
+                    #region Remove Config EventHandlers
                     BotEnabled.Change -= BotEnabled_Change;
                     ClearLocation.Hit -= ClearLocation_Hit;
                     SetLocation.Hit -= SetHeading_Hit;
@@ -939,6 +1224,19 @@ namespace ACManager.Views
                     Verbosity.Changed -= Verbosity_Changed;
                     ManaThreshold.Changed -= ManaThreshhold_Changed;
                     StaminaThreshold.Changed -= StaminaThreshhold_Changed;
+                    LeadScarabThreshold.Change -= LeadScarabThreshold_Change;
+                    IronScarabThreshold.Change -= IronScarabThreshold_Change;
+                    CopperScarabThreshold.Change -= CopperScarabThreshold_Change;
+                    SilverScarabThreshold.Change -= SilverScarabThreshold_Change;
+                    GoldScarabThreshold.Change -= GoldScarabThreshold_Change;
+                    PyrealScarabThreshold.Change -= PyrealScarabThreshold_Change;
+                    PlatinumScarabThreshold.Change -= PlatinumScarabThreshold_Change;
+                    ManaScarabThreshold.Change -= ManaScarabThreshold_Change;
+                    ComponentThreshold.Change -= ComponentThreshold_Change;
+                    #endregion
+
+                    #region Remove Portal EventHandlers
+                    CharacterChoice.Change -= CharacterChoice_Change;
                     PrimaryKeyword.Change -= PrimaryKeyword_Change;
                     SecondaryKeyword.Change -= SecondaryKeyword_Change;
                     PrimaryDescription.Change -= PrimaryDescription_Change;
@@ -947,9 +1245,13 @@ namespace ACManager.Views
                     SecondaryHeading.Change -= SecondaryHeading_Change;
                     PrimaryLevel.Change -= PrimaryLevel_Change;
                     SecondaryLevel.Change -= SecondaryLevel_Change;
+                    #endregion
+
+                    #region Remove Advertisement EventHandlers
                     AddAdvertisement.Hit -= AddAdvertisement_Hit;
                     Advertisements.Click -= Advertisements_Click;
-                    CharacterChoice.Change -= CharacterChoice_Change;
+                    #endregion
+
                     View?.Dispose();
                 }
                 disposedValue = true;

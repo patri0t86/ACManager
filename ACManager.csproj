@@ -110,7 +110,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Views\ExpTrackerView.cs" />
     <Compile Include="Views\MainView.cs" />
-    <Compile Include="Views\PortalBotView.cs" />
+    <Compile Include="Views\BotManagerView.cs" />
     <Compile Include="VirindiViews\ViewSystemSelector.cs" />
     <Compile Include="VirindiViews\Wrapper.cs" />
     <Compile Include="VirindiViews\Wrapper_Decal.cs" />
@@ -120,7 +120,7 @@
   <ItemGroup>
     <EmbeddedResource Include="Views\expTrackerView.xml" />
     <EmbeddedResource Include="Views\mainView.xml" />
-    <EmbeddedResource Include="Views\portalBotView.xml" />
+    <EmbeddedResource Include="Views\botManagerView.xml" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

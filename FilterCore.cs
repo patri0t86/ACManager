@@ -18,7 +18,7 @@ namespace ACManager
         internal InventoryTracker InventoryTracker { get; set; }
         internal ExpTrackerView ExpTrackerView { get; set; }
         internal ExpTracker ExpTracker { get; set; }
-        internal PortalBotView PortalBotView { get; set; }
+        internal BotManagerView BotManagerView { get; set; }
         private Timer LogonTimer { get; set; }
 
         /// <summary>
@@ -109,7 +109,7 @@ namespace ACManager
                         // Instantiate views
                         MainView = new MainView(this);
                         ExpTrackerView = new ExpTrackerView(this);
-                        PortalBotView = new PortalBotView(this, Core);
+                        BotManagerView = new BotManagerView(this, Core);
 
                         // Instantiate classes to support the views
                         ExpTracker = new ExpTracker(this, Core);
@@ -159,7 +159,7 @@ namespace ACManager
 
                 MainView?.Dispose();
                 ExpTrackerView?.Dispose();
-                PortalBotView?.Dispose();
+                BotManagerView?.Dispose();
 
                 ExpTracker?.Dispose();
                 InventoryTracker = null;
