@@ -3,7 +3,7 @@
 This project was designed from the ground up to be the new defacto multicharacter bot for Asheron's Call. The idea for the project was it was to be completed within Decal only, requiring no other plugins (except for the Virindi View System) or programs. If you know how to add a plugin to Decal, you are already halfway to running your bot!
 
 ## What It Does
-This provides multicharacter portal bot functionality to an account on Asheron's Call. You set a portal keyword (only requirement), and a description, level, and heading (optional)
+This provides multicharacter portal bot functionality to an account on Asheron's Call. You set a portal keyword (only requirement), and a description, level, and a heading (those 3 are optional). If the bot is turned on, the bot will do the rest!
 
 ## Prerequisites
 
