@@ -121,11 +121,37 @@ namespace ACManager.StateMachine
                             {
                                 if (collection.First.Name.Contains("Scarab"))
                                 {
-                                    SendTell(Machine.CharacterMakingRequest, $"I have {collection.Quantity} {collection.First.Name}{(collection.Quantity > 1 ? "s" : "")}. {(collection.Quantity < Machine.Inventory.LowScarabThreshold ? "(low)" : "")}");
+                                    switch (collection.First.Name)
+                                    {
+                                        case "Lead Scarab":
+                                            SendTell(Machine.CharacterMakingRequest, $"I have {collection.Quantity} {collection.First.Name}{(collection.Quantity > 1 ? "s" : "")}. {(collection.Quantity <= Machine.Inventory.LeadScarabThreshold ? "(low)" : "")}");
+                                            break;
+                                        case "Iron Scarab":
+                                            SendTell(Machine.CharacterMakingRequest, $"I have {collection.Quantity} {collection.First.Name}{(collection.Quantity > 1 ? "s" : "")}. {(collection.Quantity <= Machine.Inventory.IronScarabThreshold ? "(low)" : "")}");
+                                            break;
+                                        case "Copper Scarab":
+                                            SendTell(Machine.CharacterMakingRequest, $"I have {collection.Quantity} {collection.First.Name}{(collection.Quantity > 1 ? "s" : "")}. {(collection.Quantity <= Machine.Inventory.CopperScarabThreshold ? "(low)" : "")}");
+                                            break;
+                                        case "Silver Scarab":
+                                            SendTell(Machine.CharacterMakingRequest, $"I have {collection.Quantity} {collection.First.Name}{(collection.Quantity > 1 ? "s" : "")}. {(collection.Quantity <= Machine.Inventory.SilverScarabThreshold ? "(low)" : "")}");
+                                            break;
+                                        case "Gold Scarab":
+                                            SendTell(Machine.CharacterMakingRequest, $"I have {collection.Quantity} {collection.First.Name}{(collection.Quantity > 1 ? "s" : "")}. {(collection.Quantity <= Machine.Inventory.GoldScarabThreshold ? "(low)" : "")}");
+                                            break;
+                                        case "Pyreal Scarab":
+                                            SendTell(Machine.CharacterMakingRequest, $"I have {collection.Quantity} {collection.First.Name}{(collection.Quantity > 1 ? "s" : "")}. {(collection.Quantity <= Machine.Inventory.PyrealScarabThreshold ? "(low)" : "")}");
+                                            break;
+                                        case "Platinum Scarab":
+                                            SendTell(Machine.CharacterMakingRequest, $"I have {collection.Quantity} {collection.First.Name}{(collection.Quantity > 1 ? "s" : "")}. {(collection.Quantity <= Machine.Inventory.PlatinumScarabThreshold ? "(low)" : "")}");
+                                            break;
+                                        case "Mana Scarab":
+                                            SendTell(Machine.CharacterMakingRequest, $"I have {collection.Quantity} {collection.First.Name}{(collection.Quantity > 1 ? "s" : "")}. {(collection.Quantity <= Machine.Inventory.ManaScarabThreshold ? "(low)" : "")}");
+                                            break;
+                                    }
                                 }
                                 else
                                 {
-                                    SendTell(Machine.CharacterMakingRequest, $"I have {collection.Quantity} {collection.First.Name}{(collection.Quantity > 1 ? "s" : "")}. {(collection.Quantity < Machine.Inventory.LowTaperThreshhold ? "(low)" : "")}");
+                                    SendTell(Machine.CharacterMakingRequest, $"I have {collection.Quantity} {collection.First.Name}{(collection.Quantity > 1 ? "s" : "")}. {(collection.Quantity <= Machine.Inventory.ComponentThreshold ? "(low)" : "")}");
                                 }
                             }
                         }

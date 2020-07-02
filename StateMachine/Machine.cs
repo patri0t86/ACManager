@@ -228,7 +228,7 @@ namespace ACManager.StateMachine
             Interpreter = new Interpreter(this);
             ChatManager = new ChatManager(this);
             ComponentChecker = new ComponentChecker(Core);
-            Inventory = new Inventory(Core);
+            Inventory = new Inventory(this);
             RandomNumber = new Random();
             CurrentState = Stopped.GetInstance;
             Core.RenderFrame += Clock;

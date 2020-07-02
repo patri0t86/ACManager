@@ -42,6 +42,33 @@ namespace ACManager.Settings
         [XmlElement(IsNullable = false)]
         public bool BotPositioning = false;
 
+        [XmlElement(IsNullable = false)]
+        public int TaperThreshold = 100;
+
+        [XmlElement(IsNullable = false)]
+        public int LeadScarabThreshold = 10;
+        
+        [XmlElement(IsNullable = false)] 
+        public int IronScarabThreshold = 10;
+
+        [XmlElement(IsNullable = false)] 
+        public int CopperScarabThreshold = 10;
+
+        [XmlElement(IsNullable = false)] 
+        public int SilverScarabThreshold = 10;
+
+        [XmlElement(IsNullable = false)] 
+        public int GoldScarabThreshold = 10;
+
+        [XmlElement(IsNullable = false)] 
+        public int PyrealScarabThreshold = 10;
+
+        [XmlElement(IsNullable = false)] 
+        public int PlatinumScarabThreshold = 10;
+
+        [XmlElement(IsNullable = false)] 
+        public int ManaScarabThreshold = 10;
+
         public List<Advertisement> Advertisements = new List<Advertisement>();
     }
 

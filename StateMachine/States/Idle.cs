@@ -15,23 +15,24 @@ namespace ACManager.StateMachine.States
         public void Enter(Machine machine)
         {
             machine.DecliningCommands = false;
-
             machine.Inventory.GetComponentLevels();
         }
 
         public void Exit(Machine machine)
         {
             machine.DecliningCommands = true;
+            machine.Inventory.GetComponentLevels();
         }
 
         /// <summary>
         /// Order of operations:
+        /// Go to peace mode
         /// Move the bot to the correct location in the world
-        /// Cast summon portal from this character - turn character to the correct heading - equip wand
         /// Switch characters if portal is not on this character
-        /// Turn character to the default heading if not doing anything
+        /// Cast summon portal from this character / turn character to the correct heading / equip wand
         /// If a wand is equipped, unequip it
-        /// Broadcast advertisement
+        /// Turn character to the default heading if truly idle
+        /// Broadcast advertisement / low on spell comps
         /// </summary>
         /// <param name="machine"></param>
 
@@ -56,6 +57,10 @@ namespace ACManager.StateMachine.States
                     {
                         machine.NextState = Positioning.GetInstance;
                     }
+                }
+                else if (machine.SpellsToCast.Count > 0 && !machine.Core.CharacterFilter.Name.Equals(machine.NextCharacter)) // If there is a portal in the queue and it is not on this character, switch to the correct character
+                {
+                    machine.NextState = SwitchingCharacters.GetInstance;
                 }
                 else if (machine.SpellsToCast.Count > 0 && machine.Core.CharacterFilter.Name.Equals(machine.NextCharacter)) // If there is a portal in the queue and it is on this character, enter casting state
                 {
@@ -88,10 +93,6 @@ namespace ACManager.StateMachine.States
                     {
                         machine.Core.Actions.Heading = machine.NextHeading;
                     }
-                }
-                else if (machine.SpellsToCast.Count > 0 && !machine.Core.CharacterFilter.Name.Equals(machine.NextCharacter)) // If there is a portal in the queue and it is not on this character, switch to the correct character
-                {
-                    machine.NextState = SwitchingCharacters.GetInstance;
                 }
                 else if (wandEquipped)
                 {

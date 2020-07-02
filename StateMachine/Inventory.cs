@@ -6,37 +6,53 @@ using System.Windows.Forms;
 
 namespace ACManager.StateMachine
 {
-    public class Inventory
+    internal class Inventory
     {
-        private readonly CoreManager Core;
+        private Machine Machine { get; set; }
         internal Dictionary<string, int> SpellComponents { get; set; } = new Dictionary<string, int>();
         internal Dictionary<string, int> PortalGems { get; set; } = new Dictionary<string, int>();
-        internal int LowTaperThreshhold { get; set; } = 100;
-        internal int LowScarabThreshold { get; set; } = 10;
+        internal int ComponentThreshold { get; set; }
+        internal int LeadScarabThreshold { get; set; }
+        internal int IronScarabThreshold { get; set; }
+        internal int CopperScarabThreshold { get; set; }
+        internal int SilverScarabThreshold { get; set; }
+        internal int GoldScarabThreshold { get; set; }
+        internal int PyrealScarabThreshold { get; set; }
+        internal int PlatinumScarabThreshold { get; set; }
+        internal int ManaScarabThreshold { get; set; }
         internal bool IsLowOnComponents { get; set; } = false;
         
-
-        public Inventory(CoreManager core)
+        public Inventory(Machine machine)
         {
-            Core = core;
+            Machine = machine;
+            ComponentThreshold = Machine.Utility.BotSettings.TaperThreshold;
+            LeadScarabThreshold = Machine.Utility.BotSettings.LeadScarabThreshold;
+            IronScarabThreshold = Machine.Utility.BotSettings.IronScarabThreshold;
+            CopperScarabThreshold = Machine.Utility.BotSettings.CopperScarabThreshold;
+            SilverScarabThreshold = Machine.Utility.BotSettings.SilverScarabThreshold;
+            GoldScarabThreshold = Machine.Utility.BotSettings.GoldScarabThreshold;
+            PyrealScarabThreshold = Machine.Utility.BotSettings.PyrealScarabThreshold;
+            PlatinumScarabThreshold = Machine.Utility.BotSettings.PlatinumScarabThreshold;
+            ManaScarabThreshold = Machine.Utility.BotSettings.ManaScarabThreshold;
         }
 
         internal void GetComponentLevels()
         {
-            for (int i = 0; i < Core.Filter<FileService>().ComponentTable.Length; i++)
+            SpellComponents.Clear();
+            for (int i = 0; i < Machine.Core.Filter<FileService>().ComponentTable.Length; i++)
             {
-                using (WorldObjectCollection collection = Core.WorldFilter.GetInventory())
+                using (WorldObjectCollection collection = Machine.Core.WorldFilter.GetInventory())
                 {
-                    collection.SetFilter(new ByNameFilter(Core.Filter<FileService>().ComponentTable[i].Name));
-                    if (collection.Quantity > 0) {
-                        if (SpellComponents.ContainsKey(Core.Filter<FileService>().ComponentTable[i].Name))
+                    collection.SetFilter(new ByNameFilter(Machine.Core.Filter<FileService>().ComponentTable[i].Name));
+                    if (collection.Quantity > 0) 
+                    {
+                        if (SpellComponents.ContainsKey(Machine.Core.Filter<FileService>().ComponentTable[i].Name))
                         {
-                            SpellComponents[Core.Filter<FileService>().ComponentTable[i].Name] = collection.Quantity;
-
+                            SpellComponents[Machine.Core.Filter<FileService>().ComponentTable[i].Name] = collection.Quantity;
                         }
-                        else if (!SpellComponents.ContainsKey(Core.Filter<FileService>().ComponentTable[i].Name))
+                        else if (!SpellComponents.ContainsKey(Machine.Core.Filter<FileService>().ComponentTable[i].Name))
                         {
-                            SpellComponents.Add(Core.Filter<FileService>().ComponentTable[i].Name, collection.Quantity);
+                            SpellComponents.Add(Machine.Core.Filter<FileService>().ComponentTable[i].Name, collection.Quantity);
                         }
                     }
                 }
@@ -46,30 +62,49 @@ namespace ACManager.StateMachine
 
         private void CheckComponentThresholds()
         {
+            IsLowOnComponents = false;
             foreach (KeyValuePair<string, int> component in SpellComponents)
             {
                 if (component.Key.Contains("Scarab"))
                 {
-                    IsLowOnComponents = IsScarabLow(component.Value);
-                    break;
+                    IsLowOnComponents = IsScarabLow(component.Key, component.Value);
+                    if (IsLowOnComponents) break;
                 }
                 else
                 {
                     IsLowOnComponents = IsComponentLow(component.Value);
-                    break;
+                    if (IsLowOnComponents) break;
                 }
             }
-            
         }
 
         private bool IsComponentLow(int qty)
         {
-            return qty <= LowTaperThreshhold;
+            return qty <= ComponentThreshold;
         }
 
-        private bool IsScarabLow(int qty)
+        private bool IsScarabLow(string comp, int qty)
         {
-            return qty <= LowScarabThreshold;
+            switch (comp)
+            {
+                case "Lead Scarab":
+                    return qty <= LeadScarabThreshold;
+                case "Iron Scarab":
+                    return qty <= IronScarabThreshold;
+                case "Copper Scarab":
+                    return qty <= CopperScarabThreshold;
+                case "Silver Scarab":
+                    return qty <= SilverScarabThreshold;
+                case "Gold Scarab":
+                    return qty <= GoldScarabThreshold;
+                case "Pyreal Scarab":
+                    return qty <= PyrealScarabThreshold;
+                case "Platinum Scarab":
+                    return qty <= PlatinumScarabThreshold;
+                case "Mana Scarab":
+                    return qty <= ManaScarabThreshold;
+            }
+            return false;
         }
 
         internal void ReportComponentLevels()
