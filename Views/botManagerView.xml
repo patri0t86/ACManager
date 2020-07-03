@@ -84,6 +84,25 @@
       </control>
     </page>
 
+    <page label="Gems">
+      <control progid="DecalControls.FixedLayout" clipped="">
+        <control progid="DecalControls.List"        name="GemList"              left="5"    top="5"   width="390" height="200">
+          <column progid="DecalControls.TextColumn" name="Name"                 fixedwidth="185" />
+          <column progid="DecalControls.TextColumn" name="Keyword"              fixedwidth="125" />
+          <column progid="DecalControls.TextColumn" name="Heading"              fixedwidth="50" />
+        </control>
+        
+        <control progid="DecalControls.StaticText"                              left="5"    top="208" width="50"  height="16" text="Keyword:" />
+        <control progid="DecalControls.Edit"        name="GemKeyword"           left="60"   top="208" width="50"  height="19" text="" />
+
+        <control progid="DecalControls.StaticText"                              left="115"  top="208" width="50"  height="16" text="Heading:" />
+        <control progid="DecalControls.Edit"        name="GemHeading"           left="170"  top="208" width="50"  height="19" text="" />
+
+        <control progid="DecalControls.PushButton"  name="AddGem"               left="225"  top="208" width="170" height="19" text="Add Selected Gem" />
+        
+      </control>
+    </page>
+
     <page label="Advertisements">
       <control progid="DecalControls.FixedLayout" clipped="">
         <control progid="DecalControls.StaticText"                              left="5"    top="5"   width="150" height="16" text="New Advertisement" />

@@ -219,6 +219,11 @@ namespace ACManager.StateMachine
         public Inventory Inventory { get; set; }
 
         /// <summary>
+        /// Name of the item to use next.
+        /// </summary>
+        public string ItemToUse { get; set; }
+
+        /// <summary>
         /// Create the state machine in the StoppedState and begin processing commands on intervals (every time a frame is rendered).
         /// </summary>
         public Machine(CoreManager core, string path)

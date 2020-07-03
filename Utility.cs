@@ -24,9 +24,12 @@ namespace ACManager
         private string BotSettingsPath { get; set; }
         private string GUISettingsFile { get { return "acm_gui_settings.xml"; } }
         private string GUISettingsPath { get; set; }
+        private string InventoryFile { get { return "acm_inventory.xml"; } }
+        private string InventoryPath { get; set; }
         internal CharacterSettings CharacterSettings { get; set; } = new CharacterSettings();
         internal BotSettings BotSettings { get; set; } = new BotSettings();
         internal GUISettings GUISettings { get; set; } = new GUISettings();
+        internal InventorySettings Inventory { get; set; } = new InventorySettings();
         internal string Version { get; set; }
         internal bool BackCompat { get; set; } = false;
 
@@ -38,6 +41,7 @@ namespace ACManager
             CharacterSettings = LoadCharacterSettings();
             BotSettings = LoadBotSettings();
             GUISettings = LoadGUISettings();
+            Inventory = LoadInventories();
         }
 
         /// <summary>
@@ -55,6 +59,7 @@ namespace ACManager
                 CharacterSettingsPath = Path.Combine(AllSettingsPath, CharacterSettingsFile);
                 BotSettingsPath = Path.Combine(AllSettingsPath, BotSettingsFile);
                 GUISettingsPath = Path.Combine(AllSettingsPath, GUISettingsFile);
+                InventoryPath = Path.Combine(AllSettingsPath, InventoryFile);
             }
             catch (Exception ex) { Debug.LogException(ex); }
         }
@@ -260,6 +265,50 @@ namespace ACManager
                     }
                 }
                 return new GUISettings();
+            }
+            catch (Exception ex)
+            {
+                Debug.ToChat(ex.Message);
+                return null;
+            }
+        }
+
+
+        internal void SaveInventory()
+        {
+            try
+            {
+                if (SettingsPathExists())
+                {
+                    using (XmlTextWriter writer = new XmlTextWriter(InventoryPath, Encoding.UTF8))
+                    {
+                        writer.Formatting = Formatting.Indented;
+                        writer.WriteStartDocument();
+
+                        XmlSerializer xmlSerializer = new XmlSerializer(typeof(InventorySettings));
+                        xmlSerializer.Serialize(writer, Inventory);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.ToChat(ex.Message);
+            }
+        }
+
+        internal InventorySettings LoadInventories()
+        {
+            try
+            {
+                if (File.Exists(InventoryPath))
+                {
+                    using (XmlTextReader reader = new XmlTextReader(InventoryPath))
+                    {
+                        XmlSerializer xmlSerializer = new XmlSerializer(typeof(InventorySettings));
+                        return (InventorySettings)xmlSerializer.Deserialize(reader);
+                    }
+                }
+                return new InventorySettings();
             }
             catch (Exception ex)
             {
