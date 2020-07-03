@@ -555,7 +555,7 @@ namespace ACManager.Views
                 AdsEnabled.Checked = Filter.Machine.Utility.BotSettings.AdsEnabled;
                 BotPositioning.Checked = Filter.Machine.Utility.BotSettings.BotPositioning;
                 DefaultHeading.Text = Filter.Machine.Utility.BotSettings.DefaultHeading.ToString();
-                LocationSetpoint.Text = Filter.Machine.Utility.BotSettings.GetType().GetProperty("DesiredLandBlock") != null ? $"{Filter.Machine.Utility.BotSettings.DesiredLandBlock.ToString("X").Substring(0,4)} - X: { Math.Round(Filter.Machine.Utility.BotSettings.DesiredBotLocationX, 2)} Y: {Math.Round(Filter.Machine.Utility.BotSettings.DesiredBotLocationY, 2)}" : "No location set";
+                LocationSetpoint.Text = !Filter.Machine.Utility.BotSettings.DesiredLandBlock.Equals(0) ? $"{Filter.Machine.Utility.BotSettings.DesiredLandBlock.ToString("X").Substring(0,4)} - X: { Math.Round(Filter.Machine.Utility.BotSettings.DesiredBotLocationX, 2)} Y: {Math.Round(Filter.Machine.Utility.BotSettings.DesiredBotLocationY, 2)}" : "No location set";
                 LeadScarabThreshold.Text = Filter.Machine.Utility.BotSettings.LeadScarabThreshold.ToString();
                 IronScarabThreshold.Text = Filter.Machine.Utility.BotSettings.IronScarabThreshold.ToString();
                 CopperScarabThreshold.Text = Filter.Machine.Utility.BotSettings.CopperScarabThreshold.ToString();
@@ -943,15 +943,15 @@ namespace ACManager.Views
                     {
                         if (portal.Type.Equals(PortalType.Primary))
                         {
-                            PrimaryKeyword.Text = portal.Keyword;
-                            PrimaryDescription.Text = portal.Description;
+                            PrimaryKeyword.Text = !string.IsNullOrEmpty(portal.Keyword) ? portal.Keyword : "";
+                            PrimaryDescription.Text = !string.IsNullOrEmpty(portal.Description) ? portal.Description : "";
                             PrimaryHeading.Text = portal.Heading.ToString();
                             PrimaryLevel.Text = portal.Level.ToString();
                         }
                         else
                         {
-                            SecondaryKeyword.Text = portal.Keyword;
-                            SecondaryDescription.Text = portal.Description;
+                            SecondaryKeyword.Text = !string.IsNullOrEmpty(portal.Keyword) ? portal.Keyword : "";
+                            SecondaryDescription.Text = !string.IsNullOrEmpty(portal.Description) ? portal.Description : "";
                             SecondaryHeading.Text = portal.Heading.ToString();
                             SecondaryLevel.Text = portal.Level.ToString();
                         }
