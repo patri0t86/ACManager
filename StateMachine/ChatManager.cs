@@ -239,6 +239,36 @@ namespace ACManager.StateMachine
                         }
                     }
 
+                } 
+                else if (gemStrings.Count > 0)
+                {
+                    SendTell(Machine.CharacterMakingRequest, "You can /t me any keyword, and I will summon the corresponding portal.");
+                    StringBuilder sb = new StringBuilder();
+                    int count = 0;
+                    for (int i = 0; i < gemStrings.Count; i++)
+                    {
+                        sb.Append(gemStrings[i]);
+                        count++;
+                        if (count.Equals(Machine.Verbosity + 1))
+                        {
+                            SendTell(Machine.CharacterMakingRequest, sb.ToString());
+                            sb.Length = 0;
+                            sb.Capacity = 0;
+                            sb.Capacity = 16;
+                            count = 0;
+                        }
+                        else if (count < Machine.Verbosity + 1 && !i.Equals(gemStrings.Count - 1))
+                        {
+                            sb.Append(", ");
+                        }
+
+                        if (i.Equals(gemStrings.Count - 1) && !string.IsNullOrEmpty(sb.ToString()))
+                        {
+                            SendTell(Machine.CharacterMakingRequest, sb.ToString());
+                            sb.Length = 0;
+                            sb.Capacity = 0;
+                        }
+                    }
                 }
                 else
                 {
@@ -247,6 +277,7 @@ namespace ACManager.StateMachine
             }
             else
             {
+                SendTell(Machine.CharacterMakingRequest, "You can /t me any keyword, and I will summon the corresponding portal.");
                 if (portalStrings.Count > 0)
                 {
                     foreach (string portal in portalStrings)
@@ -320,6 +351,7 @@ namespace ACManager.StateMachine
         /// <param name="message"></param>
         private void CheckCommands(string message)
         {
+            Machine.Inventory.UpdateInventoryFile();
             for (int i = 0; i < Machine.Utility.CharacterSettings.Characters.Count; i++)
             {
                 foreach (Portal portal in Machine.Utility.CharacterSettings.Characters[i].Portals)
@@ -394,13 +426,8 @@ namespace ACManager.StateMachine
                         }
                     }
 
-                    // set all values to defaults since there are no gems found
+                    // no gems found
                     Machine.NextCharacter = Machine.Core.CharacterFilter.Name;
-                    Machine.PortalDescription = null;
-                    Machine.NextHeading = Machine.DefaultHeading;
-                    Machine.ItemToUse = null;
-                    Broadcast($"It appears I've run out of {gemSetting.Name}.");
-
                 }
             }
         }
@@ -412,7 +439,10 @@ namespace ACManager.StateMachine
         /// <param name="message">Message to send to the character.</param>
         public void SendTell(string target, string message)
         {
-            Machine.Core.Actions.InvokeChatParser($"/t {target}, {message}");
+            if (!string.IsNullOrEmpty(target) && !string.IsNullOrEmpty(message))
+            {
+                Machine.Core.Actions.InvokeChatParser($"/t {target}, {message}");
+            }
         }
 
         /// <summary>
@@ -421,7 +451,10 @@ namespace ACManager.StateMachine
         /// <param name="message">Message to say out in the open.</param>
         public void Broadcast(string message)
         {
-            Machine.Core.Actions.InvokeChatParser(message);
+            if (!string.IsNullOrEmpty(message))
+            {
+                Machine.Core.Actions.InvokeChatParser(message);
+            }
         }
     }
 }

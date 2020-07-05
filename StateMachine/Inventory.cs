@@ -167,6 +167,23 @@ namespace ACManager.StateMachine
             Machine.Utility.SaveInventory();
         }
 
+        internal bool UseItem(string itemName)
+        {
+            using (WorldObjectCollection inventory = Machine.Core.WorldFilter.GetInventory())
+            {
+                inventory.SetFilter(new ByNameFilter(itemName));
+                if (inventory.Quantity > 0)
+                {
+                    Machine.Core.Actions.UseItem(inventory.First.Id, 0);
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+        }
+
         internal int GetInventoryCount(string itemName)
         {
             using(WorldObjectCollection inventory = Machine.Core.WorldFilter.GetInventory())

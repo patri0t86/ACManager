@@ -112,13 +112,21 @@ namespace ACManager.StateMachine.States
                 }
                 else if (!string.IsNullOrEmpty(machine.ItemToUse) && machine.Core.CharacterFilter.Name.Equals(machine.NextCharacter))
                 {
-                    if (machine.Core.Actions.Heading <= machine.NextHeading + 2 && machine.Core.Actions.Heading >= machine.NextHeading - 2)
+                    if (machine.Inventory.GetInventoryCount(machine.ItemToUse) > 0)
                     {
-                        machine.NextState = UseItem.GetInstance;
-                    }
+                        if (machine.Core.Actions.Heading <= machine.NextHeading + 1 && machine.Core.Actions.Heading >= machine.NextHeading - 1)
+                        {
+                            machine.NextState = UseItem.GetInstance;
+                        }
+                        else
+                        {
+                            machine.Core.Actions.Heading = machine.NextHeading;
+                        }
+                    } 
                     else
                     {
-                        machine.Core.Actions.Heading = machine.NextHeading;
+                        machine.ChatManager.Broadcast($"It appears I've run out of {machine.ItemToUse}.");
+                        machine.ItemToUse = null;
                     }
                 }
                 else if (!(machine.Core.Actions.Heading <= machine.DefaultHeading + 2 && machine.Core.Actions.Heading >= machine.DefaultHeading - 2)) // if totally idle, reset heading

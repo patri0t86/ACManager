@@ -1,17 +1,17 @@
-﻿using ACManager.Settings;
-using Decal.Adapter.Wrappers;
+﻿using System;
 
 namespace ACManager.StateMachine.States
 {
     /// <summary>
-    /// --- DO NOT USE THIS ---
-    /// This is a template to copy/paste into a new state for ease of implementation/development.
+    /// This class is designed to use items.
     /// </summary>
     class UseItem : StateBase<UseItem>, IState
     {
+        private DateTime UseDelay;
+
         public void Enter(Machine machine)
         {
-
+            UseDelay = DateTime.Now;
         }
 
         public void Exit(Machine machine)
@@ -23,20 +23,13 @@ namespace ACManager.StateMachine.States
         {
             if (machine.Enabled)
             {
-                using (WorldObjectCollection inventory = machine.Core.WorldFilter.GetInventory())
+                if (DateTime.Now - UseDelay > TimeSpan.FromSeconds(1)) // added a delay on use due to timing of rotation and using the item
                 {
-                    inventory.SetFilter(new ByNameFilter(machine.ItemToUse));
-                    if (inventory.Quantity > 0)
+                    if (machine.Inventory.UseItem(machine.ItemToUse))
                     {
-                        machine.Core.Actions.UseItem(inventory.First.Id, 0);
-                        machine.ChatManager.Broadcast($"Portal now open to {machine.PortalDescription}. Safe journey, friend.");
-                        machine.ItemToUse = null;
+                        machine.ChatManager.Broadcast($"Portal opened with {machine.PortalDescription}. Safe journey, friend.");
                     }
-                    else
-                    {
-                        machine.ChatManager.Broadcast($"It appears I've run out of {machine.ItemToUse}.");
-                        machine.ItemToUse = null;
-                    }
+                    machine.ItemToUse = null;
                     machine.NextState = Idle.GetInstance;
                 }
             }
