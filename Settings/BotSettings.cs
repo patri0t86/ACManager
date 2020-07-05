@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Xml.Serialization;
 
 namespace ACManager.Settings
@@ -69,6 +70,8 @@ namespace ACManager.Settings
         [XmlElement(IsNullable = false)] 
         public int ManaScarabThreshold;
 
+        public List<GemSetting> GemSettings = new List<GemSetting>();
+
         public List<Advertisement> Advertisements = new List<Advertisement>();
     }
 
@@ -76,5 +79,18 @@ namespace ACManager.Settings
     {
         [XmlElement(IsNullable = false)]
         public string Message;
+    }
+
+    [XmlType(TypeName = "Gem")]
+    public class GemSetting : IEquatable<GemSetting>
+    {
+        public string Name;
+        public string Keyword;
+        public double Heading;
+
+        public bool Equals(GemSetting other)
+        {
+            return Name.Equals(other.Name);
+        }
     }
 }

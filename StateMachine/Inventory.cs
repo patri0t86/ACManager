@@ -1,8 +1,7 @@
-﻿using Decal.Adapter;
+﻿using ACManager.Settings;
 using Decal.Adapter.Wrappers;
 using Decal.Filters;
 using System.Collections.Generic;
-using System.Windows.Forms;
 
 namespace ACManager.StateMachine
 {
@@ -10,7 +9,6 @@ namespace ACManager.StateMachine
     {
         private Machine Machine { get; set; }
         internal Dictionary<string, int> SpellComponents { get; set; } = new Dictionary<string, int>();
-        internal Dictionary<string, int> PortalGems { get; set; } = new Dictionary<string, int>();
         internal int ComponentThreshold { get; set; }
         internal int LeadScarabThreshold { get; set; }
         internal int IronScarabThreshold { get; set; }
@@ -107,11 +105,91 @@ namespace ACManager.StateMachine
             return false;
         }
 
-        internal void ReportComponentLevels()
+        internal void UpdateInventoryFile()
         {
-            foreach (KeyValuePair<string, int> component in SpellComponents)
+            // create new inventory to write to in-memory
+            CharacterInventory inv = new CharacterInventory
             {
-                Debug.ToChat($"{component.Key}: {component.Value}");
+                Name = Machine.Core.CharacterFilter.Name
+            };
+
+            // go through entire components table and get quantities and add them to inventory in-memory if quantity > 0
+            for (int i = 0; i < Machine.Core.Filter<FileService>().ComponentTable.Length; i++)
+            {
+                int quantity = GetInventoryCount(Machine.Core.Filter<FileService>().ComponentTable[i].Name);
+                if (quantity > 0)
+                {
+                    AcmComponent component = new AcmComponent()
+                    {
+                        Name = Machine.Core.Filter<FileService>().ComponentTable[i].Name,
+                        Quantity = quantity
+                    };
+                    inv.Components.Add(component);
+                }
+            }
+
+            // search for gems known in the bot settings and add them to inventory
+            foreach (GemSetting gem in Machine.Utility.BotSettings.GemSettings)
+            {
+                using(WorldObjectCollection inventory = Machine.Core.WorldFilter.GetInventory())
+                {
+                    int quantity = GetInventoryCount(gem.Name);
+                    if (quantity > 0)
+                    {
+                        Gem newGem = new Gem
+                        {
+                            Name = gem.Name,
+                            Quantity = quantity
+                        };
+                        inv.Gems.Add(newGem);
+                    }
+                }
+            }
+
+            // if the inventory file contains this character, update it, otherwise add it
+            if (Machine.Utility.Inventory.CharacterInventories.Contains(inv))
+            {
+                for (int i = 0; i < Machine.Utility.Inventory.CharacterInventories.Count; i++)
+                {
+                    if (Machine.Utility.Inventory.CharacterInventories[i].Equals(inv))
+                    {
+                        Machine.Utility.Inventory.CharacterInventories[i] = inv;
+                        break;
+                    }
+                }
+            }
+            else
+            {
+                Machine.Utility.Inventory.CharacterInventories.Add(inv);
+            }
+
+            // save inventory to file
+            Machine.Utility.SaveInventory();
+        }
+
+        internal bool UseItem(string itemName)
+        {
+            using (WorldObjectCollection inventory = Machine.Core.WorldFilter.GetInventory())
+            {
+                inventory.SetFilter(new ByNameFilter(itemName));
+                if (inventory.Quantity > 0)
+                {
+                    Machine.Core.Actions.UseItem(inventory.First.Id, 0);
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+        }
+
+        internal int GetInventoryCount(string itemName)
+        {
+            using(WorldObjectCollection inventory = Machine.Core.WorldFilter.GetInventory())
+            {
+                inventory.SetFilter(new ByNameFilter(itemName));
+                return inventory.Quantity;
             }
         }
     }

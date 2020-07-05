@@ -16,6 +16,7 @@ namespace ACManager.StateMachine.States
         {
             machine.DecliningCommands = false;
             machine.Inventory.GetComponentLevels();
+            machine.Inventory.UpdateInventoryFile();
         }
 
         public void Exit(Machine machine)
@@ -31,6 +32,7 @@ namespace ACManager.StateMachine.States
         /// Switch characters if portal is not on this character
         /// Cast summon portal from this character / turn character to the correct heading / equip wand
         /// If a wand is equipped, unequip it
+        /// Use gem if required
         /// Turn character to the default heading if truly idle
         /// Broadcast advertisement / low on spell comps
         /// </summary>
@@ -58,7 +60,7 @@ namespace ACManager.StateMachine.States
                         machine.NextState = Positioning.GetInstance;
                     }
                 }
-                else if (machine.SpellsToCast.Count > 0 && !machine.Core.CharacterFilter.Name.Equals(machine.NextCharacter)) // If there is a portal in the queue and it is not on this character, switch to the correct character
+                else if ((!string.IsNullOrEmpty(machine.ItemToUse) || machine.SpellsToCast.Count > 0) && !machine.Core.CharacterFilter.Name.Equals(machine.NextCharacter)) // If there is a portal in the queue and it is not on this character, switch to the correct character
                 {
                     machine.NextState = SwitchingCharacters.GetInstance;
                 }
@@ -66,26 +68,35 @@ namespace ACManager.StateMachine.States
                 {
                     if ((machine.Core.Actions.Heading <= machine.NextHeading + 2 && machine.Core.Actions.Heading >= machine.NextHeading - 2) || machine.NextHeading.Equals(-1))
                     {
+                        // todo make this an actual state to get dressed
                         using (WorldObjectCollection wands = machine.Core.WorldFilter.GetInventory()) // get any wand in the inventory and equip it
                         {
                             wands.SetFilter(new ByObjectClassFilter(ObjectClass.WandStaffOrb));
 
-                            foreach (WorldObject wand in wands)
+                            if (wands.Quantity > 0)
                             {
-                                if (wand.Values(LongValueKey.EquippedSlots) > 0)
+                                foreach (WorldObject wand in wands)
                                 {
-                                    machine.NextState = Casting.GetInstance;
-                                    wandEquipped = true;
-                                    wandId = wand.Id;
-                                    break;
-                                }
+                                    if (wand.Values(LongValueKey.EquippedSlots) > 0)
+                                    {
+                                        machine.NextState = Casting.GetInstance;
+                                        wandEquipped = true;
+                                        wandId = wand.Id;
+                                        break;
+                                    }
 
-                                if (!wandEquipped)
-                                {
-                                    machine.Core.Actions.AutoWield(wand.Id);
-                                    wandEquipped = true;
-                                    wandId = wand.Id;
+                                    if (!wandEquipped)
+                                    {
+                                        machine.Core.Actions.AutoWield(wand.Id);
+                                        wandEquipped = true;
+                                        wandId = wand.Id;
+                                    }
                                 }
+                            }
+                            else
+                            {
+                                machine.ChatManager.Broadcast("Oops, my owner didn't give me a wand. Cancelling this request.");
+                                machine.SpellsToCast.Clear();
                             }
                         }
                     }
@@ -99,13 +110,33 @@ namespace ACManager.StateMachine.States
                     machine.Core.Actions.MoveItem(wandId, machine.Core.CharacterFilter.Id);
                     wandEquipped = false;
                 }
+                else if (!string.IsNullOrEmpty(machine.ItemToUse) && machine.Core.CharacterFilter.Name.Equals(machine.NextCharacter))
+                {
+                    if (machine.Inventory.GetInventoryCount(machine.ItemToUse) > 0)
+                    {
+                        if (machine.Core.Actions.Heading <= machine.NextHeading + 1 && machine.Core.Actions.Heading >= machine.NextHeading - 1)
+                        {
+                            machine.NextState = UseItem.GetInstance;
+                        }
+                        else
+                        {
+                            machine.Core.Actions.Heading = machine.NextHeading;
+                        }
+                    } 
+                    else
+                    {
+                        machine.ChatManager.Broadcast($"It appears I've run out of {machine.ItemToUse}.");
+                        machine.ItemToUse = null;
+                    }
+                }
                 else if (!(machine.Core.Actions.Heading <= machine.DefaultHeading + 2 && machine.Core.Actions.Heading >= machine.DefaultHeading - 2)) // if totally idle, reset heading
                 {
                     machine.Core.Actions.Heading = machine.DefaultHeading;
-                } 
+                }
                 else if (machine.Advertise && machine.Update() && DateTime.Now - machine.LastBroadcast > TimeSpan.FromMinutes(machine.AdInterval)) // Advertisement/spam timing control
                 {
-                    machine.LastBroadcast = DateTime.Now;                    
+                    machine.LastBroadcast = DateTime.Now;
+                    machine.Inventory.UpdateInventoryFile();
                     if (machine.Utility.BotSettings.Advertisements.Count > 0)
                     {
                         machine.ChatManager.Broadcast(machine.Utility.BotSettings.Advertisements[machine.RandomNumber.Next(0, machine.Utility.BotSettings.Advertisements.Count)].Message);

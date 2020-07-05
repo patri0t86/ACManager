@@ -12,6 +12,7 @@ namespace ACManager.StateMachine.States
         {
             machine.NextCharacter = null;
             machine.SpellsToCast.Clear();
+            machine.ItemToUse = null;
             machine.Core.ChatBoxMessage -= machine.ChatManager.Current_ChatBoxMessage;
             machine.Core.Actions.SetIdleTime(1200);
 

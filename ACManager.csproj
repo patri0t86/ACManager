@@ -89,6 +89,7 @@
     <Compile Include="InventoryTracker.cs" />
     <Compile Include="Settings\BotSettings.cs" />
     <Compile Include="Settings\GUISettings.cs" />
+    <Compile Include="Settings\InventorySettings.cs" />
     <Compile Include="StateMachine\ChatManager.cs" />
     <Compile Include="Debug.cs" />
     <Compile Include="Settings\CharacterSettings.cs" />
@@ -103,6 +104,7 @@
     <Compile Include="StateMachine\States\StateTemplate.cs" />
     <Compile Include="StateMachine\States\SwitchingCharacters.cs" />
     <Compile Include="StateMachine\States\Stopped.cs" />
+    <Compile Include="StateMachine\States\UseItem.cs" />
     <Compile Include="StateMachine\States\VitalManagement.cs" />
     <Compile Include="Simulate.cs" />
     <Compile Include="Utility.cs" />

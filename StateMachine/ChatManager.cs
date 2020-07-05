@@ -177,6 +177,7 @@ namespace ACManager.StateMachine
         private void RespondWithPortals()
         {
             List<string> portalStrings = GetPortals();
+            List<string> gemStrings = GetGems();
             if (Machine.Verbosity > 0)
             {
                 if (portalStrings.Count > 0)
@@ -208,6 +209,66 @@ namespace ACManager.StateMachine
                             sb.Capacity = 0;
                         }
                     }
+
+                    if (gemStrings.Count > 0)
+                    {
+                        count = 0;
+                        for (int i = 0; i < gemStrings.Count; i++)
+                        {
+                            sb.Append(gemStrings[i]);
+                            count++;
+                            if (count.Equals(Machine.Verbosity + 1))
+                            {
+                                SendTell(Machine.CharacterMakingRequest, sb.ToString());
+                                sb.Length = 0;
+                                sb.Capacity = 0;
+                                sb.Capacity = 16;
+                                count = 0;
+                            }
+                            else if (count < Machine.Verbosity + 1 && !i.Equals(gemStrings.Count - 1))
+                            {
+                                sb.Append(", ");
+                            }
+
+                            if (i.Equals(gemStrings.Count - 1) && !string.IsNullOrEmpty(sb.ToString()))
+                            {
+                                SendTell(Machine.CharacterMakingRequest, sb.ToString());
+                                sb.Length = 0;
+                                sb.Capacity = 0;
+                            }
+                        }
+                    }
+
+                } 
+                else if (gemStrings.Count > 0)
+                {
+                    SendTell(Machine.CharacterMakingRequest, "You can /t me any keyword, and I will summon the corresponding portal.");
+                    StringBuilder sb = new StringBuilder();
+                    int count = 0;
+                    for (int i = 0; i < gemStrings.Count; i++)
+                    {
+                        sb.Append(gemStrings[i]);
+                        count++;
+                        if (count.Equals(Machine.Verbosity + 1))
+                        {
+                            SendTell(Machine.CharacterMakingRequest, sb.ToString());
+                            sb.Length = 0;
+                            sb.Capacity = 0;
+                            sb.Capacity = 16;
+                            count = 0;
+                        }
+                        else if (count < Machine.Verbosity + 1 && !i.Equals(gemStrings.Count - 1))
+                        {
+                            sb.Append(", ");
+                        }
+
+                        if (i.Equals(gemStrings.Count - 1) && !string.IsNullOrEmpty(sb.ToString()))
+                        {
+                            SendTell(Machine.CharacterMakingRequest, sb.ToString());
+                            sb.Length = 0;
+                            sb.Capacity = 0;
+                        }
+                    }
                 }
                 else
                 {
@@ -216,17 +277,35 @@ namespace ACManager.StateMachine
             }
             else
             {
+                SendTell(Machine.CharacterMakingRequest, "You can /t me any keyword, and I will summon the corresponding portal.");
                 if (portalStrings.Count > 0)
                 {
                     foreach (string portal in portalStrings)
                     {
                         SendTell(Machine.CharacterMakingRequest, portal);
                     }
+
+                    if (gemStrings.Count > 0)
+                    {
+                        foreach (string gem in gemStrings)
+                        {
+                            SendTell(Machine.CharacterMakingRequest, gem);
+                        }
+                    }
+                }
+                else if (gemStrings.Count > 0)
+                {
+                    foreach (string gem in gemStrings)
+                    {
+                        SendTell(Machine.CharacterMakingRequest, gem);
+                    }
                 }
                 else
                 {
                     SendTell(Machine.CharacterMakingRequest, "I don't currently have any portals configured.");
                 }
+
+                
             }
         }
 
@@ -250,12 +329,29 @@ namespace ACManager.StateMachine
             return portalStrings;
         }
 
+        private List<string> GetGems()
+        {
+            List<string> gemStrings = new List<string>();
+            for (int i = 0; i < Machine.Utility.BotSettings.GemSettings.Count; i++)
+            {
+                foreach (GemSetting gemSetting in Machine.Utility.BotSettings.GemSettings)
+                {
+                    if (!string.IsNullOrEmpty(gemSetting.Keyword))
+                    {
+                        gemStrings.Add($"{gemSetting.Keyword} -> {gemSetting.Name}");
+                    }
+                }
+            }
+            return gemStrings;
+        }
+
         /// <summary>
         /// Determines the character that the portal is on and sets the appropriate variables on the machine to take action.
         /// </summary>
         /// <param name="message"></param>
         private void CheckCommands(string message)
         {
+            Machine.Inventory.UpdateInventoryFile();
             for (int i = 0; i < Machine.Utility.CharacterSettings.Characters.Count; i++)
             {
                 foreach (Portal portal in Machine.Utility.CharacterSettings.Characters[i].Portals)
@@ -296,6 +392,44 @@ namespace ACManager.StateMachine
                     }
                 }
             }
+
+            foreach (GemSetting gemSetting in Machine.Utility.BotSettings.GemSettings)
+            {
+                if (gemSetting.Keyword.Equals(message))
+                {
+                    Machine.PortalDescription = gemSetting.Name;
+                    Machine.NextHeading = gemSetting.Heading;
+                    Machine.ItemToUse = gemSetting.Name;
+                    using (WorldObjectCollection inventory = Machine.Core.WorldFilter.GetInventory())
+                    {
+                        inventory.SetFilter(new ByNameFilter(gemSetting.Name));
+                        if (inventory.Quantity > 0) // gem is on this character
+                        {
+                            Machine.NextCharacter = Machine.Core.CharacterFilter.Name;
+                            break;
+                        }
+                    }
+
+                    for (int i = 0; i < Machine.Utility.Inventory.CharacterInventories.Count; i++)
+                    {
+                        for (int j = 0; j < Machine.Utility.Inventory.CharacterInventories[i].Gems.Count; j++)
+                        {
+                            if (Machine.Utility.Inventory.CharacterInventories[i].Gems[j].Name.Equals(gemSetting.Name) && Machine.Utility.Inventory.CharacterInventories[i].Gems[j].Quantity > 0)
+                            {
+                                Machine.NextCharacter = Machine.Utility.Inventory.CharacterInventories[i].Name;
+                                Machine.GetNextCharacter();
+                                if (!Machine.NextCharacter.Equals(Machine.Core.CharacterFilter.Name)) {
+                                    Broadcast($"Be right back, switching to {Machine.NextCharacter} to use {Machine.PortalDescription}.");
+                                }
+                                return;
+                            }
+                        }
+                    }
+
+                    // no gems found
+                    Machine.NextCharacter = Machine.Core.CharacterFilter.Name;
+                }
+            }
         }
 
         /// <summary>
@@ -305,7 +439,10 @@ namespace ACManager.StateMachine
         /// <param name="message">Message to send to the character.</param>
         public void SendTell(string target, string message)
         {
-            Machine.Core.Actions.InvokeChatParser($"/t {target}, {message}");
+            if (!string.IsNullOrEmpty(target) && !string.IsNullOrEmpty(message))
+            {
+                Machine.Core.Actions.InvokeChatParser($"/t {target}, {message}");
+            }
         }
 
         /// <summary>
@@ -314,7 +451,10 @@ namespace ACManager.StateMachine
         /// <param name="message">Message to say out in the open.</param>
         public void Broadcast(string message)
         {
-            Machine.Core.Actions.InvokeChatParser(message);
+            if (!string.IsNullOrEmpty(message))
+            {
+                Machine.Core.Actions.InvokeChatParser(message);
+            }
         }
     }
 }
