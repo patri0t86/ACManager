@@ -22,7 +22,7 @@ namespace ACManager.StateMachine.States
 
         public void Process(Machine machine)
         {
-            if (machine.Enabled)
+            if (machine.Enabled && machine.EnablePositioning)
             {
                 if (!(Math.Abs(machine.Core.Actions.LocationX - machine.DesiredBotLocationX) < 1 && Math.Abs(machine.Core.Actions.LocationY - machine.DesiredBotLocationY) < 1 && machine.Core.Actions.Landcell == machine.DesiredLandBlock))
                 {
