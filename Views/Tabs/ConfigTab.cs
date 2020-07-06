@@ -37,73 +37,73 @@ namespace ACManager.Views.Tabs
         {
             Parent = botManagerView;
 
-            BotEnabled = botManagerView.View != null ? (HudCheckBox)botManagerView.View["Bot"] : new HudCheckBox();
+            BotEnabled = Parent.View != null ? (HudCheckBox)Parent.View["Bot"] : new HudCheckBox();
             BotEnabled.Change += BotEnabled_Change;
 
-            ClearLocation = botManagerView.View != null ? (HudButton)botManagerView.View["ClearLocation"] : new HudButton();
+            ClearLocation = Parent.View != null ? (HudButton)Parent.View["ClearLocation"] : new HudButton();
             ClearLocation.Hit += ClearLocation_Hit;
 
-            LocationSetpoint = botManagerView.View != null ? (HudStaticText)botManagerView.View["LocationSetpoint"] : new HudStaticText();
+            LocationSetpoint = Parent.View != null ? (HudStaticText)Parent.View["LocationSetpoint"] : new HudStaticText();
             LocationSetpoint.TextAlignment = WriteTextFormats.Center;
 
-            SetLocation = botManagerView.View != null ? (HudButton)botManagerView.View["SetLocation"] : new HudButton();
+            SetLocation = Parent.View != null ? (HudButton)Parent.View["SetLocation"] : new HudButton();
             SetLocation.Hit += SetLocation_Hit;
 
-            RespondToGeneralChat = botManagerView.View != null ? (HudCheckBox)botManagerView.View["GeneralChatResponse"] : new HudCheckBox();
+            RespondToGeneralChat = Parent.View != null ? (HudCheckBox)Parent.View["GeneralChatResponse"] : new HudCheckBox();
             RespondToGeneralChat.Change += RespondToGeneralChat_Change;
 
-            AdsEnabled = botManagerView.View != null ? (HudCheckBox)botManagerView.View["AdsEnabled"] : new HudCheckBox();
+            AdsEnabled = Parent.View != null ? (HudCheckBox)Parent.View["AdsEnabled"] : new HudCheckBox();
             AdsEnabled.Change += AdsEnabled_Change;
 
-            BotPositioning = botManagerView.View != null ? (HudCheckBox)botManagerView.View["BotPositioning"] : new HudCheckBox();
+            BotPositioning = Parent.View != null ? (HudCheckBox)Parent.View["BotPositioning"] : new HudCheckBox();
             BotPositioning.Change += BotPositioning_Change;
 
-            AdInterval = botManagerView.View != null ? (HudTextBox)botManagerView.View["AdInterval"] : new HudTextBox();
+            AdInterval = Parent.View != null ? (HudTextBox)Parent.View["AdInterval"] : new HudTextBox();
             AdInterval.Change += AdInterval_Change;
 
-            SetHeading = botManagerView.View != null ? (HudButton)botManagerView.View["SetHeading"] : new HudButton();
+            SetHeading = Parent.View != null ? (HudButton)Parent.View["SetHeading"] : new HudButton();
             SetHeading.Hit += SetHeading_Hit;
 
-            DefaultHeading = botManagerView.View != null ? (HudTextBox)botManagerView.View["DefaultHeading"] : new HudTextBox();
+            DefaultHeading = Parent.View != null ? (HudTextBox)Parent.View["DefaultHeading"] : new HudTextBox();
             DefaultHeading.Change += DefaultHeading_Change;
 
-            Verbosity = botManagerView.View != null ? (HudHSlider)botManagerView.View["Verbosity"] : new HudHSlider();
+            Verbosity = Parent.View != null ? (HudHSlider)Parent.View["Verbosity"] : new HudHSlider();
             Verbosity.Changed += Verbosity_Changed;
 
-            ManaThreshold = botManagerView.View != null ? (HudHSlider)botManagerView.View["ManaThresh"] : new HudHSlider();
+            ManaThreshold = Parent.View != null ? (HudHSlider)Parent.View["ManaThresh"] : new HudHSlider();
             ManaThreshold.Changed += ManaThreshhold_Changed;
 
-            StaminaThreshold = botManagerView.View != null ? (HudHSlider)botManagerView.View["StamThresh"] : new HudHSlider();
+            StaminaThreshold = Parent.View != null ? (HudHSlider)Parent.View["StamThresh"] : new HudHSlider();
             StaminaThreshold.Changed += StaminaThreshhold_Changed;
 
-            ManaThresholdText = botManagerView.View != null ? (HudStaticText)botManagerView.View["ManaThreshText"] : new HudStaticText();
-            StamThresholdText = botManagerView.View != null ? (HudStaticText)botManagerView.View["StamThreshText"] : new HudStaticText();
+            ManaThresholdText = Parent.View != null ? (HudStaticText)Parent.View["ManaThreshText"] : new HudStaticText();
+            StamThresholdText = Parent.View != null ? (HudStaticText)Parent.View["StamThreshText"] : new HudStaticText();
 
-            LeadScarabThreshold = botManagerView.View != null ? (HudTextBox)botManagerView.View["LeadScarabThreshold"] : new HudTextBox();
+            LeadScarabThreshold = Parent.View != null ? (HudTextBox)Parent.View["LeadScarabThreshold"] : new HudTextBox();
             LeadScarabThreshold.Change += LeadScarabThreshold_Change;
 
-            IronScarabThreshold = botManagerView.View != null ? (HudTextBox)botManagerView.View["IronScarabThreshold"] : new HudTextBox();
+            IronScarabThreshold = Parent.View != null ? (HudTextBox)Parent.View["IronScarabThreshold"] : new HudTextBox();
             IronScarabThreshold.Change += IronScarabThreshold_Change;
 
-            CopperScarabThreshold = botManagerView.View != null ? (HudTextBox)botManagerView.View["CopperScarabThreshold"] : new HudTextBox();
+            CopperScarabThreshold = Parent.View != null ? (HudTextBox)Parent.View["CopperScarabThreshold"] : new HudTextBox();
             CopperScarabThreshold.Change += CopperScarabThreshold_Change;
 
-            SilverScarabThreshold = botManagerView.View != null ? (HudTextBox)botManagerView.View["SilverScarabThreshold"] : new HudTextBox();
+            SilverScarabThreshold = Parent.View != null ? (HudTextBox)Parent.View["SilverScarabThreshold"] : new HudTextBox();
             SilverScarabThreshold.Change += SilverScarabThreshold_Change;
 
-            GoldScarabThreshold = botManagerView.View != null ? (HudTextBox)botManagerView.View["GoldScarabThreshold"] : new HudTextBox();
+            GoldScarabThreshold = Parent.View != null ? (HudTextBox)Parent.View["GoldScarabThreshold"] : new HudTextBox();
             GoldScarabThreshold.Change += GoldScarabThreshold_Change;
 
-            PyrealScarabThreshold = botManagerView.View != null ? (HudTextBox)botManagerView.View["PyrealScarabThreshold"] : new HudTextBox();
+            PyrealScarabThreshold = Parent.View != null ? (HudTextBox)Parent.View["PyrealScarabThreshold"] : new HudTextBox();
             PyrealScarabThreshold.Change += PyrealScarabThreshold_Change;
 
-            PlatinumScarabThreshold = botManagerView.View != null ? (HudTextBox)botManagerView.View["PlatinumScarabThreshold"] : new HudTextBox();
+            PlatinumScarabThreshold = Parent.View != null ? (HudTextBox)Parent.View["PlatinumScarabThreshold"] : new HudTextBox();
             PlatinumScarabThreshold.Change += PlatinumScarabThreshold_Change;
 
-            ManaScarabThreshold = botManagerView.View != null ? (HudTextBox)botManagerView.View["ManaScarabThreshold"] : new HudTextBox();
+            ManaScarabThreshold = Parent.View != null ? (HudTextBox)Parent.View["ManaScarabThreshold"] : new HudTextBox();
             ManaScarabThreshold.Change += ManaScarabThreshold_Change;
 
-            ComponentThreshold = botManagerView.View != null ? (HudTextBox)botManagerView.View["ComponentThreshold"] : new HudTextBox();
+            ComponentThreshold = Parent.View != null ? (HudTextBox)Parent.View["ComponentThreshold"] : new HudTextBox();
             ComponentThreshold.Change += ComponentThreshold_Change;
 
             LoadSettings();

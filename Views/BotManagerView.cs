@@ -13,6 +13,7 @@ namespace ACManager.Views
         private GemsTab GemsTab { get; set; }
         private PortalsTab PortalsTab { get; set; }
         private AdvertisementsTab AdvertisementsTab { get; set; }
+        private InventoryTab InventoryTab { get; set; }
 
         public BotManagerView(Machine machine)
         {
@@ -28,6 +29,7 @@ namespace ACManager.Views
                 PortalsTab = new PortalsTab(this);
                 GemsTab = new GemsTab(this);
                 AdvertisementsTab = new AdvertisementsTab(this);
+                InventoryTab = new InventoryTab(this);
 
                 LoadSettings();
             }
@@ -59,6 +61,7 @@ namespace ACManager.Views
                     GemsTab?.Dispose();
                     PortalsTab?.Dispose();
                     AdvertisementsTab?.Dispose();
+                    InventoryTab?.Dispose();
                     View?.Dispose();
                 }
                 disposedValue = true;

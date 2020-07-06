@@ -116,6 +116,7 @@
     <Compile Include="Views\Tabs\AdvertisementsTab.cs" />
     <Compile Include="Views\Tabs\ConfigTab.cs" />
     <Compile Include="Views\Tabs\GemsTab.cs" />
+    <Compile Include="Views\Tabs\InventoryTab.cs" />
     <Compile Include="Views\Tabs\PortalsTab.cs" />
     <Compile Include="VirindiViews\ViewSystemSelector.cs" />
     <Compile Include="VirindiViews\Wrapper.cs" />

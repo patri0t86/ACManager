@@ -87,9 +87,9 @@
     <page label="Gems">
       <control progid="DecalControls.FixedLayout" clipped="">
         <control progid="DecalControls.List"        name="GemList"              left="5"    top="5"   width="390" height="200">
-          <column progid="DecalControls.TextColumn" name="Name"                 fixedwidth="185" />
-          <column progid="DecalControls.TextColumn" name="Keyword"              fixedwidth="125" />
-          <column progid="DecalControls.TextColumn" name="Heading"              fixedwidth="50" />
+          <column progid="DecalControls.TextColumn"                             fixedwidth="185" />
+          <column progid="DecalControls.TextColumn"                             fixedwidth="125" />
+          <column progid="DecalControls.TextColumn"                             fixedwidth="50" />
         </control>
         
         <control progid="DecalControls.StaticText"                              left="5"    top="208" width="50"  height="16" text="Keyword:" />
@@ -115,5 +115,16 @@
         <control progid="DecalControls.StaticText"                              left="5"    top="347"   width="390" height="16" text="Click on a row to delete the advertisement." />
       </control>
     </page>
+
+    <page label="Comp. Levels">
+      <control progid="DecalControls.FixedLayout" clipped="">
+        <control progid="DecalControls.Choice"      name="CharacterInventoryChoice"       left="5"    top="5"   width="200" height="16" />
+        <control progid="DecalControls.List"        name="InventoryList"                  left="5"    top="24"  width="390" height="330">
+          <column progid="DecalControls.TextColumn"                                       fixedwidth="150" />
+          <column progid="DecalControls.TextColumn"                                       fixedwidth="50" />
+        </control>
+      </control>
+    </page>
+
   </control>
 </view>
