@@ -1,5 +1,6 @@
 ﻿using Decal.Adapter.Wrappers;
 using Decal.Filters;
+using System.Text;
 
 namespace ACManager.StateMachine.States
 {
@@ -13,9 +14,9 @@ namespace ACManager.StateMachine.States
             machine.Fizzled = false;
             machine.CastCompleted = false;
             machine.CastStarted = false;
-            if (machine.Inventory.IsLowOnComponents)
+            if (machine.Inventory.LowComponents.Count > 0)
             {
-                machine.ChatManager.Broadcast($"I'm low on spell components, please '/t {machine.Core.CharacterFilter.Name}, comps' to see what I'm low on.");
+                machine.ChatManager.Broadcast(machine.Inventory.LowCompsReport());
             }
         }
 

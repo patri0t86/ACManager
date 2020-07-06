@@ -1,5 +1,6 @@
 ﻿using Decal.Adapter.Wrappers;
 using System;
+using System.Text;
 
 namespace ACManager.StateMachine.States
 {
@@ -140,9 +141,9 @@ namespace ACManager.StateMachine.States
                     {
                         machine.ChatManager.Broadcast(machine.Utility.BotSettings.Advertisements[machine.RandomNumber.Next(0, machine.Utility.BotSettings.Advertisements.Count)].Message);
                     }
-                    if (machine.Inventory.IsLowOnComponents)
+                    if (machine.Inventory.LowComponents.Count > 0)
                     {
-                        machine.ChatManager.Broadcast($"I'm low on spell components, please '/t {machine.Core.CharacterFilter.Name}, comps' to see what I'm low on.");
+                        machine.ChatManager.Broadcast(machine.Inventory.LowCompsReport());
                     }
                 }
             }
