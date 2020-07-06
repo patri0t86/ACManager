@@ -2,6 +2,7 @@
 using Decal.Adapter.Wrappers;
 using Decal.Filters;
 using System.Collections.Generic;
+using System.Text;
 
 namespace ACManager.StateMachine
 {
@@ -9,6 +10,7 @@ namespace ACManager.StateMachine
     {
         private Machine Machine { get; set; }
         internal Dictionary<string, int> SpellComponents { get; set; } = new Dictionary<string, int>();
+        internal List<string> LowComponents { get; set; } = new List<string>();
         internal int ComponentThreshold { get; set; }
         internal int LeadScarabThreshold { get; set; }
         internal int IronScarabThreshold { get; set; }
@@ -18,8 +20,7 @@ namespace ACManager.StateMachine
         internal int PyrealScarabThreshold { get; set; }
         internal int PlatinumScarabThreshold { get; set; }
         internal int ManaScarabThreshold { get; set; }
-        internal bool IsLowOnComponents { get; set; } = false;
-        
+
         public Inventory(Machine machine)
         {
             Machine = machine;
@@ -42,7 +43,7 @@ namespace ACManager.StateMachine
                 using (WorldObjectCollection collection = Machine.Core.WorldFilter.GetInventory())
                 {
                     collection.SetFilter(new ByNameFilter(Machine.Core.Filter<FileService>().ComponentTable[i].Name));
-                    if (collection.Quantity > 0) 
+                    if (collection.Quantity > 0)
                     {
                         if (SpellComponents.ContainsKey(Machine.Core.Filter<FileService>().ComponentTable[i].Name))
                         {
@@ -60,20 +61,49 @@ namespace ACManager.StateMachine
 
         private void CheckComponentThresholds()
         {
-            IsLowOnComponents = false;
+            LowComponents.Clear();
             foreach (KeyValuePair<string, int> component in SpellComponents)
             {
                 if (component.Key.Contains("Scarab"))
                 {
-                    IsLowOnComponents = IsScarabLow(component.Key, component.Value);
-                    if (IsLowOnComponents) break;
+                    if (IsScarabLow(component.Key, component.Value))
+                    {
+                        LowComponents.Add(component.Key);
+                    }
                 }
                 else
                 {
-                    IsLowOnComponents = IsComponentLow(component.Value);
-                    if (IsLowOnComponents) break;
+                    if (IsComponentLow(component.Value)) 
+                    { 
+                        LowComponents.Add(component.Key);
+                    }
                 }
             }
+        }
+
+        internal string LowCompsReport()
+        {
+            StringBuilder sb = new StringBuilder();
+            sb.Append("I'm low on ");
+            for (int i = 0; i < LowComponents.Count; i++)
+            {
+                if (!i.Equals(LowComponents.Count - 1))
+                {
+                    sb.Append($"{LowComponents[i]}s");
+                    sb.Append(", ");
+                }
+                else
+                {
+                    if (LowComponents.Count.Equals(1))
+                    {
+                        sb.Append($"{LowComponents[i]}s.");
+                    } else
+                    {
+                        sb.Append($"and {LowComponents[i]}s.");
+                    }
+                }
+            }
+            return sb.ToString();
         }
 
         private bool IsComponentLow(int qty)
@@ -131,7 +161,7 @@ namespace ACManager.StateMachine
             // search for gems known in the bot settings and add them to inventory
             foreach (GemSetting gem in Machine.Utility.BotSettings.GemSettings)
             {
-                using(WorldObjectCollection inventory = Machine.Core.WorldFilter.GetInventory())
+                using (WorldObjectCollection inventory = Machine.Core.WorldFilter.GetInventory())
                 {
                     int quantity = GetInventoryCount(gem.Name);
                     if (quantity > 0)
@@ -186,7 +216,7 @@ namespace ACManager.StateMachine
 
         internal int GetInventoryCount(string itemName)
         {
-            using(WorldObjectCollection inventory = Machine.Core.WorldFilter.GetInventory())
+            using (WorldObjectCollection inventory = Machine.Core.WorldFilter.GetInventory())
             {
                 inventory.SetFilter(new ByNameFilter(itemName));
                 return inventory.Quantity;

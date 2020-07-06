@@ -3,13 +3,17 @@ using Decal.Adapter.Wrappers;
 using Decal.Filters;
 using System;
 using System.Text.RegularExpressions;
+using System.Windows.Forms;
 
 namespace ACManager
 {
-    internal class InventoryTracker
+    internal class InventoryTracker : IDisposable
     {
         private FilterCore Filter { get; set; }
         private CoreManager Core { get; set; }
+        private Timer Timer { get; set; }
+        private bool LoggingOut { get; set; }
+        private bool disposedValue;
         private string[] Comps { get; set; } = {
                         "Lead Scarab",
                         "Iron Scarab",
@@ -24,25 +28,28 @@ namespace ACManager
 
         public InventoryTracker(FilterCore parent, CoreManager core)
         {
-            try
+            Filter = parent;
+            Core = core;
+            Timer = new Timer
             {
-                Filter = parent;
-                Core = core;
-                Filter.MainView.LeadScarabText.Text = Filter.Machine.CurrentCharacter.LeadScarabs.ToString();
-                Filter.MainView.IronScarabText.Text = Filter.Machine.CurrentCharacter.IronScarabs.ToString();
-                Filter.MainView.CopperScarabText.Text = Filter.Machine.CurrentCharacter.CopperScarabs.ToString();
-                Filter.MainView.SilverScarabText.Text = Filter.Machine.CurrentCharacter.SilverScarabs.ToString();
-                Filter.MainView.GoldScarabText.Text = Filter.Machine.CurrentCharacter.GoldScarabs.ToString();
-                Filter.MainView.PyrealScarabText.Text = Filter.Machine.CurrentCharacter.PyrealScarabs.ToString();
-                Filter.MainView.PlatinumScarabText.Text = Filter.Machine.CurrentCharacter.PlatinumScarabs.ToString();
-                Filter.MainView.ManaScarabText.Text = Filter.Machine.CurrentCharacter.ManaScarabs.ToString();
-                Filter.MainView.TaperText.Text = Filter.Machine.CurrentCharacter.Tapers.ToString();
-                Filter.MainView.AnnounceLogoff.Checked = Filter.Machine.CurrentCharacter.AnnounceLogoff;
-            }
-            catch (Exception ex)
-            {
-                Debug.LogException(ex);
-            }
+                Interval = 5000
+            };
+            Timer.Tick += Timer_Tick;
+        }
+
+        internal void StartTimer()
+        {
+            Timer.Start();
+        }
+
+        internal void StopTimer()
+        {
+            Timer.Stop();
+        }
+
+        private void Timer_Tick(object sender, EventArgs e)
+        {
+            GetCompCounts();
         }
 
         public void ParseChat(object sender, ChatTextInterceptEventArgs e)
@@ -79,14 +86,6 @@ namespace ACManager
                         }
                     }
                 }
-            }
-        }
-
-        public void CheckComps()
-        {
-            if (Filter.MainView.LowCompLogoff.Checked)
-            {
-                GetCompCounts();
             }
         }
 
@@ -161,13 +160,36 @@ namespace ACManager
         private void Logout(string comp)
         {
             Filter.MainView.LowCompLogoff.Checked = false;
+            StopTimer();
             string message = $"Logging off for low component count: {comp}";
             if (Filter.MainView.AnnounceLogoff.Checked)
             {
                 Core.Actions.InvokeChatParser($"/f {message}");
             }
             Debug.ToChat(message);
-            Core.Actions.Logout();
+            if (!LoggingOut)
+            {
+                Core.Actions.Logout();
+            }
+            LoggingOut = true;
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!disposedValue)
+            {
+                if (disposing)
+                {
+                    Timer?.Dispose();
+                }
+                disposedValue = true;
+            }
+        }
+
+        public void Dispose()
+        {
+            Dispose(disposing: true);
+            GC.SuppressFinalize(this);
         }
     }
 }

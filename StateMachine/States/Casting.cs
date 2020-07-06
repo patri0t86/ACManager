@@ -1,5 +1,6 @@
 ﻿using Decal.Adapter.Wrappers;
 using Decal.Filters;
+using System.Text;
 
 namespace ACManager.StateMachine.States
 {
@@ -13,9 +14,9 @@ namespace ACManager.StateMachine.States
             machine.Fizzled = false;
             machine.CastCompleted = false;
             machine.CastStarted = false;
-            if (machine.Inventory.IsLowOnComponents)
+            if (machine.Inventory.LowComponents.Count > 0)
             {
-                machine.ChatManager.Broadcast($"I'm low on spell components, please '/t {machine.Core.CharacterFilter.Name}, comps' to see what I'm low on.");
+                machine.ChatManager.Broadcast(machine.Inventory.LowCompsReport());
             }
         }
 
@@ -41,6 +42,10 @@ namespace ACManager.StateMachine.States
                         {
                             machine.ChatManager.Broadcast($"/s Portal now open to {machine.PortalDescription}. Safe journey, friend.");
                         }
+                        else
+                        {
+                            machine.ChatManager.Broadcast($"/s Portal now open. Safe journey, friend.");
+                        }
                     }
                     machine.SpellsToCast.RemoveAt(0);
                     if (machine.SpellsToCast.Count.Equals(0))
@@ -61,7 +66,7 @@ namespace ACManager.StateMachine.States
                 }
                 else if (!machine.CastStarted)
                 {
-                    if (machine.Core.CharacterFilter.Mana < machine.ManaThreshold * machine.MaxVitals[CharFilterVitalType.Mana])
+                    if (machine.Core.CharacterFilter.Mana < machine.ManaThreshold * machine.MaxVitals[CharFilterVitalType.Mana] && machine.Core.CharacterFilter.EffectiveSkill[CharFilterSkillType.LifeMagic] > 50)
                     {
                         machine.NextState = VitalManagement.GetInstance;
                     }
@@ -83,6 +88,7 @@ namespace ACManager.StateMachine.States
                         else
                         {
                             Debug.ToChat($"You do not know the spell {machine.Core.Filter<FileService>().SpellTable.GetById(machine.SpellsToCast[0]).Name}. Removing from current casting session.");
+                            machine.ChatManager.Broadcast($"I tried casting {machine.Core.Filter<FileService>().SpellTable.GetById(machine.SpellsToCast[0]).Name}, but I do not know it yet.");
                             machine.SpellsToCast.RemoveAt(0);
                             if (machine.SpellsToCast.Count.Equals(0))
                             {

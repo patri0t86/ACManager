@@ -1,4 +1,5 @@
-﻿using Decal.Adapter;
+﻿using ACManager.Views;
+using Decal.Adapter;
 using System;
 using System.Collections.Generic;
 using System.Timers;
@@ -8,7 +9,9 @@ namespace ACManager
     internal class ExpTracker : IDisposable
     {
         private FilterCore Filter { get; set; }
-        private CoreManager Core { get; set; }
+        internal CoreManager Core { get; set; }
+        internal ExpTrackerView ExpTrackerView { get; set; }
+        internal bool ViewVisible { get; set; } = true;
         private Timer CalcXpTimer { get; set; }
         private List<long> Rolling5Min { get; set; }
         private DateTime LoginTime { get; set; }
@@ -27,9 +30,23 @@ namespace ACManager
         {
             Filter = parent;
             Core = core;
+
+            LoadSettings();
+
+            ExpTrackerView = new ExpTrackerView(this);
             Rolling5Min = new List<long>();
             LoginTime = DateTime.Now;
             StartTracking();
+        }
+
+        private void LoadSettings()
+        {
+            ViewVisible = Filter.Machine.Utility.GUISettings.ExpTrackerVisible;
+        }
+
+        public void ToggleView(bool isVisible)
+        {
+            ExpTrackerView.View.ShowInBar = isVisible;
         }
 
         public void Report()
@@ -96,7 +113,7 @@ namespace ACManager
         private void StartTracking()
         {
             TotalXpAtLogon = XpAtReset = Core.CharacterFilter.TotalXP;
-            Filter.ExpTrackerView.XpAtLogonText.Text = string.Format("{0:n0}", Core.CharacterFilter.TotalXP);
+            ExpTrackerView.XpAtLogonText.Text = string.Format("{0:n0}", Core.CharacterFilter.TotalXP);
             LastResetTime = DateTime.Now;
 
             CalcXpTimer = CreateTimer(1000);
@@ -119,29 +136,29 @@ namespace ACManager
 
             #region XP Event Triggers
             XpPerHourLong = XpEarnedSinceReset / (long)TimeSinceReset.TotalSeconds * 3600;
-            Filter.ExpTrackerView.XpPerHourText.Text = string.Format("{0:n0}", XpPerHourLong);
+            ExpTrackerView.XpPerHourText.Text = string.Format("{0:n0}", XpPerHourLong);
 
             Rolling5Min.Add(Core.CharacterFilter.TotalXP);
             if (Rolling5Min.Count > 300) Rolling5Min.RemoveAt(0);
 
             XpLast5Long = (Core.CharacterFilter.TotalXP - Rolling5Min[0]) / Rolling5Min.Count * 3600;
-            Filter.ExpTrackerView.XpLast5Text.Text = string.Format("{0:n0}", XpLast5Long);
+            ExpTrackerView.XpLast5Text.Text = string.Format("{0:n0}", XpLast5Long);
 
-            Filter.ExpTrackerView.XpSinceLogonText.Text = string.Format("{0:n0}", Core.CharacterFilter.TotalXP - TotalXpAtLogon);
+            ExpTrackerView.XpSinceLogonText.Text = string.Format("{0:n0}", Core.CharacterFilter.TotalXP - TotalXpAtLogon);
 
-            Filter.ExpTrackerView.XpSinceResetText.Text = string.Format("{0:n0}", XpEarnedSinceReset);
+            ExpTrackerView.XpSinceResetText.Text = string.Format("{0:n0}", XpEarnedSinceReset);
             #endregion
 
             #region Time Event Triggers
             TimeSpan t = TimeSpan.FromSeconds((long)(Now - LoginTime).TotalSeconds);
-            Filter.ExpTrackerView.TimeLoggedInText.Text = string.Format("{0:D2}d {1:D2}h {2:D2}m {3:d2}s", t.Days, t.Hours, t.Minutes, t.Seconds);
+            ExpTrackerView.TimeLoggedInText.Text = string.Format("{0:D2}d {1:D2}h {2:D2}m {3:d2}s", t.Days, t.Hours, t.Minutes, t.Seconds);
 
             t = TimeSpan.FromSeconds((long)TimeSinceReset.TotalSeconds);
-            Filter.ExpTrackerView.TimeSinceResetText.Text = string.Format("{0:D2}d {1:D2}h {2:D2}m {3:d2}s", t.Days, t.Hours, t.Minutes, t.Seconds);
+            ExpTrackerView.TimeSinceResetText.Text = string.Format("{0:D2}d {1:D2}h {2:D2}m {3:d2}s", t.Days, t.Hours, t.Minutes, t.Seconds);
 
             TimeLeftToLevel = TimeSpan.FromSeconds((double)Core.CharacterFilter.XPToNextLevel / XpLast5Long * 3600);
             t = TimeSpan.FromSeconds((long)TimeLeftToLevel.TotalSeconds);
-            Filter.ExpTrackerView.TimeToNextLevelText.Text = string.Format("{0:D2}d {1:D2}h {2:D2}m {3:d2}s", t.Days, t.Hours, t.Minutes, t.Seconds);
+            ExpTrackerView.TimeToNextLevelText.Text = string.Format("{0:D2}d {1:D2}h {2:D2}m {3:d2}s", t.Days, t.Hours, t.Minutes, t.Seconds);
             #endregion
         }
 
@@ -151,7 +168,8 @@ namespace ACManager
             {
                 if (disposing)
                 {
-                    CalcXpTimer.Close();
+                    ExpTrackerView?.Dispose();
+                    CalcXpTimer?.Close();
                 }
                 DisposedValue = true;
             }

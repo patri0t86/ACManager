@@ -3,30 +3,63 @@ using Decal.Adapter.Wrappers;
 using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
+using System.Timers;
 
 namespace ACManager
 {
-    internal class FellowshipControl
+    internal class FellowshipControl : IDisposable
     {
         private FilterCore Filter { get; set; }
         private CoreManager Core { get; set; }
         private List<Recruit> Recruits { get; set; } = new List<Recruit>();
         internal FellowshipEventType FellowStatus { get; set; } = FellowshipEventType.Quit;
         internal DateTime LastAttempt { get; set; } = DateTime.MinValue;
+        private Timer RecruitTimer { get; set; }
+        private bool disposedValue;
 
         public FellowshipControl(FilterCore parent, CoreManager core)
         {
             Filter = parent;
             Core = core;
-            Filter.MainView.AutoFellow.Checked = Filter.Machine.CurrentCharacter.AutoFellow;
-            if (string.IsNullOrEmpty(Filter.Machine.CurrentCharacter.Password))
+            RecruitTimer = new Timer
             {
-                Filter.MainView.Password.Text = "xp";
+                Interval = 2000
+            };
+            RecruitTimer.Elapsed += RecruitTimer_Tick;
+        }
+
+        private void RecruitTimer_Tick(object sender, EventArgs e)
+        {
+            if (Recruits.Count > 0)
+            {
+                for (int i = 0; i < Recruits.Count; i++)
+                {
+                    Recruits[i].Attempts += 1;
+                    if (Recruits[i].Attempts >= 10)
+                    {
+                        Core.Actions.InvokeChatParser(string.Format("/t {0}, I wasn't able to recruit you into the fellowship, or you did not accept the invite.", Recruits[i].Name));
+                        Remove(Recruits[i].Name);
+                    }
+                    else
+                    {
+                        Core.Actions.FellowshipRecruit(Recruits[i].Guid);
+                    }
+                }
             }
             else
             {
-                Filter.MainView.Password.Text = Filter.Machine.CurrentCharacter.Password;
+                StopTimer();
             }
+        }
+
+        private void StartTimer()
+        {
+            RecruitTimer.Start();
+        }
+
+        private void StopTimer()
+        {
+            RecruitTimer.Stop();
         }
 
         public void ChatActions(object sender, ChatTextInterceptEventArgs e)
@@ -119,6 +152,7 @@ namespace ACManager
                                         int targetGuid = int.Parse(match.Groups["guid"].Value);
                                         Recruit recruit = new Recruit(name, targetGuid);
                                         Recruits.Add(recruit);
+                                        StartTimer();
                                     }
                                 }
                             }
@@ -132,27 +166,6 @@ namespace ACManager
                             break;
                     }
                     break;
-                }
-            }
-        }
-
-        public void CheckRecruit()
-        {
-            if (Recruits.Count > 0 && DateTime.Now - LastAttempt > TimeSpan.FromMilliseconds(2000))
-            {
-                LastAttempt = DateTime.Now;
-                for (int i = 0; i < Recruits.Count; i++)
-                {
-                    Recruits[i].Attempts += 1;
-                    if (Recruits[i].Attempts >= 10)
-                    {
-                        Core.Actions.InvokeChatParser(string.Format("/t {0}, I wasn't able to recruit you into the fellowship, or you did not accept the invite.", Recruits[i].Name));
-                        Remove(Recruits[i].Name);
-                    }
-                    else
-                    {
-                        Core.Actions.FellowshipRecruit(Recruits[i].Guid);
-                    }
                 }
             }
         }
@@ -180,6 +193,24 @@ namespace ACManager
                 Guid = guid;
                 Attempts = 0;
             }
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!disposedValue)
+            {
+                if (disposing)
+                {
+                    RecruitTimer?.Dispose();
+                }
+                disposedValue = true;
+            }
+        }
+
+        public void Dispose()
+        {
+            Dispose(disposing: true);
+            GC.SuppressFinalize(this);
         }
     }
 }

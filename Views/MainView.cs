@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ACManager.Settings;
+using System;
 using VirindiViewService;
 using VirindiViewService.Controls;
 
@@ -50,6 +51,7 @@ namespace ACManager.Views
                 AutoRespond.Change += AutoRespond_Change;
 
                 LowCompLogoff = View != null ? (HudCheckBox)View["Components"] : new HudCheckBox();
+                LowCompLogoff.Change += LowCompLogoff_Change;
 
                 AnnounceLogoff = View != null ? (HudCheckBox)View["AnnounceLogoff"] : new HudCheckBox();
                 AnnounceLogoff.Change += AnnounceLogoff_Change;
@@ -87,21 +89,76 @@ namespace ACManager.Views
                 TaperText = View != null ? (HudTextBox)View["TaperCount"] : new HudTextBox();
                 TaperText.Change += TaperText_Change;
 
-                // Update the UI from settings
-                PortalBotCheckBox.Checked = Filter.Machine.Utility.GUISettings.BotConfigVisible;
-                ExpTrackerCheckBox.Checked = Filter.Machine.Utility.GUISettings.ExpTrackerVisible;
-                AutoFellow.Checked = Filter.Machine.CurrentCharacter.AutoFellow;
-                AutoRespond.Checked = Filter.Machine.CurrentCharacter.AutoRespond;
-                AnnounceLogoff.Checked = Filter.Machine.CurrentCharacter.AnnounceLogoff;
+                LoadSettings();
             }
             catch (Exception ex) { Debug.LogException(ex); }
+        }
+
+        private void LowCompLogoff_Change(object sender, EventArgs e)
+        {
+            if (LowCompLogoff.Checked)
+            {
+                Filter.InventoryTracker.StartTimer();
+            }
+            else
+            {
+                Filter.InventoryTracker.StopTimer();
+            }
+        }
+
+        private void LoadSettings()
+        {
+            PortalBotCheckBox.Checked = Filter.Machine.Utility.GUISettings.BotConfigVisible;
+            ExpTrackerCheckBox.Checked = Filter.Machine.Utility.GUISettings.ExpTrackerVisible;
+
+            Character character = Filter.Machine.Utility.GetCurrentCharacter();
+
+            AutoFellow.Checked = character.AutoFellow;
+            AutoRespond.Checked = character.AutoRespond;
+            AnnounceLogoff.Checked = character.AnnounceLogoff;
+            Password.Text = string.IsNullOrEmpty(character.Password) ? "xp" : character.Password;
+
+            LeadScarabText.Text = character.LeadScarabs.ToString();
+            IronScarabText.Text = character.IronScarabs.ToString();
+            CopperScarabText.Text = character.CopperScarabs.ToString();
+            SilverScarabText.Text = character.SilverScarabs.ToString();
+            GoldScarabText.Text = character.GoldScarabs.ToString();
+            PyrealScarabText.Text = character.PyrealScarabs.ToString();
+            PlatinumScarabText.Text = character.PlatinumScarabs.ToString();
+            ManaScarabText.Text = character.ManaScarabs.ToString();
+            TaperText.Text = character.Tapers.ToString();
+            AnnounceLogoff.Checked = character.AnnounceLogoff;
+        }
+
+        private Character CharacterExistsOrNew()
+        {
+            Character newCharacter = new Character
+            {
+                Name = Filter.Machine.Core.CharacterFilter.Name,
+                Account = Filter.Machine.Core.CharacterFilter.AccountName,
+                Server = Filter.Machine.Core.CharacterFilter.Server
+            };
+
+            if (Filter.Machine.Utility.CharacterSettings.Characters.Contains(newCharacter))
+            {
+                foreach (Character character in Filter.Machine.Utility.CharacterSettings.Characters)
+                {
+                    if (newCharacter.Equals(character))
+                    {
+                        return character;
+                    }
+                }
+            }
+            return newCharacter;
         }
 
         private void Password_Change(object sender, EventArgs e)
         {
             try
             {
-                Filter.Machine.CurrentCharacter.Password = Password.Text;
+                Character character = CharacterExistsOrNew();
+                character.Password = Password.Text;
+                Filter.Machine.Utility.UpdateSettingsWithCharacter(character);
                 Filter.Machine.Utility.SaveCharacterSettings();
             }
             catch (Exception ex) { Debug.LogException(ex); }
@@ -111,7 +168,9 @@ namespace ACManager.Views
         {
             try
             {
-                Filter.Machine.CurrentCharacter.AutoFellow = AutoFellow.Checked;
+                Character character = CharacterExistsOrNew();
+                character.AutoFellow = AutoFellow.Checked;
+                Filter.Machine.Utility.UpdateSettingsWithCharacter(character);
                 Filter.Machine.Utility.SaveCharacterSettings();
             }
             catch (Exception ex) { Debug.LogException(ex); }
@@ -121,7 +180,9 @@ namespace ACManager.Views
         {
             try
             {
-                Filter.Machine.CurrentCharacter.AutoRespond = AutoRespond.Checked;
+                Character character = CharacterExistsOrNew();
+                character.AutoRespond = AutoRespond.Checked;
+                Filter.Machine.Utility.UpdateSettingsWithCharacter(character);
                 Filter.Machine.Utility.SaveCharacterSettings();
             }
             catch (Exception ex) { Debug.LogException(ex); }
@@ -131,7 +192,9 @@ namespace ACManager.Views
         {
             try
             {
-                Filter.Machine.CurrentCharacter.AnnounceLogoff = AnnounceLogoff.Checked;
+                Character character = CharacterExistsOrNew();
+                character.AnnounceLogoff = AnnounceLogoff.Checked;
+                Filter.Machine.Utility.UpdateSettingsWithCharacter(character);
                 Filter.Machine.Utility.SaveCharacterSettings();
             }
             catch (Exception ex) { Debug.LogException(ex); }
@@ -141,14 +204,7 @@ namespace ACManager.Views
         {
             try
             {
-                if (PortalBotCheckBox.Checked)
-                {
-                    Filter.BotManagerView.View.ShowInBar = Filter.Machine.Utility.GUISettings.BotConfigVisible = true;
-                }
-                else
-                {
-                    Filter.BotManagerView.View.ShowInBar = Filter.Machine.Utility.GUISettings.BotConfigVisible = false;
-                }
+                Filter.Machine.BotManagerView.View.ShowInBar = Filter.Machine.Utility.GUISettings.BotConfigVisible = PortalBotCheckBox.Checked;
                 Filter.Machine.Utility.SaveGUISettings();
             }
             catch (Exception ex) { Debug.LogException(ex); }
@@ -158,14 +214,8 @@ namespace ACManager.Views
         {
             try
             {
-                if (ExpTrackerCheckBox.Checked)
-                {
-                    Filter.ExpTrackerView.View.ShowInBar = Filter.Machine.Utility.GUISettings.ExpTrackerVisible = true;
-                }
-                else
-                {
-                    Filter.ExpTrackerView.View.ShowInBar = Filter.Machine.Utility.GUISettings.ExpTrackerVisible = false;
-                }
+                Filter.ExpTracker.ToggleView(ExpTrackerCheckBox.Checked);
+                Filter.Machine.Utility.GUISettings.ExpTrackerVisible = ExpTrackerCheckBox.Checked;
                 Filter.Machine.Utility.SaveGUISettings();
             }
             catch (Exception ex) { Debug.LogException(ex); }
@@ -175,11 +225,18 @@ namespace ACManager.Views
         {
             try
             {
-                if (!int.TryParse(LeadScarabText.Text, out _))
+                Character character = CharacterExistsOrNew();
+                if (int.TryParse(LeadScarabText.Text, out int result))
+                {
+                    character.LeadScarabs = result;
+                }
+                else
                 {
                     LeadScarabText.Text = "0";
+                    character.LeadScarabs = 0;
                 }
-                Filter.Machine.CurrentCharacter.LeadScarabs = int.Parse(LeadScarabText.Text);
+
+                Filter.Machine.Utility.UpdateSettingsWithCharacter(character);
                 Filter.Machine.Utility.SaveCharacterSettings();
             }
             catch (Exception ex) { Debug.LogException(ex); }
@@ -189,11 +246,18 @@ namespace ACManager.Views
         {
             try
             {
-                if (!int.TryParse(IronScarabText.Text, out _))
+                Character character = CharacterExistsOrNew();
+                if (int.TryParse(IronScarabText.Text, out int result))
+                {
+                    character.IronScarabs = result;
+                }
+                else
                 {
                     IronScarabText.Text = "0";
+                    character.IronScarabs = 0;
                 }
-                Filter.Machine.CurrentCharacter.IronScarabs = int.Parse(IronScarabText.Text);
+
+                Filter.Machine.Utility.UpdateSettingsWithCharacter(character);
                 Filter.Machine.Utility.SaveCharacterSettings();
             }
             catch (Exception ex) { Debug.LogException(ex); }
@@ -203,11 +267,18 @@ namespace ACManager.Views
         {
             try
             {
-                if (!int.TryParse(CopperScarabText.Text, out _))
+                Character character = CharacterExistsOrNew();
+                if (int.TryParse(CopperScarabText.Text, out int result))
+                {
+                    character.CopperScarabs = result;
+                }
+                else
                 {
                     CopperScarabText.Text = "0";
+                    character.CopperScarabs = 0;
                 }
-                Filter.Machine.CurrentCharacter.CopperScarabs = int.Parse(CopperScarabText.Text);
+
+                Filter.Machine.Utility.UpdateSettingsWithCharacter(character);
                 Filter.Machine.Utility.SaveCharacterSettings();
             }
             catch (Exception ex) { Debug.LogException(ex); }
@@ -217,11 +288,18 @@ namespace ACManager.Views
         {
             try
             {
-                if (!int.TryParse(SilverScarabText.Text, out _))
+                Character character = CharacterExistsOrNew();
+                if (int.TryParse(SilverScarabText.Text, out int result))
+                {
+                    character.SilverScarabs = result;
+                }
+                else
                 {
                     SilverScarabText.Text = "0";
+                    character.SilverScarabs = 0;
                 }
-                Filter.Machine.CurrentCharacter.SilverScarabs = int.Parse(SilverScarabText.Text);
+
+                Filter.Machine.Utility.UpdateSettingsWithCharacter(character);
                 Filter.Machine.Utility.SaveCharacterSettings();
             }
             catch (Exception ex) { Debug.LogException(ex); }
@@ -231,11 +309,18 @@ namespace ACManager.Views
         {
             try
             {
-                if (!int.TryParse(GoldScarabText.Text, out _))
+                Character character = CharacterExistsOrNew();
+                if (int.TryParse(GoldScarabText.Text, out int result))
+                {
+                    character.GoldScarabs = result;
+                }
+                else
                 {
                     GoldScarabText.Text = "0";
+                    character.GoldScarabs = 0;
                 }
-                Filter.Machine.CurrentCharacter.GoldScarabs = int.Parse(GoldScarabText.Text);
+
+                Filter.Machine.Utility.UpdateSettingsWithCharacter(character);
                 Filter.Machine.Utility.SaveCharacterSettings();
             }
             catch (Exception ex) { Debug.LogException(ex); }
@@ -245,11 +330,18 @@ namespace ACManager.Views
         {
             try
             {
-                if (!int.TryParse(PyrealScarabText.Text, out _))
+                Character character = CharacterExistsOrNew();
+                if (int.TryParse(PyrealScarabText.Text, out int result))
+                {
+                    character.PyrealScarabs = result;
+                }
+                else
                 {
                     PyrealScarabText.Text = "0";
+                    character.PyrealScarabs = 0;
                 }
-                Filter.Machine.CurrentCharacter.PyrealScarabs = int.Parse(PyrealScarabText.Text);
+
+                Filter.Machine.Utility.UpdateSettingsWithCharacter(character);
                 Filter.Machine.Utility.SaveCharacterSettings();
             }
             catch (Exception ex) { Debug.LogException(ex); }
@@ -259,11 +351,18 @@ namespace ACManager.Views
         {
             try
             {
-                if (!int.TryParse(PlatinumScarabText.Text, out _))
+                Character character = CharacterExistsOrNew();
+                if (int.TryParse(PlatinumScarabText.Text, out int result))
+                {
+                    character.PlatinumScarabs = result;
+                }
+                else
                 {
                     PlatinumScarabText.Text = "0";
+                    character.PlatinumScarabs = 0;
                 }
-                Filter.Machine.CurrentCharacter.PlatinumScarabs = int.Parse(PlatinumScarabText.Text);
+
+                Filter.Machine.Utility.UpdateSettingsWithCharacter(character);
                 Filter.Machine.Utility.SaveCharacterSettings();
             }
             catch (Exception ex) { Debug.LogException(ex); }
@@ -273,11 +372,18 @@ namespace ACManager.Views
         {
             try
             {
-                if (!int.TryParse(ManaScarabText.Text, out _))
+                Character character = CharacterExistsOrNew();
+                if (int.TryParse(ManaScarabText.Text, out int result))
+                {
+                    character.ManaScarabs = result;
+                }
+                else
                 {
                     ManaScarabText.Text = "0";
+                    character.ManaScarabs = 0;
                 }
-                Filter.Machine.CurrentCharacter.ManaScarabs = int.Parse(ManaScarabText.Text);
+
+                Filter.Machine.Utility.UpdateSettingsWithCharacter(character);
                 Filter.Machine.Utility.SaveCharacterSettings();
             }
             catch (Exception ex) { Debug.LogException(ex); }
@@ -287,11 +393,18 @@ namespace ACManager.Views
         {
             try
             {
-                if (!int.TryParse(TaperText.Text, out _))
+                Character character = CharacterExistsOrNew();
+                if (int.TryParse(TaperText.Text, out int result))
+                {
+                    character.Tapers = result;
+                }
+                else
                 {
                     TaperText.Text = "0";
+                    character.Tapers = 0;
                 }
-                Filter.Machine.CurrentCharacter.Tapers = int.Parse(TaperText.Text);
+
+                Filter.Machine.Utility.UpdateSettingsWithCharacter(character);
                 Filter.Machine.Utility.SaveCharacterSettings();
             }
             catch (Exception ex) { Debug.LogException(ex); }

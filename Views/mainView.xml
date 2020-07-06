@@ -14,7 +14,7 @@
     <page label="Fellowship">
       <control progid="DecalControls.FixedLayout" clipped="">
         <control progid="DecalControls.StaticText"                        left="5" top="5"  width="165" height="16" text="Recruit Command" />
-        <control progid="DecalControls.Edit"        name="Password"       left="5" top="23" width="165" height="19" text="XP" />
+        <control progid="DecalControls.Edit"        name="Password"       left="5" top="23" width="165" height="19" text="" />
         <control progid="DecalControls.CheckBox"    name="AutoFellow"     left="5" top="45" width="165" height="16" text="Auto Fellow Management" />
         <control progid="DecalControls.CheckBox"    name="AutoRespond"    left="5" top="63" width="165" height="16" text="Auto Respond" />
       </control>

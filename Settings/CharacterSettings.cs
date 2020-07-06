@@ -8,7 +8,6 @@ namespace ACManager.Settings
     public class CharacterSettings
     {
         public List<Character> Characters = new List<Character>();
-        public List<Advertisement> Advertisements = new List<Advertisement>();
     }
 
     public class Character : IEquatable<Character>

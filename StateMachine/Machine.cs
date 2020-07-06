@@ -1,5 +1,5 @@
-﻿using ACManager.Settings;
-using ACManager.StateMachine.States;
+﻿using ACManager.StateMachine.States;
+using ACManager.Views;
 using Decal.Adapter;
 using Decal.Adapter.Wrappers;
 using System;
@@ -69,11 +69,6 @@ namespace ACManager.StateMachine
         public int NextCharacterIndex { get; set; }
 
         /// <summary>
-        /// The total number of character slots. End of retail had 11. This will most likely never change, but better to be dynamically generated.
-        /// </summary>
-        public int TotalSlots { get; set; }
-
-        /// <summary>
         /// The next character to log in to summon the portal.
         /// </summary>
         public string NextCharacter { get; set; }
@@ -101,12 +96,7 @@ namespace ACManager.StateMachine
         /// <summary>
         /// The character's effective skill levels.
         /// </summary>
-        public IndexedCollection<CharFilterIndex, CharFilterSkillType, int> Skills { get; set; }
-
-        /// <summary>
-        /// The character's known spells.
-        /// </summary>
-        public ReadOnlyCollection<int> SpellBook { get; set; }
+        //public IndexedCollection<CharFilterIndex, CharFilterSkillType, int> Skills { get; set; }
 
         /// <summary>
         /// Used to selectively decline new commands as necessary.
@@ -179,11 +169,6 @@ namespace ACManager.StateMachine
         public CoreManager Core { get; set; }
 
         /// <summary>
-        /// Reference to the currently logged in character and appopriate settings.
-        /// </summary>
-        public Character CurrentCharacter { get; set; }
-
-        /// <summary>
         /// Heading to restore to when the bot is idle.
         /// </summary>
         public double DefaultHeading { get; set; }
@@ -224,12 +209,17 @@ namespace ACManager.StateMachine
         public string ItemToUse { get; set; }
 
         /// <summary>
+        /// The bot management GUI in decal.
+        /// </summary>
+        public BotManagerView BotManagerView { get; set; }
+
+        /// <summary>
         /// Create the state machine in the StoppedState and begin processing commands on intervals (every time a frame is rendered).
         /// </summary>
         public Machine(CoreManager core, string path)
         {
             Core = core;
-            Utility = new Utility(this, path, Core.CharacterFilter.AccountName, Core.CharacterFilter.Server);
+            Utility = new Utility(this, path);
             Interpreter = new Interpreter(this);
             ChatManager = new ChatManager(this);
             ComponentChecker = new ComponentChecker(Core);
@@ -253,12 +243,6 @@ namespace ACManager.StateMachine
                 // Gets the character's current vitals (Health/Stamina/Mana)
                 MaxVitals = Core.CharacterFilter.EffectiveVital;
 
-                // Gets the character's known spells
-                SpellBook = Core.CharacterFilter.SpellBook;
-
-                // Gets the character's skill levels
-                Skills = Core.CharacterFilter.EffectiveSkill;
-               
                 if (NextState == null)
                 {
                     CurrentState.Process(this);

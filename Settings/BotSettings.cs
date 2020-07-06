@@ -55,19 +55,19 @@ namespace ACManager.Settings
         [XmlElement(IsNullable = false)]
         public int CopperScarabThreshold;
 
-        [XmlElement(IsNullable = false)] 
+        [XmlElement(IsNullable = false)]
         public int SilverScarabThreshold;
 
-        [XmlElement(IsNullable = false)] 
+        [XmlElement(IsNullable = false)]
         public int GoldScarabThreshold;
 
-        [XmlElement(IsNullable = false)] 
+        [XmlElement(IsNullable = false)]
         public int PyrealScarabThreshold;
 
-        [XmlElement(IsNullable = false)] 
+        [XmlElement(IsNullable = false)]
         public int PlatinumScarabThreshold;
 
-        [XmlElement(IsNullable = false)] 
+        [XmlElement(IsNullable = false)]
         public int ManaScarabThreshold;
 
         public List<GemSetting> GemSettings = new List<GemSetting>();

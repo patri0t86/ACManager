@@ -1,7 +1,6 @@
 ﻿using ACManager.Settings;
 using ACManager.StateMachine;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
@@ -12,7 +11,7 @@ using System.Xml.Serialization;
 namespace ACManager
 {
     /// <summary>
-    /// Static class to handle miscellaneous tasks, outside of the client.
+    /// Static class to handle miscellaneous tasks, like file I/O, outside of the client.
     /// </summary>
     internal class Utility
     {
@@ -31,17 +30,38 @@ namespace ACManager
         internal GUISettings GUISettings { get; set; } = new GUISettings();
         internal InventorySettings Inventory { get; set; } = new InventorySettings();
         internal string Version { get; set; }
-        internal bool BackCompat { get; set; } = false;
 
-        public Utility(Machine machine, string path, string account, string server)
+        public Utility(Machine machine, string path)
         {
             Machine = machine;
-            CreatePaths(path, account, server);
+            CreatePaths(path);
             Version = FileVersionInfo.GetVersionInfo(Assembly.GetExecutingAssembly().Location).ProductVersion;
             CharacterSettings = LoadCharacterSettings();
             BotSettings = LoadBotSettings();
             GUISettings = LoadGUISettings();
             Inventory = LoadInventories();
+        }
+
+        internal Character GetCurrentCharacter()
+        {
+            Character newCharacter = new Character()
+            {
+                Name = Machine.Core.CharacterFilter.Name,
+                Account = Machine.Core.CharacterFilter.AccountName,
+                Server = Machine.Core.CharacterFilter.Server
+            };
+
+            if (CharacterSettings.Characters.Contains(newCharacter))
+            {
+                foreach (Character character in CharacterSettings.Characters)
+                {
+                    if (newCharacter.Equals(character))
+                    {
+                        return character;
+                    }
+                }
+            }
+            return newCharacter;
         }
 
         /// <summary>
@@ -50,12 +70,12 @@ namespace ACManager
         /// <param name="root">Root path of the plugin.</param>
         /// <param name="account">Account name of the currently logged in account.</param>
         /// <param name="server">Server name of teh currently logged in account.</param>
-        private void CreatePaths(string root, string account, string server)
+        private void CreatePaths(string root)
         {
             try
             {
-                string intermediatePath = Path.Combine(root, account);
-                AllSettingsPath = Path.Combine(intermediatePath, server);
+                string intermediatePath = Path.Combine(root, Machine.Core.CharacterFilter.AccountName);
+                AllSettingsPath = Path.Combine(intermediatePath, Machine.Core.CharacterFilter.Server);
                 CharacterSettingsPath = Path.Combine(AllSettingsPath, CharacterSettingsFile);
                 BotSettingsPath = Path.Combine(AllSettingsPath, BotSettingsFile);
                 GUISettingsPath = Path.Combine(AllSettingsPath, GUISettingsFile);
@@ -73,19 +93,31 @@ namespace ACManager
             try
             {
                 DirectoryInfo di = Directory.CreateDirectory(AllSettingsPath);
-                if (di.Exists)
-                {
-                    return true;
-                }
-                else
-                {
-                    return false;
-                }
+                return di.Exists;
             }
             catch (Exception ex)
             {
                 Debug.ToChat(ex.Message);
                 return false;
+            }
+        }
+
+        internal void UpdateSettingsWithCharacter(Character character)
+        {
+            if (CharacterSettings.Characters.Contains(character))
+            {
+                for (int i = 0; i < CharacterSettings.Characters.Count; i++)
+                {
+                    if (CharacterSettings.Characters[i].Equals(character))
+                    {
+                        CharacterSettings.Characters[i] = character;
+                        break;
+                    }
+                }
+            }
+            else
+            {
+                CharacterSettings.Characters.Add(character);
             }
         }
 
@@ -102,21 +134,7 @@ namespace ACManager
                     {
                         writer.Formatting = Formatting.Indented;
                         writer.WriteStartDocument();
-                        if (CharacterSettings.Characters.Contains(Machine.CurrentCharacter))
-                        {
-                            for (int i = 0; i < CharacterSettings.Characters.Count; i++)
-                            {
-                                if (CharacterSettings.Characters[i].Equals(Machine.CurrentCharacter))
-                                {
-                                    CharacterSettings.Characters[i] = Machine.CurrentCharacter;
-                                    break;
-                                }
-                            }
-                        }
-                        else
-                        {
-                            CharacterSettings.Characters.Add(Machine.CurrentCharacter);
-                        }
+
                         XmlSerializer xmlSerializer = new XmlSerializer(typeof(CharacterSettings));
                         xmlSerializer.Serialize(writer, CharacterSettings);
                     }
@@ -144,7 +162,10 @@ namespace ACManager
                         return (CharacterSettings)xmlSerializer.Deserialize(reader);
                     }
                 }
-                return new CharacterSettings();
+                else
+                {
+                    return new CharacterSettings();
+                }
             }
             catch (Exception ex)
             {
@@ -191,29 +212,12 @@ namespace ACManager
                     using (XmlTextReader reader = new XmlTextReader(BotSettingsPath))
                     {
                         XmlSerializer xmlSerializer = new XmlSerializer(typeof(BotSettings));
-
-                        BotSettings settings = (BotSettings)xmlSerializer.Deserialize(reader);
-                        if (CharacterSettings.Advertisements.Count > 0 && settings.Advertisements.Count == 0)
-                        {
-                            settings.Advertisements = new List<Advertisement>(CharacterSettings.Advertisements);
-                            CharacterSettings.Advertisements.Clear();
-                            SaveCharacterSettings();
-                            BackCompat = true;
-                        }
-                        return settings;
+                        return (BotSettings)xmlSerializer.Deserialize(reader);
                     }
                 }
                 else
                 {
-                    BotSettings botSettings = new BotSettings();
-                    if (CharacterSettings.Advertisements.Count > 0 && botSettings.Advertisements.Count == 0)
-                    {
-                        botSettings.Advertisements = new List<Advertisement>(CharacterSettings.Advertisements);
-                        CharacterSettings.Advertisements.Clear();
-                        SaveCharacterSettings();
-                        BackCompat = true;
-                    }
-                    return botSettings;
+                    return new BotSettings();
                 }
             }
             catch (Exception ex)
@@ -264,7 +268,10 @@ namespace ACManager
                         return (GUISettings)xmlSerializer.Deserialize(reader);
                     }
                 }
-                return new GUISettings();
+                else
+                {
+                    return new GUISettings();
+                }
             }
             catch (Exception ex)
             {
@@ -273,7 +280,9 @@ namespace ACManager
             }
         }
 
-
+        /// <summary>
+        /// Save the updated inventory to disk.
+        /// </summary>
         internal void SaveInventory()
         {
             try
@@ -296,6 +305,10 @@ namespace ACManager
             }
         }
 
+        /// <summary>
+        /// Load the known inventories from disk.
+        /// </summary>
+        /// <returns></returns>
         internal InventorySettings LoadInventories()
         {
             try
@@ -308,7 +321,10 @@ namespace ACManager
                         return (InventorySettings)xmlSerializer.Deserialize(reader);
                     }
                 }
-                return new InventorySettings();
+                else
+                {
+                    return new InventorySettings();
+                }
             }
             catch (Exception ex)
             {
