@@ -212,6 +212,9 @@ namespace ACManager.StateMachine
 
                     if (gemStrings.Count > 0)
                     {
+                        sb.Length = 0;
+                        sb.Capacity = 0;
+                        sb.Capacity = 16;
                         count = 0;
                         for (int i = 0; i < gemStrings.Count; i++)
                         {
@@ -238,7 +241,6 @@ namespace ACManager.StateMachine
                             }
                         }
                     }
-
                 }
                 else if (gemStrings.Count > 0)
                 {
@@ -304,8 +306,6 @@ namespace ACManager.StateMachine
                 {
                     SendTell(Machine.CharacterMakingRequest, "I don't currently have any portals configured.");
                 }
-
-
             }
         }
 
@@ -332,14 +332,11 @@ namespace ACManager.StateMachine
         private List<string> GetGems()
         {
             List<string> gemStrings = new List<string>();
-            for (int i = 0; i < Machine.Utility.BotSettings.GemSettings.Count; i++)
+            foreach (GemSetting gemSetting in Machine.Utility.BotSettings.GemSettings)
             {
-                foreach (GemSetting gemSetting in Machine.Utility.BotSettings.GemSettings)
+                if (!string.IsNullOrEmpty(gemSetting.Keyword))
                 {
-                    if (!string.IsNullOrEmpty(gemSetting.Keyword))
-                    {
-                        gemStrings.Add($"{gemSetting.Keyword} -> {gemSetting.Name}");
-                    }
+                    gemStrings.Add($"{gemSetting.Keyword} -> {gemSetting.Name}");
                 }
             }
             return gemStrings;
