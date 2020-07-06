@@ -1,5 +1,4 @@
-﻿using ACManager.Settings;
-using ACManager.StateMachine;
+﻿using ACManager.StateMachine;
 using ACManager.StateMachine.States;
 using ACManager.Views;
 using Decal.Adapter;
@@ -9,170 +8,78 @@ using System.Windows.Forms;
 
 namespace ACManager
 {
-    [FriendlyName("ACManager Filter")]
+    [FriendlyName("ACManager")]
     public class FilterCore : FilterBase
     {
         internal Machine Machine { get; set; }
         internal MainView MainView { get; set; }
         internal FellowshipControl FellowshipControl { get; set; }
         internal InventoryTracker InventoryTracker { get; set; }
-        internal ExpTrackerView ExpTrackerView { get; set; }
         internal ExpTracker ExpTracker { get; set; }
-        internal BotManagerView BotManagerView { get; set; }
-        private Timer LogonTimer { get; set; }
-
-        /// <summary>
-        /// Temporary holder for list of account characters until machine can be initialized.
-        /// </summary>
+        private Timer LogonTimer { get; set; } = new Timer();
         public List<string> AccountCharacters { get; set; } = new List<string>();
+        public int TotalSlots { get; set; }
 
         /// <summary>
-        /// Temporary holder for total character slots allowed until machine can be initialized.
+        /// Called as soon as the client is launched.
         /// </summary>
-        public int TotalSlots { get; set; }
+        protected override void Startup()
+        {
+            ServerDispatch += FilterCore_ServerDispatch;
+            ClientDispatch += FilterCore_ClientDispatch;
+            LogonTimer.Interval = 1000;
+            LogonTimer.Tick += LogonTimer_Tick;
+        }
 
         /// <summary>
         /// Called only when the client is completely closed (exited out of the character selection screen even).
         /// </summary>
         protected override void Shutdown()
         {
+            ChatBoxMessage -= FellowshipControl.ChatActions;
+            ChatBoxMessage -= InventoryTracker.ParseChat;
             ServerDispatch -= FilterCore_ServerDispatch;
             CommandLineText -= Machine.Interpreter.Command;
             ClientDispatch -= FilterCore_ClientDispatch;
+            LogonTimer.Tick -= LogonTimer_Tick;
             LogonTimer.Dispose();
-        }
-
-        /// <summary>
-        /// Called as soon as the client is launched from whatever launcher you're using.
-        /// </summary>
-        protected override void Startup()
-        {
-            ServerDispatch += FilterCore_ServerDispatch;
-            ClientDispatch += FilterCore_ClientDispatch;
-
-            LogonTimer = new Timer
-            {
-                Interval = 1000
-            };
-            LogonTimer.Tick += LogonTimer_Tick;
-        }
-
-        /// <summary>
-        /// Parses the client messages.
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void FilterCore_ClientDispatch(object sender, NetworkMessageEventArgs e)
-        {
-            if (e.Message.Type.Equals(0xF7B1))
-            {
-                if (e.Message.Value<int>("action").Equals(0x00A1)) // Materialize character
-                {
-                    if (Machine == null) // first time initialization of the bot on startup
-                    {
-                        Debug.Init(Path);
-                        Machine = new Machine(Core, Path);
-                        CommandLineText += Machine.Interpreter.Command;
-                    }
-
-                    if (!Machine.LoggedIn) // perform these actions when logging in only, not when the character is taking a portal
-                    {
-                        Machine.AccountCharacters = AccountCharacters;
-                        Machine.TotalSlots = TotalSlots;
-                        Machine.Core = Core;
-
-                        Machine.CurrentCharacter = new Character
-                        {
-                            Name = Core.CharacterFilter.Name,
-                            Account = Core.CharacterFilter.AccountName,
-                            Server = Core.CharacterFilter.Server
-                        };
-
-                        if (Machine.Utility.CharacterSettings.Characters.Contains(Machine.CurrentCharacter))
-                        {
-                            foreach (Character character in Machine.Utility.CharacterSettings.Characters)
-                            {
-                                if (Machine.CurrentCharacter.Equals(character))
-                                {
-                                    Machine.CurrentCharacter = character;
-                                    break;
-                                }
-                            }
-                        }
-
-                        if (Machine.Utility.BackCompat)
-                        {
-                            Machine.Utility.BackCompat = false;
-                            Machine.Utility.SaveBotSettings();
-                        }
-
-                        // Instantiate views
-                        MainView = new MainView(this);
-                        ExpTrackerView = new ExpTrackerView(this);
-                        BotManagerView = new BotManagerView(this, Core);
-
-                        // Instantiate classes to support the views
-                        ExpTracker = new ExpTracker(this, Core);
-                        InventoryTracker = new InventoryTracker(this, Core);
-                        FellowshipControl = new FellowshipControl(this, Core);
-
-                        ChatBoxMessage += FellowshipControl.ChatActions;
-                        ChatBoxMessage += InventoryTracker.ParseChat;
-                        Core.RenderFrame += Core_RenderFrame;
-
-                        Debug.ToChat("Running ACManager by Shem of Harvestgain (now Coldeve).");
-                        Debug.ToChat($"Currently running version {Machine.Utility.Version}. Check out the latest on the project at https://github.com/patri0t86/ACManager.");
-                        Debug.ToChat($"At any time, type /acm help for more information.");
-
-                        Machine.Enabled = Machine.Utility.BotSettings.BotEnabled;
-                        Machine.LoggedIn = true;
-                    }
-                }
-
-                if (Convert.ToInt32(e.Message.Value<int>("action")).Equals(0x004A)) // Start casting
-                {
-                    Machine.CastStarted = true;
-                }
-            }
-        }
-
-        private void Core_RenderFrame(object sender, EventArgs e)
-        {
-            FellowshipControl.CheckRecruit();
-            InventoryTracker.CheckComps();
+            MainView?.Dispose();
+            Machine.BotManagerView?.Dispose();
+            ExpTracker?.Dispose();
+            InventoryTracker?.Dispose();
+            FellowshipControl?.Dispose();
+            Machine = null;
         }
 
         /// <summary>
         /// Parses server messages.
+        /// Protocols known at time of creation:
+        /// http://skunkworks.sourceforge.net/protocol/Protocol.php
+        /// https://acemulator.github.io/protocol/
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
         private void FilterCore_ServerDispatch(object sender, NetworkMessageEventArgs e)
         {
-            if (e.Message.Type.Equals(0xF653)) // End 3D Mode and return to character screen
+            // End 3D Mode and return to character screen
+            if (e.Message.Type.Equals(0xF653))
             {
+                Machine.LoggedIn = false;
                 ChatBoxMessage -= FellowshipControl.ChatActions;
                 ChatBoxMessage -= InventoryTracker.ParseChat;
-                Core.RenderFrame -= Core_RenderFrame;
-
-                Machine.LoggedIn = false;
-
+                CommandLineText -= Machine.Interpreter.Command;
                 MainView?.Dispose();
-                ExpTrackerView?.Dispose();
-                BotManagerView?.Dispose();
-
+                Machine.BotManagerView?.Dispose();
                 ExpTracker?.Dispose();
-                InventoryTracker = null;
-                FellowshipControl = null;
-                Machine.CurrentCharacter = null;
+                InventoryTracker?.Dispose();
+                FellowshipControl?.Dispose();
             }
 
-            if (e.Message.Type.Equals(0xF658)) // Received the character list from the server
+            // Received the character list from the server
+            if (e.Message.Type.Equals(0xF658))
             {
                 AccountCharacters.Clear();
-                // determine total number of slots available
                 TotalSlots = Convert.ToInt32(e.Message["slotCount"]);
-                // number of created characters for this account
                 int charCount = Convert.ToInt32(e.Message["characterCount"]);
 
                 MessageStruct characterStruct = e.Message.Struct("characters");
@@ -185,30 +92,89 @@ namespace ACManager
                 AccountCharacters.Sort();
             }
 
-            if (e.Message.Type.Equals(0xF746)) // Login Character
+            // Login Character
+            if (e.Message.Type.Equals(0xF746))
             {
                 LogonTimer.Stop();
             }
-            
-            if (e.Message.Type.Equals(0xF7B0)) // Game events
+
+            // Game events
+            if (e.Message.Type.Equals(0xF7B0))
             {
-                if (Convert.ToInt32(e.Message["event"]).Equals(0x01C7)) // Action complete
+                // Action complete
+                if (Convert.ToInt32(e.Message["event"]).Equals(0x01C7))
                 {
                     Machine.CastCompleted = true;
                 }
 
-                if (Convert.ToInt32(e.Message["event"]).Equals(0x028A)) // Status messages
+                // Status messages
+                if (Convert.ToInt32(e.Message["event"]).Equals(0x028A))
                 {
-                    if (Convert.ToInt32(e.Message[3]).Equals(0x0402)) // Your spell fizzled.
+                    // Your spell fizzled.
+                    if (Convert.ToInt32(e.Message[3]).Equals(0x0402))
                     {
                         Machine.Fizzled = true;
                     }
                 }
             }
 
-            if (e.Message.Type.Equals(0xF7E1) && Machine.CurrentState == SwitchingCharacters.GetInstance) // Server Name (last server message sent when logging out)
+            // Server Name (last server message sent when logging out)
+            if (e.Message.Type.Equals(0xF7E1) && Machine.CurrentState == SwitchingCharacters.GetInstance)
             {
                 LogonTimer.Start();
+            }
+        }
+
+        /// <summary>
+        /// Parses the client messages.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void FilterCore_ClientDispatch(object sender, NetworkMessageEventArgs e)
+        {
+            if (e.Message.Type.Equals(0xF7B1))
+            {
+                // Materialize character (including any portal taken)
+                if (e.Message.Value<int>("action").Equals(0x00A1))
+                {
+                    if (Machine == null)
+                    {
+                        Debug.Init(Path);
+                        Machine = new Machine(Core, Path);
+                    }
+
+                    if (!Machine.LoggedIn)
+                    {
+                        CommandLineText += Machine.Interpreter.Command;
+                        Machine.AccountCharacters = AccountCharacters;
+                        Machine.Core = Core;
+
+                        // Instantiate views
+                        MainView = new MainView(this);
+                        Machine.BotManagerView = new BotManagerView(Machine);
+
+                        // Instantiate classes to support the views
+                        ExpTracker = new ExpTracker(this, Core);
+                        InventoryTracker = new InventoryTracker(this, Core);
+                        FellowshipControl = new FellowshipControl(this, Core);
+
+                        ChatBoxMessage += FellowshipControl.ChatActions;
+                        ChatBoxMessage += InventoryTracker.ParseChat;
+
+                        Machine.Enabled = Machine.Utility.BotSettings.BotEnabled;
+                        Machine.LoggedIn = true;
+
+                        Debug.ToChat("Running ACManager by Shem of Harvestgain (now Coldeve).");
+                        Debug.ToChat($"Currently running version {Machine.Utility.Version}. Check out the latest on the project at https://github.com/patri0t86/ACManager.");
+                        Debug.ToChat($"At any time, type /acm help for more information.");
+                    }
+                }
+
+                // Start casting
+                if (Convert.ToInt32(e.Message.Value<int>("action")).Equals(0x004A))
+                {
+                    Machine.CastStarted = true;
+                }
             }
         }
 
@@ -230,7 +196,7 @@ namespace ACManager
             int XPixelOffset = 121;
             int YTopOfBox = 209;
             int YBottomOfBox = 532;
-            float characterNameSize = (YBottomOfBox - YTopOfBox) / (float)Machine.TotalSlots;
+            float characterNameSize = (YBottomOfBox - YTopOfBox) / (float)TotalSlots;
             int yOffset = (int)(YTopOfBox + (characterNameSize / 2) + (characterNameSize * Machine.NextCharacterIndex));
 
             // Select the character

@@ -19,7 +19,7 @@ namespace ACManager.StateMachine
         internal int PlatinumScarabThreshold { get; set; }
         internal int ManaScarabThreshold { get; set; }
         internal bool IsLowOnComponents { get; set; } = false;
-        
+
         public Inventory(Machine machine)
         {
             Machine = machine;
@@ -42,7 +42,7 @@ namespace ACManager.StateMachine
                 using (WorldObjectCollection collection = Machine.Core.WorldFilter.GetInventory())
                 {
                     collection.SetFilter(new ByNameFilter(Machine.Core.Filter<FileService>().ComponentTable[i].Name));
-                    if (collection.Quantity > 0) 
+                    if (collection.Quantity > 0)
                     {
                         if (SpellComponents.ContainsKey(Machine.Core.Filter<FileService>().ComponentTable[i].Name))
                         {
@@ -131,7 +131,7 @@ namespace ACManager.StateMachine
             // search for gems known in the bot settings and add them to inventory
             foreach (GemSetting gem in Machine.Utility.BotSettings.GemSettings)
             {
-                using(WorldObjectCollection inventory = Machine.Core.WorldFilter.GetInventory())
+                using (WorldObjectCollection inventory = Machine.Core.WorldFilter.GetInventory())
                 {
                     int quantity = GetInventoryCount(gem.Name);
                     if (quantity > 0)
@@ -186,7 +186,7 @@ namespace ACManager.StateMachine
 
         internal int GetInventoryCount(string itemName)
         {
-            using(WorldObjectCollection inventory = Machine.Core.WorldFilter.GetInventory())
+            using (WorldObjectCollection inventory = Machine.Core.WorldFilter.GetInventory())
             {
                 inventory.SetFilter(new ByNameFilter(itemName));
                 return inventory.Quantity;

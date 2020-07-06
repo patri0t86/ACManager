@@ -24,6 +24,7 @@ namespace ACManager.StateMachine.States
             if (machine.NextState == Idle.GetInstance)
             {
                 machine.MachineStarted = DateTime.Now;
+                machine.LastBroadcast = DateTime.Now;
                 machine.Core.Actions.SetIdleTime(Double.MaxValue);
                 machine.Core.ChatBoxMessage += machine.ChatManager.Current_ChatBoxMessage;
 
@@ -40,6 +41,7 @@ namespace ACManager.StateMachine.States
                 machine.EnablePositioning = machine.Utility.BotSettings.BotPositioning;
 
                 Debug.ToChat("Started successfully.");
+                machine.ChatManager.Broadcast($"/me is running ACManager Bot {machine.Utility.Version}. Whisper 'help' to get started.");
             }
         }
 

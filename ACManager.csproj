@@ -83,7 +83,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ComponentChecker.cs" />
+    <Compile Include="StateMachine\ComponentChecker.cs" />
     <Compile Include="ExpTracker.cs" />
     <Compile Include="FellowshipControl.cs" />
     <Compile Include="InventoryTracker.cs" />
@@ -113,6 +113,10 @@
     <Compile Include="Views\ExpTrackerView.cs" />
     <Compile Include="Views\MainView.cs" />
     <Compile Include="Views\BotManagerView.cs" />
+    <Compile Include="Views\Tabs\AdvertisementsTab.cs" />
+    <Compile Include="Views\Tabs\ConfigTab.cs" />
+    <Compile Include="Views\Tabs\GemsTab.cs" />
+    <Compile Include="Views\Tabs\PortalsTab.cs" />
     <Compile Include="VirindiViews\ViewSystemSelector.cs" />
     <Compile Include="VirindiViews\Wrapper.cs" />
     <Compile Include="VirindiViews\Wrapper_Decal.cs" />

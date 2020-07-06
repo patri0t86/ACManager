@@ -105,7 +105,7 @@ namespace ACManager.StateMachine
                 else if (message.Equals("help"))
                 {
                     SendTell(Machine.CharacterMakingRequest, "You can /t me 'whereto' to get a list of portals. Then /t me any keyword for me to summon the portal you request.");
-                } 
+                }
                 else if (message.Equals("comps"))
                 {
                     for (int i = 0; i < Machine.Core.Filter<FileService>().ComponentTable.Length; i++)
@@ -239,7 +239,7 @@ namespace ACManager.StateMachine
                         }
                     }
 
-                } 
+                }
                 else if (gemStrings.Count > 0)
                 {
                     SendTell(Machine.CharacterMakingRequest, "You can /t me any keyword, and I will summon the corresponding portal.");
@@ -277,9 +277,9 @@ namespace ACManager.StateMachine
             }
             else
             {
-                SendTell(Machine.CharacterMakingRequest, "You can /t me any keyword, and I will summon the corresponding portal.");
                 if (portalStrings.Count > 0)
                 {
+                    SendTell(Machine.CharacterMakingRequest, "You can /t me any keyword, and I will summon the corresponding portal.");
                     foreach (string portal in portalStrings)
                     {
                         SendTell(Machine.CharacterMakingRequest, portal);
@@ -305,7 +305,7 @@ namespace ACManager.StateMachine
                     SendTell(Machine.CharacterMakingRequest, "I don't currently have any portals configured.");
                 }
 
-                
+
             }
         }
 
@@ -322,7 +322,7 @@ namespace ACManager.StateMachine
                 {
                     if (!string.IsNullOrEmpty(portal.Keyword))
                     {
-                        portalStrings.Add($"{portal.Keyword} -> {portal.Description}{(portal.Level > 0 ? " [" + portal.Level + "+]" : "")}");
+                        portalStrings.Add($"{portal.Keyword} -> {(string.IsNullOrEmpty(portal.Description) ? "No description" : portal.Description)}{(portal.Level > 0 ? " [" + portal.Level + "+]" : "")}");
                     }
                 }
             }
@@ -361,7 +361,7 @@ namespace ACManager.StateMachine
                         Machine.PortalDescription = portal.Description;
                         Machine.NextHeading = portal.Heading;
                         Machine.NextCharacter = Machine.Utility.CharacterSettings.Characters[i].Name;
-                        if (Machine.Core.CharacterFilter.Name.Equals(Machine.Utility.CharacterSettings.Characters[i].Name)) // portal is on this character
+                        if (Machine.Core.CharacterFilter.Name.Equals(Machine.Utility.CharacterSettings.Characters[i].Name))
                         {
                             if (portal.Type.Equals(PortalType.Primary))
                             {
@@ -373,11 +373,11 @@ namespace ACManager.StateMachine
                             }
                             break;
                         }
-                        else // not on this character
+                        else
                         {
-                            SendTell(Machine.CharacterMakingRequest, $"The requested portal to {Machine.PortalDescription} is on another character, please standby.");
+                            SendTell(Machine.CharacterMakingRequest, $"The requested portal{(string.IsNullOrEmpty(Machine.PortalDescription) ? " " : $" to {Machine.PortalDescription} ")}is on another character, please standby.");
                             Machine.GetNextCharacter();
-                            Broadcast($"Be right back, switching to {Machine.NextCharacter} to summon {Machine.PortalDescription}.");
+                            Broadcast($"Be right back, switching to {Machine.NextCharacter} to summon{(string.IsNullOrEmpty(Machine.PortalDescription) ? "" : $" {Machine.PortalDescription}")}.");
 
                             if (portal.Type.Equals(PortalType.Primary))
                             {
@@ -418,7 +418,8 @@ namespace ACManager.StateMachine
                             {
                                 Machine.NextCharacter = Machine.Utility.Inventory.CharacterInventories[i].Name;
                                 Machine.GetNextCharacter();
-                                if (!Machine.NextCharacter.Equals(Machine.Core.CharacterFilter.Name)) {
+                                if (!Machine.NextCharacter.Equals(Machine.Core.CharacterFilter.Name))
+                                {
                                     Broadcast($"Be right back, switching to {Machine.NextCharacter} to use {Machine.PortalDescription}.");
                                 }
                                 return;

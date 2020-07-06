@@ -7,16 +7,16 @@
             <control progid="DecalControls.CheckBox"    name="Bot"                  left="5"   top="5"    width="125" height="16" text="Start / Stop Bot" />
             <control progid="DecalControls.StaticText"  name="LocationSetpoint"     left="195" top="5"    width="200" height="16" text="No location set" />
 
-            <control progid="DecalControls.CheckBox"    name="AdsEnabled"           left="5"   top="24"   width="200" height="16" text="Enable Advertising" />
+            <control progid="DecalControls.CheckBox"    name="AdsEnabled"           left="5"   top="24"   width="200" height="16" text="Advertising" />
             <control progid="DecalControls.PushButton"  name="ClearLocation"        left="200" top="24"   width="95"  height="19" text="Clear Location" />
-            <control progid="DecalControls.PushButton"  name="SetLocation"          left="300" top="24"   width="95"  height="19" text="Set Bot Location" />
+            <control progid="DecalControls.PushButton"  name="SetLocation"          left="300" top="24"   width="95"  height="19" text="Set Location" />
 
-            <control progid="DecalControls.Edit"        name="AdInterval"           left="5"   top="43"   width="20"  height="19" text="" />
-            <control progid="DecalControls.StaticText"                              left="30"  top="44"   width="150" height="16" text="Advertisement Interval" />
-            <control progid="DecalControls.CheckBox"    name="BotPositioning"       left="200" top="46"   width="200" height="16" text="Enable Bot Navigation" />
+            <control progid="DecalControls.Edit"        name="AdInterval"           left="5"   top="43"   width="27"  height="19" text="" />
+            <control progid="DecalControls.StaticText"                              left="40"  top="44"   width="150" height="16" text="Advertisement Interval" />
+            <control progid="DecalControls.CheckBox"    name="BotPositioning"       left="200" top="46"   width="200" height="16" text="Bot Navigation" />
 
             <control progid="DecalControls.Edit"        name="DefaultHeading"       left="5"   top="66"   width="27"  height="19" text="" />
-            <control progid="DecalControls.StaticText"                              left="40"  top="67"   width="110" height="16" text="Bot Default Heading" />
+            <control progid="DecalControls.StaticText"                              left="40"  top="67"   width="110" height="16" text="Default Heading" />
             <control progid="DecalControls.PushButton"  name="SetHeading"           left="200" top="66"   width="195" height="19" text="Use Current Heading" />
 
             <control progid="DecalControls.StaticText"                              left="5"   top="88"   width="200" height="16" text="Mana Threshold" />

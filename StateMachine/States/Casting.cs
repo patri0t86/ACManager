@@ -41,6 +41,10 @@ namespace ACManager.StateMachine.States
                         {
                             machine.ChatManager.Broadcast($"/s Portal now open to {machine.PortalDescription}. Safe journey, friend.");
                         }
+                        else
+                        {
+                            machine.ChatManager.Broadcast($"/s Portal now open. Safe journey, friend.");
+                        }
                     }
                     machine.SpellsToCast.RemoveAt(0);
                     if (machine.SpellsToCast.Count.Equals(0))
@@ -61,7 +65,7 @@ namespace ACManager.StateMachine.States
                 }
                 else if (!machine.CastStarted)
                 {
-                    if (machine.Core.CharacterFilter.Mana < machine.ManaThreshold * machine.MaxVitals[CharFilterVitalType.Mana])
+                    if (machine.Core.CharacterFilter.Mana < machine.ManaThreshold * machine.MaxVitals[CharFilterVitalType.Mana] && machine.Core.CharacterFilter.EffectiveSkill[CharFilterSkillType.LifeMagic] > 50)
                     {
                         machine.NextState = VitalManagement.GetInstance;
                     }
@@ -83,6 +87,7 @@ namespace ACManager.StateMachine.States
                         else
                         {
                             Debug.ToChat($"You do not know the spell {machine.Core.Filter<FileService>().SpellTable.GetById(machine.SpellsToCast[0]).Name}. Removing from current casting session.");
+                            machine.ChatManager.Broadcast($"I tried casting {machine.Core.Filter<FileService>().SpellTable.GetById(machine.SpellsToCast[0]).Name}, but I do not know it yet.");
                             machine.SpellsToCast.RemoveAt(0);
                             if (machine.SpellsToCast.Count.Equals(0))
                             {

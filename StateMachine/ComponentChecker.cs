@@ -3,7 +3,7 @@ using Decal.Adapter.Wrappers;
 using Decal.Filters;
 using System.Collections.Generic;
 
-namespace ACManager
+namespace ACManager.StateMachine
 {
     internal class ComponentChecker
     {
@@ -49,8 +49,8 @@ namespace ACManager
                 return true;
             }
             else
-            { 
-                return false; 
+            {
+                return false;
             }
         }
 
@@ -153,7 +153,7 @@ namespace ACManager
         }
 
         private SpellComponentIDs RequiredComponents(int spellId)
-        { 
+        {
             return Core.Filter<FileService>().SpellTable.GetById(spellId).ComponentIDs;
         }
 

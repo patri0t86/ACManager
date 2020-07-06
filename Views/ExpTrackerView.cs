@@ -6,7 +6,7 @@ namespace ACManager.Views
 {
     internal class ExpTrackerView : IDisposable
     {
-        internal FilterCore Filter { get; set; }
+        internal ExpTracker ExpTracker { get; set; }
         internal HudView View { get; set; }
         internal HudStaticText XpAtLogonText { get; set; }
         internal HudStaticText XpSinceLogonText { get; set; }
@@ -21,18 +21,19 @@ namespace ACManager.Views
         internal HudButton XpAlleg { get; set; }
         internal HudButton XpLocal { get; set; }
 
-        public ExpTrackerView(FilterCore parent)
+        public ExpTrackerView(ExpTracker parent)
         {
             try
             {
-                Filter = parent;
+                ExpTracker = parent;
 
                 VirindiViewService.XMLParsers.Decal3XMLParser parser = new VirindiViewService.XMLParsers.Decal3XMLParser();
                 parser.ParseFromResource("ACManager.Views.expTrackerView.xml", out ViewProperties Properties, out ControlGroup Controls);
 
-                View = new HudView(Properties, Controls);
-
-                View.ShowInBar = Filter.Machine.Utility.GUISettings.ExpTrackerVisible;
+                View = new HudView(Properties, Controls)
+                {
+                    ShowInBar = ExpTracker.ViewVisible
+                };
 
                 XpAtLogonText = View != null ? (HudStaticText)View["XpAtLogon"] : new HudStaticText();
                 XpSinceLogonText = View != null ? (HudStaticText)View["XpSinceLogon"] : new HudStaticText();
@@ -62,7 +63,7 @@ namespace ACManager.Views
         {
             try
             {
-                Filter.ExpTracker.Reset();
+                ExpTracker.Reset();
                 XpLast5Text.Text = "0";
                 XpPerHourText.Text = "0";
                 XpSinceResetText.Text = "0";
@@ -76,7 +77,7 @@ namespace ACManager.Views
         {
             try
             {
-                Filter.ExpTracker.Report("/f");
+                ExpTracker.Report("/f");
             }
             catch (Exception ex) { Debug.LogException(ex); }
         }
@@ -85,7 +86,7 @@ namespace ACManager.Views
         {
             try
             {
-                Filter.ExpTracker.Report("/a");
+                ExpTracker.Report("/a");
             }
             catch (Exception ex) { Debug.LogException(ex); }
         }
@@ -94,7 +95,7 @@ namespace ACManager.Views
         {
             try
             {
-                Filter.ExpTracker.Report();
+                ExpTracker.Report();
             }
             catch (Exception ex) { Debug.LogException(ex); }
         }
@@ -108,7 +109,6 @@ namespace ACManager.Views
             {
                 if (disposing)
                 {
-                    Filter = null;
                     XpReset.Hit -= XpReset_Hit;
                     XpFellow.Hit -= XpFellow_Hit;
                     XpAlleg.Hit -= XpAlleg_Hit;
