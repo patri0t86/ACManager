@@ -150,7 +150,7 @@ namespace ACManager.StateMachine
         /// <summary>
         /// The heading of the next portal to summon.
         /// </summary>
-        public double NextHeading { get; set; }
+        public double NextHeading { get; set; } = -1;
 
         /// <summary>
         /// Setting to determine if the machine will listen to portal requests from open chat.
@@ -279,6 +279,28 @@ namespace ACManager.StateMachine
                     break;
                 }
             }
+        }
+
+        /// <summary>
+        /// Determines in the bot is in the correct position in the world.
+        /// </summary>
+        /// <returns></returns>
+        public bool InPosition()
+        {
+            return Core.Actions.Landcell == DesiredLandBlock 
+                && Math.Abs(Core.Actions.LocationX - DesiredBotLocationX) < 1
+                && Math.Abs(Core.Actions.LocationY - DesiredBotLocationY) < 1;
+        }
+
+        /// <summary>
+        /// Determines if the bot is facing the correct heading for the current purpose.
+        /// </summary>
+        /// <returns></returns>
+        public bool CorrectHeading()
+        {
+            return (Core.Actions.Heading <= NextHeading + 1
+                && Core.Actions.Heading >= NextHeading - 1 )
+                || NextHeading.Equals(-1);
         }
     }
 }

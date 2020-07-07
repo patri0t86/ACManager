@@ -7,12 +7,14 @@ namespace ACManager.StateMachine.States
     /// </summary>
     class Positioning : StateBase<Positioning>, IState
     {
-        double tempHeading;
-        bool autoRunEnabled = false;
+        private double TempHeading { get; set; }
+        private bool AutoRunEnabled { get; set; }
+        private DateTime LastHeadingCheck { get; set; }
+        private bool IsTurning { get; set; }
 
         public void Enter(Machine machine)
         {
-
+            IsTurning = false;
         }
 
         public void Exit(Machine machine)
@@ -22,38 +24,67 @@ namespace ACManager.StateMachine.States
 
         public void Process(Machine machine)
         {
-            if (machine.Enabled && machine.EnablePositioning)
+            if (machine.Enabled)
             {
-                if (!(Math.Abs(machine.Core.Actions.LocationX - machine.DesiredBotLocationX) < 1 && Math.Abs(machine.Core.Actions.LocationY - machine.DesiredBotLocationY) < 1 && machine.Core.Actions.Landcell == machine.DesiredLandBlock))
+                if (machine.EnablePositioning)
                 {
-                    tempHeading = GetHeading(machine.Core.Actions.Landcell, machine.DesiredLandBlock, machine.Core.Actions.LocationX, machine.Core.Actions.LocationY, machine.DesiredBotLocationX, machine.DesiredBotLocationY);
-
-                    if (machine.Core.Actions.Heading <= tempHeading + 2 && machine.Core.Actions.Heading >= tempHeading - 2)
+                    if (machine.DesiredLandBlock.Equals(0) && machine.DesiredBotLocationX.Equals(0) && machine.DesiredBotLocationY.Equals(0))
                     {
-                        if (!autoRunEnabled)
+                        machine.DesiredLandBlock = machine.Core.Actions.Landcell;
+                        machine.DesiredBotLocationX = machine.Core.Actions.LocationX;
+                        machine.DesiredBotLocationY = machine.Core.Actions.LocationY;
+                        Debug.ToChat("Bot location set to current location since one was not set previously.");
+                    }
+                    else if (!machine.InPosition())
+                    {
+                        TempHeading = GetHeading(machine.Core.Actions.Landcell, machine.DesiredLandBlock, machine.Core.Actions.LocationX, machine.Core.Actions.LocationY, machine.DesiredBotLocationX, machine.DesiredBotLocationY);
+
+                        if (machine.Core.Actions.Heading <= TempHeading + 1 && machine.Core.Actions.Heading >= TempHeading - 1)
                         {
-                            machine.Core.Actions.SetAutorun(true);
-                            autoRunEnabled = !autoRunEnabled;
+                            if (!AutoRunEnabled)
+                            {
+                                IsTurning = false;
+                                AutoRunEnabled = !AutoRunEnabled;
+                                machine.Core.Actions.SetAutorun(AutoRunEnabled);
+                            }
+                        }
+                        else
+                        {
+                            if (AutoRunEnabled)
+                            {
+                                AutoRunEnabled = !AutoRunEnabled;
+                                machine.Core.Actions.SetAutorun(AutoRunEnabled);
+                            } 
+                            else if (!IsTurning)
+                            {
+                                IsTurning = !IsTurning;
+                                machine.Core.Actions.FaceHeading(TempHeading, false);
+                            }
                         }
                     }
                     else
                     {
-                        if (autoRunEnabled)
+                        if (AutoRunEnabled)
                         {
-                            machine.Core.Actions.SetAutorun(false);
-                            autoRunEnabled = !autoRunEnabled;
+                            AutoRunEnabled = !AutoRunEnabled;
+                            machine.Core.Actions.SetAutorun(AutoRunEnabled);
                         }
-                        machine.Core.Actions.Heading = tempHeading;
-
+                        else if (!machine.CorrectHeading())
+                        {
+                            Turn(machine);
+                        }
+                        else
+                        {
+                            machine.NextState = Idle.GetInstance;
+                        }
                     }
                 }
-                else // Have made it to the desired location
+                else if (!machine.CorrectHeading())
                 {
-                    if (autoRunEnabled)
-                    {
-                        machine.Core.Actions.SetAutorun(false);
-                        autoRunEnabled = !autoRunEnabled;
-                    }
+                    Turn(machine);
+                }
+                else
+                {
                     machine.NextState = Idle.GetInstance;
                 }
             }
@@ -66,6 +97,21 @@ namespace ACManager.StateMachine.States
         public override string ToString()
         {
             return nameof(Positioning);
+        }
+
+        private void Turn(Machine machine)
+        {
+            if (!IsTurning)
+            {
+                LastHeadingCheck = DateTime.Now;
+                IsTurning = !IsTurning;
+                machine.Core.Actions.FaceHeading(machine.NextHeading, false);
+            }
+            else if (DateTime.Now - LastHeadingCheck > TimeSpan.FromMilliseconds(1500) && !machine.Core.Actions.Heading.Equals(machine.NextHeading))
+            {
+                LastHeadingCheck = DateTime.Now;
+                machine.Core.Actions.FaceHeading(machine.NextHeading, false);
+            }
         }
 
         private double GetHeading(int currentLB, int targetLB, double currentX, double currentY, double targetX, double targetY)

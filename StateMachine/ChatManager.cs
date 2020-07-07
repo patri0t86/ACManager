@@ -165,7 +165,7 @@ namespace ACManager.StateMachine
                     }
                     else
                     {
-                        SendTell(Machine.CharacterMakingRequest, $"I'm finishing up a request for someone else. Once I'm done, please make your request again.");
+                        SendTell(Machine.CharacterMakingRequest, $"I'm finishing up a request. Once I'm done, please make your request again.");
                     }
                 }
             }

@@ -16,20 +16,27 @@ namespace ACManager.StateMachine.States
 
         public void Exit(Machine machine)
         {
-
+            machine.ItemToUse = null;
         }
 
         public void Process(Machine machine)
         {
             if (machine.Enabled)
             {
-                if (DateTime.Now - UseDelay > TimeSpan.FromSeconds(1)) // added a delay on use due to timing of rotation and using the item
+                if (machine.Inventory.GetInventoryCount(machine.ItemToUse) > 0)
                 {
-                    if (machine.Inventory.UseItem(machine.ItemToUse))
+                    if (DateTime.Now - UseDelay > TimeSpan.FromSeconds(1)) // added a delay on use due to timing of rotation and using the item
                     {
-                        machine.ChatManager.Broadcast($"Portal opened with {machine.PortalDescription}. Safe journey, friend.");
+                        if (machine.Inventory.UseItem(machine.ItemToUse))
+                        {
+                            machine.ChatManager.Broadcast($"Portal opened with {machine.PortalDescription}. Safe journey, friend.");
+                            machine.NextState = Idle.GetInstance;
+                        }                        
                     }
-                    machine.ItemToUse = null;
+                }
+                else
+                {
+                    machine.ChatManager.Broadcast($"It appears I've run out of {machine.ItemToUse}.");
                     machine.NextState = Idle.GetInstance;
                 }
             }

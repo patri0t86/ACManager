@@ -37,7 +37,6 @@ namespace ACManager.StateMachine.States
         /// Broadcast advertisement / low on spell comps
         /// </summary>
         /// <param name="machine"></param>
-
         public void Process(Machine machine)
         {
             if (machine.Enabled)
@@ -46,19 +45,9 @@ namespace ACManager.StateMachine.States
                 {
                     machine.Core.Actions.SetCombatMode(CombatState.Peace);
                 }
-                else if (!(machine.Core.Actions.Landcell == machine.DesiredLandBlock && Math.Abs(machine.Core.Actions.LocationX - machine.DesiredBotLocationX) < 1 && Math.Abs(machine.Core.Actions.LocationY - machine.DesiredBotLocationY) < 1) && machine.EnablePositioning) // If bot is not in the correct spot, get there
+                else if ((machine.EnablePositioning && (!machine.InPosition() || !machine.CorrectHeading())) || !machine.CorrectHeading())
                 {
-                    if (machine.DesiredLandBlock.Equals(0) && machine.DesiredBotLocationX.Equals(0) && machine.DesiredBotLocationY.Equals(0))
-                    {
-                        machine.DesiredLandBlock = machine.Core.Actions.Landcell;
-                        machine.DesiredBotLocationX = machine.Core.Actions.LocationX;
-                        machine.DesiredBotLocationY = machine.Core.Actions.LocationY;
-                        Debug.ToChat("Bot location set to current location since one was not set previously.");
-                    }
-                    else
-                    {
-                        machine.NextState = Positioning.GetInstance;
-                    }
+                    machine.NextState = Positioning.GetInstance;
                 }
                 else if ((!string.IsNullOrEmpty(machine.ItemToUse) || machine.SpellsToCast.Count > 0) && !machine.Core.CharacterFilter.Name.Equals(machine.NextCharacter))
                 {
@@ -66,71 +55,46 @@ namespace ACManager.StateMachine.States
                 }
                 else if (machine.SpellsToCast.Count > 0 && machine.Core.CharacterFilter.Name.Equals(machine.NextCharacter))
                 {
-                    if ((machine.Core.Actions.Heading <= machine.NextHeading + 2 && machine.Core.Actions.Heading >= machine.NextHeading - 2) || machine.NextHeading.Equals(-1))
+                    // equipping state?
+                    using (WorldObjectCollection wands = machine.Core.WorldFilter.GetInventory())
                     {
-                        using (WorldObjectCollection wands = machine.Core.WorldFilter.GetInventory())
+                        wands.SetFilter(new ByObjectClassFilter(ObjectClass.WandStaffOrb));
+                        if (wands.Quantity > 0)
                         {
-                            wands.SetFilter(new ByObjectClassFilter(ObjectClass.WandStaffOrb));
-
-                            if (wands.Quantity > 0)
+                            foreach (WorldObject wand in wands)
                             {
-                                foreach (WorldObject wand in wands)
+                                if (wand.Values(LongValueKey.EquippedSlots) > 0)
                                 {
-                                    if (wand.Values(LongValueKey.EquippedSlots) > 0)
-                                    {
-                                        machine.NextState = Casting.GetInstance;
-                                        wandEquipped = true;
-                                        wandId = wand.Id;
-                                        break;
-                                    }
+                                    machine.NextState = Casting.GetInstance;
+                                    wandEquipped = true;
+                                    wandId = wand.Id;
+                                    break;
+                                }
 
-                                    if (!wandEquipped)
-                                    {
-                                        machine.Core.Actions.AutoWield(wand.Id);
-                                        wandEquipped = true;
-                                        wandId = wand.Id;
-                                    }
+                                if (!wandEquipped)
+                                {
+                                    machine.Core.Actions.AutoWield(wand.Id);
+                                    wandEquipped = true;
+                                    wandId = wand.Id;
                                 }
                             }
-                            else
-                            {
-                                machine.ChatManager.Broadcast("Oops, my owner didn't give me a wand. Cancelling this request.");
-                                machine.SpellsToCast.Clear();
-                            }
                         }
-                    }
-                    else
-                    {
-                        machine.Core.Actions.Heading = machine.NextHeading;
+                        else
+                        {
+                            machine.ChatManager.Broadcast("Oops, my owner didn't give me a wand. Cancelling this request.");
+                            machine.SpellsToCast.Clear();
+                        }
                     }
                 }
                 else if (wandEquipped)
                 {
+                    // equipping state - unequip on exit of state?
                     machine.Core.Actions.MoveItem(wandId, machine.Core.CharacterFilter.Id);
                     wandEquipped = false;
                 }
                 else if (!string.IsNullOrEmpty(machine.ItemToUse) && machine.Core.CharacterFilter.Name.Equals(machine.NextCharacter))
                 {
-                    if (machine.Inventory.GetInventoryCount(machine.ItemToUse) > 0)
-                    {
-                        if (machine.Core.Actions.Heading <= machine.NextHeading + 1 && machine.Core.Actions.Heading >= machine.NextHeading - 1)
-                        {
-                            machine.NextState = UseItem.GetInstance;
-                        }
-                        else
-                        {
-                            machine.Core.Actions.Heading = machine.NextHeading;
-                        }
-                    }
-                    else
-                    {
-                        machine.ChatManager.Broadcast($"It appears I've run out of {machine.ItemToUse}.");
-                        machine.ItemToUse = null;
-                    }
-                }
-                else if (!(machine.Core.Actions.Heading <= machine.DefaultHeading + 2 && machine.Core.Actions.Heading >= machine.DefaultHeading - 2) && machine.EnablePositioning)
-                {
-                    machine.Core.Actions.Heading = machine.DefaultHeading;
+                     machine.NextState = UseItem.GetInstance;
                 }
                 else if (machine.Advertise && machine.Update() && DateTime.Now - machine.LastBroadcast > TimeSpan.FromMinutes(machine.AdInterval))
                 {
@@ -143,6 +107,23 @@ namespace ACManager.StateMachine.States
                     if (machine.Inventory.LowComponents.Count > 0)
                     {
                         machine.ChatManager.Broadcast(machine.Inventory.LowCompsReport());
+                    }
+                }
+                else
+                {
+                    if (machine.EnablePositioning)
+                    {
+                        if (!machine.NextHeading.Equals(machine.DefaultHeading))
+                        {
+                            machine.NextHeading = machine.DefaultHeading;
+                        }
+                    }
+                    else
+                    {
+                        if (!machine.NextHeading.Equals(-1))
+                        {
+                            machine.NextHeading = -1;
+                        }
                     }
                 }
             }
