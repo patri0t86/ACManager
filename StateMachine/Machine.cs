@@ -4,7 +4,6 @@ using Decal.Adapter;
 using Decal.Adapter.Wrappers;
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 
 namespace ACManager.StateMachine
 {

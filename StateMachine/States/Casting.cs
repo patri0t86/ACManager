@@ -1,6 +1,5 @@
 ﻿using Decal.Adapter.Wrappers;
 using Decal.Filters;
-using System.Text;
 
 namespace ACManager.StateMachine.States
 {
