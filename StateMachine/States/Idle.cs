@@ -9,9 +9,6 @@ namespace ACManager.StateMachine.States
     /// </summary>
     internal class Idle : StateBase<Idle>, IState
     {
-        private bool wandEquipped = false;
-        private int wandId;
-
         public void Enter(Machine machine)
         {
             machine.DecliningCommands = false;
@@ -27,14 +24,13 @@ namespace ACManager.StateMachine.States
 
         /// <summary>
         /// Order of operations:
-        /// Go to peace mode
-        /// Move the bot to the correct location in the world
-        /// Switch characters if portal is not on this character
-        /// Cast summon portal from this character / turn character to the correct heading / equip wand
-        /// If a wand is equipped, unequip it
-        /// Use gem if required
-        /// Turn character to the default heading if truly idle
+        /// Go to peace mode, if not there
+        /// Move the bot to the correct location and heading in the world depending on use/idle status
+        /// Switch characters if portal/item is not on this character
+        /// Equip items -> Cast spells -> Dequip items -> return
+        /// Use item
         /// Broadcast advertisement / low on spell comps
+        /// Set machine variables depending on status
         /// </summary>
         /// <param name="machine"></param>
         public void Process(Machine machine)
@@ -55,42 +51,7 @@ namespace ACManager.StateMachine.States
                 }
                 else if (machine.SpellsToCast.Count > 0 && machine.Core.CharacterFilter.Name.Equals(machine.NextCharacter))
                 {
-                    // equipping state?
-                    using (WorldObjectCollection wands = machine.Core.WorldFilter.GetInventory())
-                    {
-                        wands.SetFilter(new ByObjectClassFilter(ObjectClass.WandStaffOrb));
-                        if (wands.Quantity > 0)
-                        {
-                            foreach (WorldObject wand in wands)
-                            {
-                                if (wand.Values(LongValueKey.EquippedSlots) > 0)
-                                {
-                                    machine.NextState = Casting.GetInstance;
-                                    wandEquipped = true;
-                                    wandId = wand.Id;
-                                    break;
-                                }
-
-                                if (!wandEquipped)
-                                {
-                                    machine.Core.Actions.AutoWield(wand.Id);
-                                    wandEquipped = true;
-                                    wandId = wand.Id;
-                                }
-                            }
-                        }
-                        else
-                        {
-                            machine.ChatManager.Broadcast("Oops, my owner didn't give me a wand. Cancelling this request.");
-                            machine.SpellsToCast.Clear();
-                        }
-                    }
-                }
-                else if (wandEquipped)
-                {
-                    // equipping state - unequip on exit of state?
-                    machine.Core.Actions.MoveItem(wandId, machine.Core.CharacterFilter.Id);
-                    wandEquipped = false;
+                    machine.NextState = Equipping.GetInstance;
                 }
                 else if (!string.IsNullOrEmpty(machine.ItemToUse) && machine.Core.CharacterFilter.Name.Equals(machine.NextCharacter))
                 {
