@@ -88,10 +88,10 @@ namespace ACManager.StateMachine.States
                     if (machine.Core.Actions.CombatMode != CombatState.Peace)
                     {
                         machine.Core.Actions.SetCombatMode(CombatState.Peace);
-                    } 
-                    else if (machine.Core.Actions.CombatMode == CombatState.Peace) 
+                    }
+                    else if (machine.Core.Actions.CombatMode == CombatState.Peace)
                     {
-                        machine.NextState = Equipping.GetInstance; 
+                        machine.NextState = Equipping.GetInstance;
                     }
                 }
             }

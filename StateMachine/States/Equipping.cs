@@ -12,7 +12,7 @@ namespace ACManager.StateMachine.States
 
         public void Enter(Machine machine)
         {
-            
+
         }
 
         public void Exit(Machine machine)

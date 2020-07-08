@@ -1,4 +1,5 @@
-﻿using Decal.Adapter.Wrappers;
+﻿using ACManager.StateMachine.Queues;
+using Decal.Adapter.Wrappers;
 using System;
 
 namespace ACManager.StateMachine.States
@@ -11,14 +12,12 @@ namespace ACManager.StateMachine.States
     {
         public void Enter(Machine machine)
         {
-            machine.DecliningCommands = false;
             machine.Inventory.GetComponentLevels();
             machine.Inventory.UpdateInventoryFile();
         }
 
         public void Exit(Machine machine)
         {
-            machine.DecliningCommands = true;
             machine.Inventory.GetComponentLevels();
         }
 
@@ -41,13 +40,13 @@ namespace ACManager.StateMachine.States
                 {
                     machine.Core.Actions.SetCombatMode(CombatState.Peace);
                 }
-                else if ((machine.EnablePositioning && (!machine.InPosition() || !machine.CorrectHeading())) || !machine.CorrectHeading())
-                {
-                    machine.NextState = Positioning.GetInstance;
-                }
                 else if ((!string.IsNullOrEmpty(machine.ItemToUse) || machine.SpellsToCast.Count > 0) && !machine.Core.CharacterFilter.Name.Equals(machine.NextCharacter))
                 {
                     machine.NextState = SwitchingCharacters.GetInstance;
+                }
+                else if ((machine.EnablePositioning && (!machine.InPosition() || !machine.CorrectHeading())) || !machine.CorrectHeading())
+                {
+                    machine.NextState = Positioning.GetInstance;
                 }
                 else if (machine.SpellsToCast.Count > 0 && machine.Core.CharacterFilter.Name.Equals(machine.NextCharacter))
                 {
@@ -55,7 +54,29 @@ namespace ACManager.StateMachine.States
                 }
                 else if (!string.IsNullOrEmpty(machine.ItemToUse) && machine.Core.CharacterFilter.Name.Equals(machine.NextCharacter))
                 {
-                     machine.NextState = UseItem.GetInstance;
+                    machine.NextState = UseItem.GetInstance;
+                }
+                else if (machine.Requests.Count > 0)
+                {
+                    machine.CurrentRequest = machine.Requests.Dequeue();
+                    if (machine.CurrentRequest.RequestType.Equals(RequestType.Portal))
+                    {
+                        machine.NextCharacter = machine.CurrentRequest.Character;
+                        machine.PortalDescription = machine.CurrentRequest.Destination;
+                        machine.NextHeading = machine.CurrentRequest.Heading;
+                        machine.SpellsToCast = machine.CurrentRequest.SpellsToCast;
+                    }
+                    else if (machine.CurrentRequest.RequestType.Equals(RequestType.Buff))
+                    {
+
+                    }
+                    else if (machine.CurrentRequest.RequestType.Equals(RequestType.Gem))
+                    {
+                        machine.NextCharacter = machine.CurrentRequest.Character;
+                        machine.PortalDescription = machine.CurrentRequest.Destination;
+                        machine.NextHeading = machine.CurrentRequest.Heading;
+                        machine.ItemToUse = machine.CurrentRequest.ItemToUse;
+                    }
                 }
                 else if (machine.Advertise && machine.Update() && DateTime.Now - machine.LastBroadcast > TimeSpan.FromMinutes(machine.AdInterval))
                 {
@@ -72,6 +93,7 @@ namespace ACManager.StateMachine.States
                 }
                 else
                 {
+                    machine.CurrentRequest = new Request();
                     if (machine.EnablePositioning)
                     {
                         if (!machine.NextHeading.Equals(machine.DefaultHeading))

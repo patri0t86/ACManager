@@ -1,4 +1,5 @@
 ﻿using ACManager.Settings;
+using ACManager.StateMachine.Queues;
 using Decal.Adapter;
 using Decal.Adapter.Wrappers;
 using Decal.Filters;
@@ -73,10 +74,10 @@ namespace ACManager.StateMachine
                     RespondWithPortals();
                 }
 
-                if (Machine.RespondToOpenChat && !Machine.DecliningCommands)
-                {
+                //if (Machine.RespondToOpenChat && !Machine.DecliningCommands)
+                //{
                     CheckCommands(message);
-                }
+                //}
             }
         }
 
@@ -97,76 +98,103 @@ namespace ACManager.StateMachine
 
             if (!string.IsNullOrEmpty(message) && Machine.Update())
             {
-                //bool commandExists = false;
                 if (message.Equals("whereto") || message.Equals("where to"))
                 {
                     RespondWithPortals();
                 }
                 else if (message.Equals("help"))
                 {
-                    SendTell(Machine.CharacterMakingRequest, "You can /t me 'whereto' to get a list of portals. Then /t me any keyword for me to summon the portal you request.");
+                    SendTell(Machine.CharacterMakingRequest, "My list of commands are: whereto, and comps.");
                 }
                 else if (message.Equals("comps"))
                 {
+                    Dictionary<string, int> components = new Dictionary<string, int>();
                     for (int i = 0; i < Machine.Core.Filter<FileService>().ComponentTable.Length; i++)
                     {
                         using (WorldObjectCollection collection = Machine.Core.WorldFilter.GetInventory())
                         {
                             collection.SetFilter(new ByNameFilter(Machine.Core.Filter<FileService>().ComponentTable[i].Name));
-                            if (collection.Quantity.Equals(0))
-                            {
-                                continue;
-                            }
-                            else
+                            if (collection.Quantity > 0)
                             {
                                 if (collection.First.Name.Contains("Scarab"))
                                 {
                                     switch (collection.First.Name)
                                     {
                                         case "Lead Scarab":
-                                            SendTell(Machine.CharacterMakingRequest, $"I have {collection.Quantity} {collection.First.Name}{(collection.Quantity > 1 ? "s" : "")}. {(collection.Quantity <= Machine.Inventory.LeadScarabThreshold ? "(low)" : "")}");
+                                            components.Add(collection.First.Name, collection.Quantity);
                                             break;
                                         case "Iron Scarab":
-                                            SendTell(Machine.CharacterMakingRequest, $"I have {collection.Quantity} {collection.First.Name}{(collection.Quantity > 1 ? "s" : "")}. {(collection.Quantity <= Machine.Inventory.IronScarabThreshold ? "(low)" : "")}");
+                                            components.Add(collection.First.Name, collection.Quantity);
                                             break;
                                         case "Copper Scarab":
-                                            SendTell(Machine.CharacterMakingRequest, $"I have {collection.Quantity} {collection.First.Name}{(collection.Quantity > 1 ? "s" : "")}. {(collection.Quantity <= Machine.Inventory.CopperScarabThreshold ? "(low)" : "")}");
+                                            components.Add(collection.First.Name, collection.Quantity);
                                             break;
                                         case "Silver Scarab":
-                                            SendTell(Machine.CharacterMakingRequest, $"I have {collection.Quantity} {collection.First.Name}{(collection.Quantity > 1 ? "s" : "")}. {(collection.Quantity <= Machine.Inventory.SilverScarabThreshold ? "(low)" : "")}");
+                                            components.Add(collection.First.Name, collection.Quantity);
                                             break;
                                         case "Gold Scarab":
-                                            SendTell(Machine.CharacterMakingRequest, $"I have {collection.Quantity} {collection.First.Name}{(collection.Quantity > 1 ? "s" : "")}. {(collection.Quantity <= Machine.Inventory.GoldScarabThreshold ? "(low)" : "")}");
+                                            components.Add(collection.First.Name, collection.Quantity);
                                             break;
                                         case "Pyreal Scarab":
-                                            SendTell(Machine.CharacterMakingRequest, $"I have {collection.Quantity} {collection.First.Name}{(collection.Quantity > 1 ? "s" : "")}. {(collection.Quantity <= Machine.Inventory.PyrealScarabThreshold ? "(low)" : "")}");
+                                            components.Add(collection.First.Name, collection.Quantity);
                                             break;
                                         case "Platinum Scarab":
-                                            SendTell(Machine.CharacterMakingRequest, $"I have {collection.Quantity} {collection.First.Name}{(collection.Quantity > 1 ? "s" : "")}. {(collection.Quantity <= Machine.Inventory.PlatinumScarabThreshold ? "(low)" : "")}");
+                                            components.Add(collection.First.Name, collection.Quantity);
                                             break;
                                         case "Mana Scarab":
-                                            SendTell(Machine.CharacterMakingRequest, $"I have {collection.Quantity} {collection.First.Name}{(collection.Quantity > 1 ? "s" : "")}. {(collection.Quantity <= Machine.Inventory.ManaScarabThreshold ? "(low)" : "")}");
+                                            components.Add(collection.First.Name, collection.Quantity);
                                             break;
                                     }
                                 }
                                 else
                                 {
-                                    SendTell(Machine.CharacterMakingRequest, $"I have {collection.Quantity} {collection.First.Name}{(collection.Quantity > 1 ? "s" : "")}. {(collection.Quantity <= Machine.Inventory.ComponentThreshold ? "(low)" : "")}");
+                                    components.Add(collection.First.Name, collection.Quantity);
                                 }
                             }
                         }
                     }
-                }
-                else
-                {
-                    if (!Machine.DecliningCommands)
+
+                    if (components.Count > 0)
                     {
-                        CheckCommands(message);
+                        string[] keys = new string[components.Count];
+                        int[] values = new int[components.Count];
+                        components.Keys.CopyTo(keys, 0);
+                        components.Values.CopyTo(values, 0);
+                        StringBuilder sb = new StringBuilder();
+                        sb.Append("I currently have ");
+                        for (int i = 0; i < components.Count; i++)
+                        {
+                            if (i.Equals(components.Count - 1) && components.Count > 1)
+                            {
+                                sb.Append($"and ");
+                            }
+                            sb.Append($"{values[i]} {keys[i]}{(values[i] > 1 ? "s" : "")}");
+                            if (i < components.Count - 1)
+                            {
+                                sb.Append($", ");
+                            }
+                            if (i.Equals(components.Count - 1))
+                            {
+                                sb.Append(".");
+                            }
+                        }
+                        SendTell(Machine.CharacterMakingRequest, sb.ToString());
                     }
                     else
                     {
-                        SendTell(Machine.CharacterMakingRequest, $"I'm finishing up a request. Once I'm done, please make your request again.");
+                        SendTell(Machine.CharacterMakingRequest, "I don't have any components.");
                     }
+                }
+                else
+                {
+                    //if (!Machine.DecliningCommands)
+                    //{
+                        CheckCommands(message);
+                    //}
+                    //else
+                    //{
+                        //SendTell(Machine.CharacterMakingRequest, $"I'm finishing up a request. Once I'm done, please make your request again.");
+                    //}
                 }
             }
         }
@@ -176,135 +204,57 @@ namespace ACManager.StateMachine
         /// </summary>
         private void RespondWithPortals()
         {
-            List<string> portalStrings = GetPortals();
-            List<string> gemStrings = GetGems();
-            if (Machine.Verbosity > 0)
+            List<string> responeStrings = new List<string>();
+            responeStrings.AddRange(GetPortals());
+            responeStrings.AddRange(GetGems());
+            if (responeStrings.Count > 0)
             {
-                if (portalStrings.Count > 0)
+                SendTell(Machine.CharacterMakingRequest, "You can /t me any keyword, and I will summon the corresponding portal.");
+                if (Machine.Verbosity > 0)
                 {
-                    SendTell(Machine.CharacterMakingRequest, "You can /t me any keyword, and I will summon the corresponding portal.");
-                    StringBuilder sb = new StringBuilder();
-                    int count = 0;
-                    for (int i = 0; i < portalStrings.Count; i++)
-                    {
-                        sb.Append(portalStrings[i]);
-                        count++;
-                        if (count.Equals(Machine.Verbosity + 1))
-                        {
-                            SendTell(Machine.CharacterMakingRequest, sb.ToString());
-                            sb.Length = 0;
-                            sb.Capacity = 0;
-                            sb.Capacity = 16;
-                            count = 0;
-                        }
-                        else if (count < Machine.Verbosity + 1 && !i.Equals(portalStrings.Count - 1))
-                        {
-                            sb.Append(", ");
-                        }
-
-                        if (i.Equals(portalStrings.Count - 1) && !string.IsNullOrEmpty(sb.ToString()))
-                        {
-                            SendTell(Machine.CharacterMakingRequest, sb.ToString());
-                            sb.Length = 0;
-                            sb.Capacity = 0;
-                        }
-                    }
-
-                    if (gemStrings.Count > 0)
-                    {
-                        sb.Length = 0;
-                        sb.Capacity = 0;
-                        sb.Capacity = 16;
-                        count = 0;
-                        for (int i = 0; i < gemStrings.Count; i++)
-                        {
-                            sb.Append(gemStrings[i]);
-                            count++;
-                            if (count.Equals(Machine.Verbosity + 1))
-                            {
-                                SendTell(Machine.CharacterMakingRequest, sb.ToString());
-                                sb.Length = 0;
-                                sb.Capacity = 0;
-                                sb.Capacity = 16;
-                                count = 0;
-                            }
-                            else if (count < Machine.Verbosity + 1 && !i.Equals(gemStrings.Count - 1))
-                            {
-                                sb.Append(", ");
-                            }
-
-                            if (i.Equals(gemStrings.Count - 1) && !string.IsNullOrEmpty(sb.ToString()))
-                            {
-                                SendTell(Machine.CharacterMakingRequest, sb.ToString());
-                                sb.Length = 0;
-                                sb.Capacity = 0;
-                            }
-                        }
-                    }
-                }
-                else if (gemStrings.Count > 0)
-                {
-                    SendTell(Machine.CharacterMakingRequest, "You can /t me any keyword, and I will summon the corresponding portal.");
-                    StringBuilder sb = new StringBuilder();
-                    int count = 0;
-                    for (int i = 0; i < gemStrings.Count; i++)
-                    {
-                        sb.Append(gemStrings[i]);
-                        count++;
-                        if (count.Equals(Machine.Verbosity + 1))
-                        {
-                            SendTell(Machine.CharacterMakingRequest, sb.ToString());
-                            sb.Length = 0;
-                            sb.Capacity = 0;
-                            sb.Capacity = 16;
-                            count = 0;
-                        }
-                        else if (count < Machine.Verbosity + 1 && !i.Equals(gemStrings.Count - 1))
-                        {
-                            sb.Append(", ");
-                        }
-
-                        if (i.Equals(gemStrings.Count - 1) && !string.IsNullOrEmpty(sb.ToString()))
-                        {
-                            SendTell(Machine.CharacterMakingRequest, sb.ToString());
-                            sb.Length = 0;
-                            sb.Capacity = 0;
-                        }
-                    }
+                    RespondWithVerbosity(responeStrings);
                 }
                 else
                 {
-                    SendTell(Machine.CharacterMakingRequest, "I don't currently have any portals configured.");
+                    foreach (string response in responeStrings)
+                    {
+                        SendTell(Machine.CharacterMakingRequest, response);
+                    }
                 }
             }
             else
             {
-                if (portalStrings.Count > 0)
-                {
-                    SendTell(Machine.CharacterMakingRequest, "You can /t me any keyword, and I will summon the corresponding portal.");
-                    foreach (string portal in portalStrings)
-                    {
-                        SendTell(Machine.CharacterMakingRequest, portal);
-                    }
+                SendTell(Machine.CharacterMakingRequest, "I don't currently have any portals configured.");
+            }
+        }
 
-                    if (gemStrings.Count > 0)
-                    {
-                        foreach (string gem in gemStrings)
-                        {
-                            SendTell(Machine.CharacterMakingRequest, gem);
-                        }
-                    }
-                }
-                else if (gemStrings.Count > 0)
+        private void RespondWithVerbosity(List<string> stringList)
+        {
+
+            StringBuilder sb = new StringBuilder();
+            int count = 0;
+            for (int i = 0; i < stringList.Count; i++)
+            {
+                sb.Append(stringList[i]);
+                count++;
+                if (count.Equals(Machine.Verbosity + 1))
                 {
-                    foreach (string gem in gemStrings)
-                    {
-                        SendTell(Machine.CharacterMakingRequest, gem);
-                    }
+                    SendTell(Machine.CharacterMakingRequest, sb.ToString());
+                    sb.Length = 0;
+                    sb.Capacity = 0;
+                    sb.Capacity = 16;
+                    count = 0;
                 }
-                else
+                else if (count < Machine.Verbosity + 1 && !i.Equals(stringList.Count - 1))
                 {
-                    SendTell(Machine.CharacterMakingRequest, "I don't currently have any portals configured.");
+                    sb.Append(", ");
+                }
+
+                if (i.Equals(stringList.Count - 1) && !string.IsNullOrEmpty(sb.ToString()))
+                {
+                    SendTell(Machine.CharacterMakingRequest, sb.ToString());
+                    sb.Length = 0;
+                    sb.Capacity = 0;
                 }
             }
         }
@@ -349,83 +299,83 @@ namespace ACManager.StateMachine
         private void CheckCommands(string message)
         {
             Machine.Inventory.UpdateInventoryFile();
+
+            // checking for portal keywords
             for (int i = 0; i < Machine.Utility.CharacterSettings.Characters.Count; i++)
             {
                 foreach (Portal portal in Machine.Utility.CharacterSettings.Characters[i].Portals)
                 {
                     if (portal.Keyword.Equals(message))
                     {
-                        Machine.PortalDescription = portal.Description;
-                        Machine.NextHeading = portal.Heading;
-                        Machine.NextCharacter = Machine.Utility.CharacterSettings.Characters[i].Name;
+                        Request newRequest = new Request
+                        {
+                            RequestType = RequestType.Portal,
+                            RequesterName = Machine.CharacterMakingRequest,
+                            Destination = portal.Description,
+                            Heading = portal.Heading,
+                            Character = Machine.Utility.CharacterSettings.Characters[i].Name
+                        };
+
                         if (Machine.Core.CharacterFilter.Name.Equals(Machine.Utility.CharacterSettings.Characters[i].Name))
                         {
                             if (portal.Type.Equals(PortalType.Primary))
                             {
-                                Machine.SpellsToCast.Add(157);
+                                newRequest.SpellsToCast.Add(157);
                             }
                             else if (portal.Type.Equals(PortalType.Secondary))
                             {
-                                Machine.SpellsToCast.Add(2648);
+                                newRequest.SpellsToCast.Add(2648);
                             }
-                            break;
                         }
                         else
                         {
-                            SendTell(Machine.CharacterMakingRequest, $"The requested portal{(string.IsNullOrEmpty(Machine.PortalDescription) ? " " : $" to {Machine.PortalDescription} ")}is on another character, please standby.");
-                            Machine.GetNextCharacter();
-                            Broadcast($"Be right back, switching to {Machine.NextCharacter} to summon{(string.IsNullOrEmpty(Machine.PortalDescription) ? "" : $" {Machine.PortalDescription}")}.");
-
                             if (portal.Type.Equals(PortalType.Primary))
                             {
-                                Machine.SpellsToCast.Add(157);
+                                newRequest.SpellsToCast.Add(157);
                             }
                             else if (portal.Type.Equals(PortalType.Secondary))
                             {
-                                Machine.SpellsToCast.Add(2648);
+                                newRequest.SpellsToCast.Add(2648);
                             }
-                            break;
                         }
+                        Machine.AddToQueue(newRequest);
                     }
                 }
             }
 
+            // checking for gem keywords
             foreach (GemSetting gemSetting in Machine.Utility.BotSettings.GemSettings)
             {
                 if (gemSetting.Keyword.Equals(message))
                 {
-                    Machine.PortalDescription = gemSetting.Name;
-                    Machine.NextHeading = gemSetting.Heading;
-                    Machine.ItemToUse = gemSetting.Name;
-                    using (WorldObjectCollection inventory = Machine.Core.WorldFilter.GetInventory())
+                    Request newRequest = new Request
                     {
-                        inventory.SetFilter(new ByNameFilter(gemSetting.Name));
-                        if (inventory.Quantity > 0) // gem is on this character
-                        {
-                            Machine.NextCharacter = Machine.Core.CharacterFilter.Name;
-                            break;
-                        }
-                    }
+                        RequestType = RequestType.Gem,
+                        Destination = gemSetting.Name,
+                        Heading = gemSetting.Heading,
+                        ItemToUse = gemSetting.Name
+                    };
 
-                    for (int i = 0; i < Machine.Utility.Inventory.CharacterInventories.Count; i++)
+                    if (Machine.Inventory.GetInventoryCount(gemSetting.Name) > 0)
                     {
-                        for (int j = 0; j < Machine.Utility.Inventory.CharacterInventories[i].Gems.Count; j++)
+                        newRequest.Character = Machine.Core.CharacterFilter.Name;
+                        Machine.AddToQueue(newRequest);
+                    }
+                    else
+                    {
+                        for (int i = 0; i < Machine.Utility.Inventory.CharacterInventories.Count; i++)
                         {
-                            if (Machine.Utility.Inventory.CharacterInventories[i].Gems[j].Name.Equals(gemSetting.Name) && Machine.Utility.Inventory.CharacterInventories[i].Gems[j].Quantity > 0)
+                            for (int j = 0; j < Machine.Utility.Inventory.CharacterInventories[i].Gems.Count; j++)
                             {
-                                Machine.NextCharacter = Machine.Utility.Inventory.CharacterInventories[i].Name;
-                                Machine.GetNextCharacter();
-                                if (!Machine.NextCharacter.Equals(Machine.Core.CharacterFilter.Name))
+                                if (Machine.Utility.Inventory.CharacterInventories[i].Gems[j].Name.Equals(gemSetting.Name) && Machine.Utility.Inventory.CharacterInventories[i].Gems[j].Quantity > 0)
                                 {
-                                    Broadcast($"Be right back, switching to {Machine.NextCharacter} to use {Machine.PortalDescription}.");
+                                    newRequest.Character = Machine.Utility.Inventory.CharacterInventories[i].Name;
+                                    Machine.AddToQueue(newRequest);
+                                    return; // return here so that if multiple characters have the gem by chance, they aren't all queued.
                                 }
-                                return;
                             }
                         }
                     }
-
-                    // no gems found
-                    Machine.NextCharacter = Machine.Core.CharacterFilter.Name;
                 }
             }
         }

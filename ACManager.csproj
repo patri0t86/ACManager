@@ -95,7 +95,9 @@
     <Compile Include="Settings\CharacterSettings.cs" />
     <Compile Include="StateMachine\Interpreter.cs" />
     <Compile Include="StateMachine\Inventory.cs" />
+    <Compile Include="StateMachine\Queues\Request.cs" />
     <Compile Include="StateMachine\States\Casting.cs" />
+    <Compile Include="StateMachine\States\Equipping.cs" />
     <Compile Include="StateMachine\States\IState.cs" />
     <Compile Include="StateMachine\States\Idle.cs" />
     <Compile Include="StateMachine\Machine.cs" />

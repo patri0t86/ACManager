@@ -54,7 +54,7 @@ namespace ACManager.StateMachine.States
                             {
                                 AutoRunEnabled = !AutoRunEnabled;
                                 machine.Core.Actions.SetAutorun(AutoRunEnabled);
-                            } 
+                            }
                             else if (!IsTurning)
                             {
                                 IsTurning = !IsTurning;

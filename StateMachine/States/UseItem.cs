@@ -25,13 +25,13 @@ namespace ACManager.StateMachine.States
             {
                 if (machine.Inventory.GetInventoryCount(machine.ItemToUse) > 0)
                 {
-                    if (DateTime.Now - UseDelay > TimeSpan.FromSeconds(1)) // added a delay on use due to timing of rotation and using the item
+                    if (DateTime.Now - UseDelay > TimeSpan.FromSeconds(1))
                     {
                         if (machine.Inventory.UseItem(machine.ItemToUse))
                         {
                             machine.ChatManager.Broadcast($"Portal opened with {machine.PortalDescription}. Safe journey, friend.");
                             machine.NextState = Idle.GetInstance;
-                        }                        
+                        }
                     }
                 }
                 else
