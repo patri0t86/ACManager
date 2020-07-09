@@ -1,5 +1,4 @@
 ﻿using ACManager.Settings;
-using ACManager.StateMachine;
 using System;
 using System.Diagnostics;
 using System.IO;
@@ -8,7 +7,7 @@ using System.Text;
 using System.Xml;
 using System.Xml.Serialization;
 
-namespace ACManager
+namespace ACManager.StateMachine
 {
     /// <summary>
     /// Static class to handle miscellaneous tasks, like file I/O, outside of the client.
@@ -25,10 +24,13 @@ namespace ACManager
         private string GUISettingsPath { get; set; }
         private string InventoryFile { get { return "acm_inventory.xml"; } }
         private string InventoryPath { get; set; }
+        private string BuffProfilesFile { get { return "acm_buff_profiles.xml"; } }
+        private string BuffProfilesPath { get; set; }
         internal CharacterSettings CharacterSettings { get; set; } = new CharacterSettings();
         internal BotSettings BotSettings { get; set; } = new BotSettings();
         internal GUISettings GUISettings { get; set; } = new GUISettings();
         internal InventorySettings Inventory { get; set; } = new InventorySettings();
+        internal BuffSettings BuffProfiles { get; set; } = new BuffSettings();
         internal string Version { get; set; }
 
         public Utility(Machine machine, string path)
@@ -40,6 +42,7 @@ namespace ACManager
             BotSettings = LoadBotSettings();
             GUISettings = LoadGUISettings();
             Inventory = LoadInventories();
+            BuffProfiles = LoadBuffProfiles(); 
         }
 
         internal Character GetCurrentCharacter()
@@ -80,6 +83,7 @@ namespace ACManager
                 BotSettingsPath = Path.Combine(AllSettingsPath, BotSettingsFile);
                 GUISettingsPath = Path.Combine(AllSettingsPath, GUISettingsFile);
                 InventoryPath = Path.Combine(AllSettingsPath, InventoryFile);
+                BuffProfilesPath = Path.Combine(root, BuffProfilesFile);
             }
             catch (Exception ex) { Debug.LogException(ex); }
         }
@@ -324,6 +328,30 @@ namespace ACManager
                 else
                 {
                     return new InventorySettings();
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.ToChat(ex.Message);
+                return null;
+            }
+        }
+
+        internal BuffSettings LoadBuffProfiles()
+        {
+            try
+            {
+                if (File.Exists(BuffProfilesPath))
+                {
+                    using (XmlTextReader reader = new XmlTextReader(BuffProfilesPath))
+                    {
+                        XmlSerializer xmlSerializer = new XmlSerializer(typeof(BuffSettings));
+                        return (BuffSettings)xmlSerializer.Deserialize(reader);
+                    }
+                }
+                else
+                {
+                    return new BuffSettings();
                 }
             }
             catch (Exception ex)

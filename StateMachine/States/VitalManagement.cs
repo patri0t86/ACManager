@@ -38,7 +38,7 @@ namespace ACManager.StateMachine.States
                     {
                         machine.CastCompleted = false;
                         machine.CastStarted = false;
-                        
+
                         if (machine.Core.CharacterFilter.IsSpellKnown(2083) && machine.Core.CharacterFilter.EffectiveSkill[CharFilterSkillType.LifeMagic] >= 350)
                         {
                             machine.Core.Actions.CastSpell(2083, 0);

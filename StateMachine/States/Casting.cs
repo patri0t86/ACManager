@@ -1,6 +1,5 @@
 ﻿using Decal.Adapter.Wrappers;
 using Decal.Filters;
-using System.Text;
 
 namespace ACManager.StateMachine.States
 {
@@ -29,11 +28,7 @@ namespace ACManager.StateMachine.States
         {
             if (machine.Enabled)
             {
-                if (machine.Core.Actions.CombatMode != CombatState.Magic)
-                {
-                    machine.Core.Actions.SetCombatMode(CombatState.Magic);
-                }
-                else if (machine.CastStarted && machine.CastCompleted && !machine.Fizzled)
+                if (machine.SpellsToCast.Count > 0 && machine.CastStarted && machine.CastCompleted && !machine.Fizzled)
                 {
                     if (machine.SpellsToCast[0].Equals(157) || machine.SpellsToCast[0].Equals(2648))
                     {
@@ -48,31 +43,28 @@ namespace ACManager.StateMachine.States
                         }
                     }
                     machine.SpellsToCast.RemoveAt(0);
-                    if (machine.SpellsToCast.Count.Equals(0))
-                    {
-                        machine.NextState = Idle.GetInstance;
-                    }
-                    else
-                    {
-                        machine.CastCompleted = false;
-                        machine.CastStarted = false;
-                    }
+                    machine.CastCompleted = false;
+                    machine.CastStarted = false;
                 }
-                else if (machine.CastStarted && machine.CastCompleted && machine.Fizzled)
+                else if (machine.SpellsToCast.Count > 0 && machine.CastStarted && machine.CastCompleted && machine.Fizzled)
                 {
                     machine.Fizzled = false;
                     machine.CastCompleted = false;
                     machine.CastStarted = false;
                 }
-                else if (!machine.CastStarted)
+                else if (machine.SpellsToCast.Count > 0 && !machine.CastStarted)
                 {
-                    if (machine.Core.CharacterFilter.Mana < machine.ManaThreshold * machine.MaxVitals[CharFilterVitalType.Mana] && machine.Core.CharacterFilter.EffectiveSkill[CharFilterSkillType.LifeMagic] > 50)
+                    if (machine.Core.CharacterFilter.Mana < machine.ManaThreshold * machine.MaxVitals[CharFilterVitalType.Mana] && machine.Core.CharacterFilter.Skills[CharFilterSkillType.LifeMagic].Base > 0)
                     {
                         machine.NextState = VitalManagement.GetInstance;
                     }
                     else
                     {
-                        if (machine.Core.CharacterFilter.IsSpellKnown(machine.SpellsToCast[0]))
+                        if (machine.Core.Actions.CombatMode != CombatState.Magic)
+                        {
+                            machine.Core.Actions.SetCombatMode(CombatState.Magic);
+                        }
+                        else if (machine.Core.CharacterFilter.IsSpellKnown(machine.SpellsToCast[0]))
                         {
                             if (machine.ComponentChecker.HaveComponents(machine.SpellsToCast[0]))
                             {
@@ -82,25 +74,30 @@ namespace ACManager.StateMachine.States
                             {
                                 machine.ChatManager.Broadcast($"I have run out of spell components.");
                                 machine.SpellsToCast.Clear();
-                                machine.NextState = Idle.GetInstance;
                             }
                         }
                         else
                         {
-                            Debug.ToChat($"You do not know the spell {machine.Core.Filter<FileService>().SpellTable.GetById(machine.SpellsToCast[0]).Name}. Removing from current casting session.");
                             machine.ChatManager.Broadcast($"I tried casting {machine.Core.Filter<FileService>().SpellTable.GetById(machine.SpellsToCast[0]).Name}, but I do not know it yet.");
                             machine.SpellsToCast.RemoveAt(0);
-                            if (machine.SpellsToCast.Count.Equals(0))
-                            {
-                                machine.NextState = Idle.GetInstance;
-                            }
                         }
+                    }
+                }
+                else if (machine.SpellsToCast.Count.Equals(0))
+                {
+                    if (machine.Core.Actions.CombatMode != CombatState.Peace)
+                    {
+                        machine.Core.Actions.SetCombatMode(CombatState.Peace);
+                    }
+                    else if (machine.Core.Actions.CombatMode == CombatState.Peace)
+                    {
+                        machine.NextState = Equipping.GetInstance;
                     }
                 }
             }
             else
             {
-                machine.NextState = Idle.GetInstance;
+                machine.NextState = Equipping.GetInstance;
             }
         }
 

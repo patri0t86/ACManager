@@ -27,25 +27,25 @@
             <control progid="DecalControls.Slider"      name="StamThresh"           left="5"   top="145"  width="360" height="16" minimum="0" maximum="100" />
             <control progid="DecalControls.StaticText"  name="StamThreshText"       left="370" top="145"  width="25"  height="16" text="" />
 
-            <control progid="DecalControls.StaticText"                                  left="5"    top="160" width="140" height="16" text="Component Thresholds" />
+            <control progid="DecalControls.StaticText"                                  left="5"    top="160" width="150" height="16" text="Low Component Thresholds" />
             <control progid="DecalControls.StaticText"                                  left="5"    top="179" width="90"  height="16" text="Lead Scarabs" />
-            <control progid="DecalControls.Edit"        name="LeadScarabThreshold"      left="100"  top="179" width="40"  height="19" text="" />
+            <control progid="DecalControls.Edit"        name="LeadScarabThreshold"      left="105"  top="179" width="40"  height="19" text="" />
             <control progid="DecalControls.StaticText"                                  left="5"    top="198" width="90"  height="16" text="Iron Scarabs" />
-            <control progid="DecalControls.Edit"        name="IronScarabThreshold"      left="100"  top="198" width="40"  height="19" text="" />
+            <control progid="DecalControls.Edit"        name="IronScarabThreshold"      left="105"  top="198" width="40"  height="19" text="" />
             <control progid="DecalControls.StaticText"                                  left="5"    top="218" width="90"  height="16" text="Copper Scarabs" />
-            <control progid="DecalControls.Edit"        name="CopperScarabThreshold"    left="100"  top="218" width="40"  height="19" text="" />
+            <control progid="DecalControls.Edit"        name="CopperScarabThreshold"    left="105"  top="218" width="40"  height="19" text="" />
             <control progid="DecalControls.StaticText"                                  left="5"    top="237" width="90"  height="16" text="Silver Scarabs" />
-            <control progid="DecalControls.Edit"        name="SilverScarabThreshold"    left="100"  top="237" width="40"  height="19" text="" />
+            <control progid="DecalControls.Edit"        name="SilverScarabThreshold"    left="105"  top="237" width="40"  height="19" text="" />
             <control progid="DecalControls.StaticText"                                  left="5"    top="256" width="90"  height="16" text="Gold Scarabs" />
-            <control progid="DecalControls.Edit"        name="GoldScarabThreshold"      left="100"  top="256" width="40"  height="19" text="" />
+            <control progid="DecalControls.Edit"        name="GoldScarabThreshold"      left="105"  top="256" width="40"  height="19" text="" />
             <control progid="DecalControls.StaticText"                                  left="5"    top="275" width="90"  height="16" text="Pyreal Scarabs" />
-            <control progid="DecalControls.Edit"        name="PyrealScarabThreshold"    left="100"  top="275" width="40"  height="19" text="" />
+            <control progid="DecalControls.Edit"        name="PyrealScarabThreshold"    left="105"  top="275" width="40"  height="19" text="" />
             <control progid="DecalControls.StaticText"                                  left="5"    top="294" width="90"  height="16" text="Platinum Scarabs" />
-            <control progid="DecalControls.Edit"        name="PlatinumScarabThreshold"  left="100"  top="294" width="40"  height="19" text="" />
+            <control progid="DecalControls.Edit"        name="PlatinumScarabThreshold"  left="105"  top="294" width="40"  height="19" text="" />
             <control progid="DecalControls.StaticText"                                  left="5"    top="313" width="90"  height="16" text="Mana Scarabs" />
-            <control progid="DecalControls.Edit"        name="ManaScarabThreshold"      left="100"  top="313" width="40"  height="19" text="" />
-            <control progid="DecalControls.StaticText"                                  left="5"    top="332" width="90"  height="16" text="Components" />
-            <control progid="DecalControls.Edit"        name="ComponentThreshold"       left="100"  top="332" width="40"  height="19" text="" />
+            <control progid="DecalControls.Edit"        name="ManaScarabThreshold"      left="105"  top="313" width="40"  height="19" text="" />
+            <control progid="DecalControls.StaticText"                                  left="5"    top="332" width="90"  height="16" text="Tapers / Other" />
+            <control progid="DecalControls.Edit"        name="ComponentThreshold"       left="105"  top="332" width="40"  height="19" text="" />
         
       </control>
     </page>

@@ -7,7 +7,6 @@ namespace ACManager.Views.Tabs
 {
     internal class PortalsTab : IDisposable
     {
-
         private BotManagerView Parent { get; set; }
         private HudCombo CharacterChoice { get; set; }
         private HudTextBox PrimaryKeyword { get; set; }

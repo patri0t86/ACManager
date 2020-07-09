@@ -1,10 +1,10 @@
-﻿using ACManager.StateMachine.States;
+﻿using ACManager.StateMachine.Queues;
+using ACManager.StateMachine.States;
 using ACManager.Views;
 using Decal.Adapter;
 using Decal.Adapter.Wrappers;
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 
 namespace ACManager.StateMachine
 {
@@ -94,11 +94,6 @@ namespace ACManager.StateMachine
         public IndexedCollection<CharFilterIndex, CharFilterVitalType, int> MaxVitals { get; set; }
 
         /// <summary>
-        /// The character's effective skill levels.
-        /// </summary>
-        //public IndexedCollection<CharFilterIndex, CharFilterSkillType, int> Skills { get; set; }
-
-        /// <summary>
         /// Used to selectively decline new commands as necessary.
         /// </summary>
         public bool DecliningCommands { get; set; }
@@ -151,7 +146,7 @@ namespace ACManager.StateMachine
         /// <summary>
         /// The heading of the next portal to summon.
         /// </summary>
-        public double NextHeading { get; set; }
+        public double NextHeading { get; set; } = -1;
 
         /// <summary>
         /// Setting to determine if the machine will listen to portal requests from open chat.
@@ -212,6 +207,16 @@ namespace ACManager.StateMachine
         /// The bot management GUI in decal.
         /// </summary>
         public BotManagerView BotManagerView { get; set; }
+
+        /// <summary>
+        /// Request queue. This is to keep track of all requests as they come in.
+        /// </summary>
+        public Queue<Request> Requests { get; set; } = new Queue<Request>();
+
+        /// <summary>
+        /// The current request being handled.
+        /// </summary>
+        public Request CurrentRequest { get; set; } = new Request();
 
         /// <summary>
         /// Create the state machine in the StoppedState and begin processing commands on intervals (every time a frame is rendered).
@@ -278,6 +283,56 @@ namespace ACManager.StateMachine
                 {
                     NextCharacterIndex = i;
                     break;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Determines in the bot is in the correct position in the world.
+        /// </summary>
+        /// <returns></returns>
+        public bool InPosition()
+        {
+            return Core.Actions.Landcell == DesiredLandBlock
+                && Math.Abs(Core.Actions.LocationX - DesiredBotLocationX) < 1
+                && Math.Abs(Core.Actions.LocationY - DesiredBotLocationY) < 1;
+        }
+
+        /// <summary>
+        /// Determines if the bot is facing the correct heading for the current purpose.
+        /// </summary>
+        /// <returns></returns>
+        public bool CorrectHeading()
+        {
+            return (Core.Actions.Heading <= NextHeading + 1
+                && Core.Actions.Heading >= NextHeading - 1)
+                || NextHeading.Equals(-1);
+        }
+
+        public void AddToQueue(Request newRequest)
+        {
+            if (Requests.Contains(newRequest))
+            {
+                ChatManager.SendTell(CharacterMakingRequest, $"You already have a {newRequest.RequestType} request in.");
+            }
+            else if (CurrentRequest.Equals(newRequest))
+            {
+                ChatManager.SendTell(CharacterMakingRequest, $"I'm already helping you, please be patient.");
+            }
+            else
+            {
+                Requests.Enqueue(newRequest);
+                if (Requests.Count.Equals(1))
+                {
+                    ChatManager.SendTell(CharacterMakingRequest, "I have received your request. I will handle your request next.");
+                }
+                else if (Requests.Count.Equals(2))
+                {
+                    ChatManager.SendTell(CharacterMakingRequest, $"I have received your request. There is currently 1 request in the queue ahead of you.");
+                }
+                else
+                {
+                    ChatManager.SendTell(CharacterMakingRequest, $"I have received your request. There are currently {Requests.Count - 1} requests in the queue ahead of you.");
                 }
             }
         }

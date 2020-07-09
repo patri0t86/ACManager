@@ -73,8 +73,8 @@ namespace ACManager.StateMachine
                 }
                 else
                 {
-                    if (IsComponentLow(component.Value)) 
-                    { 
+                    if (IsComponentLow(component.Value))
+                    {
                         LowComponents.Add(component.Key);
                     }
                 }
@@ -97,7 +97,8 @@ namespace ACManager.StateMachine
                     if (LowComponents.Count.Equals(1))
                     {
                         sb.Append($"{LowComponents[i]}s.");
-                    } else
+                    }
+                    else
                     {
                         sb.Append($"and {LowComponents[i]}s.");
                     }

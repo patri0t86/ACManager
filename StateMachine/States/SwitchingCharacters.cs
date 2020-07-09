@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ACManager.StateMachine.Queues;
+using System;
 
 namespace ACManager.StateMachine.States
 {
@@ -11,12 +12,12 @@ namespace ACManager.StateMachine.States
 
         public void Enter(Machine machine)
         {
-            machine.Core.ChatBoxMessage -= machine.ChatManager.Current_ChatBoxMessage;
+            machine.GetNextCharacter();
         }
 
         public void Exit(Machine machine)
         {
-            machine.Core.ChatBoxMessage += machine.ChatManager.Current_ChatBoxMessage;
+
         }
 
         public void Process(Machine machine)
@@ -31,6 +32,14 @@ namespace ACManager.StateMachine.States
                 {
                     if (DateTime.Now - AttempedLogoff > TimeSpan.FromMilliseconds(10000))
                     {
+                        if (machine.CurrentRequest.RequestType.Equals(RequestType.Portal))
+                        {
+                            machine.ChatManager.Broadcast($"Be right back, switching to {machine.NextCharacter} to summon{(string.IsNullOrEmpty(machine.PortalDescription) ? "" : $" {machine.PortalDescription}")}.");
+                        }
+                        else if (machine.CurrentRequest.RequestType.Equals(RequestType.Gem))
+                        {
+                            machine.ChatManager.Broadcast($"Be right back, switching to {machine.NextCharacter} to use {machine.PortalDescription}.");
+                        }
                         AttempedLogoff = DateTime.Now;
                         machine.Core.Actions.Logout();
                     }
