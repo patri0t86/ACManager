@@ -79,7 +79,9 @@ namespace ACManager.StateMachine.States
                     }
                     else if (machine.CurrentRequest.RequestType.Equals(RequestType.Buff))
                     {
-
+                        machine.NextCharacter = machine.CurrentRequest.Character;
+                        machine.NextHeading = machine.CurrentRequest.Heading;
+                        machine.SpellsToCast = machine.CurrentRequest.SpellsToCast;
                     }
                     else if (machine.CurrentRequest.RequestType.Equals(RequestType.Gem))
                     {

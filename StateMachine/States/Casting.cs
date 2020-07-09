@@ -54,7 +54,7 @@ namespace ACManager.StateMachine.States
                 }
                 else if (machine.SpellsToCast.Count > 0 && !machine.CastStarted)
                 {
-                    if (machine.Core.CharacterFilter.Mana < machine.ManaThreshold * machine.MaxVitals[CharFilterVitalType.Mana] && machine.Core.CharacterFilter.Skills[CharFilterSkillType.LifeMagic].Base > 0)
+                    if (machine.Core.CharacterFilter.Mana < machine.ManaThreshold * machine.MaxVitals[CharFilterVitalType.Mana] && machine.Core.Actions.SkillTrainLevel[Decal.Adapter.Wrappers.SkillType.BaseLifeMagic] != 1)
                     {
                         machine.NextState = VitalManagement.GetInstance;
                     }
@@ -68,7 +68,7 @@ namespace ACManager.StateMachine.States
                         {
                             if (machine.ComponentChecker.HaveComponents(machine.SpellsToCast[0]))
                             {
-                                machine.Core.Actions.CastSpell(machine.SpellsToCast[0], 0);
+                                machine.Core.Actions.CastSpell(machine.SpellsToCast[0], machine.CurrentRequest.RequesterGuid);
                             }
                             else
                             {

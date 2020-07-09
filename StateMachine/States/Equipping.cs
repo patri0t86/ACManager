@@ -1,4 +1,5 @@
 ﻿using Decal.Adapter.Wrappers;
+using System;
 
 namespace ACManager.StateMachine.States
 {
@@ -7,9 +8,12 @@ namespace ACManager.StateMachine.States
     /// </summary>
     class Equipping : StateBase<Equipping>, IState
     {
-        private bool WandEquipped { get; set; }
-        private int WandId { get; set; }
+        private bool IsWandEquipped { get; set; }
         private int WandInventoryCount { get; set; }
+        private WorldObject EquippedWand { get; set; }
+
+        private readonly DateTime UnixTime = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+        private DateTime LastIDCheck { get; set; }
 
         public void Enter(Machine machine)
         {
@@ -18,19 +22,21 @@ namespace ACManager.StateMachine.States
                 wands.SetFilter(new ByObjectClassFilter(ObjectClass.WandStaffOrb));
                 WandInventoryCount = wands.Quantity;
             }
+            LastIDCheck = DateTime.UtcNow;
         }
 
         public void Exit(Machine machine)
         {
+
         }
 
         public void Process(Machine machine)
         {
             if (machine.Enabled)
             {
-                if (machine.SpellsToCast.Count > 0)
+                if (machine.SpellsToCast.Count > 0) // need to equip a wand
                 {
-                    if (WandEquipped)
+                    if (IsWandEquipped)
                     {
                         machine.NextState = Casting.GetInstance;
                     }
@@ -41,20 +47,21 @@ namespace ACManager.StateMachine.States
                             wands.SetFilter(new ByObjectClassFilter(ObjectClass.WandStaffOrb));
                             foreach (WorldObject wand in wands)
                             {
-                                if (wand.Values(LongValueKey.EquippedSlots) > 0)
+                                if (wand.HasIdData && !(((int)(LastIDCheck - UnixTime).TotalSeconds - wand.LastIdTime) > 1))
                                 {
-                                    WandId = wand.Id;
-                                    WandEquipped = true;
-                                    break;
-                                }
-                                else if (wand.HasIdData)
-                                {
-                                    if (CanWield(machine, wand))
+                                    if (wand.Values(LongValueKey.EquippedSlots) > 0)
+                                    {
+                                        EquippedWand = wand;
+                                        IsWandEquipped = true;
+                                        break;
+                                    }
+                                    else if (CanWield(machine, wand) && machine.Core.Actions.BusyState.Equals(0))
                                     {
                                         machine.Core.Actions.AutoWield(wand.Id);
+                                        break;
                                     }
                                 }
-                                else if (wand.LastIdTime.Equals(0))
+                                else
                                 {
                                     machine.Core.Actions.RequestId(wand.Id);
                                 }
@@ -67,14 +74,37 @@ namespace ACManager.StateMachine.States
                         machine.SpellsToCast.Clear();
                     }
                 }
-                else if (WandEquipped)
+                else // need to take the wand off
                 {
-                    machine.Core.Actions.MoveItem(WandId, machine.Core.CharacterFilter.Id);
-                    WandEquipped = false;
-                }
-                else
-                {
-                    machine.NextState = Idle.GetInstance;
+                    if (IsWandEquipped)
+                    {
+                        if (EquippedWand.HasIdData && !(((int)(LastIDCheck - UnixTime).TotalSeconds - EquippedWand.LastIdTime) > 1))
+                        {
+                            if (EquippedWand.Values(LongValueKey.EquippedSlots).Equals(0))
+                            {
+                                IsWandEquipped = false;
+                            }
+                            else
+                            {
+                                if (machine.Core.Actions.BusyState.Equals(0))
+                                {
+                                    machine.Core.Actions.MoveItem(EquippedWand.Id, machine.Core.CharacterFilter.Id);
+                                }
+                            }
+                        }
+                        else
+                        {
+                            machine.Core.Actions.RequestId(EquippedWand.Id);
+                        }
+                    }
+                    else
+                    {
+                        if (machine.Core.Actions.BusyState.Equals(0))
+                        {
+                            EquippedWand.Dispose();
+                            machine.NextState = Idle.GetInstance;
+                        }
+                    }
                 }
             }
             else
@@ -86,6 +116,11 @@ namespace ACManager.StateMachine.States
         public override string ToString()
         {
             return nameof(Equipping);
+        }
+
+        private DateTime CurrentUnixTime(long unixTime)
+        {
+            return UnixTime.AddSeconds(unixTime);
         }
 
         private bool CanWield(Machine machine, WorldObject wand)

@@ -5,6 +5,7 @@ using Decal.Adapter.Wrappers;
 using Decal.Filters;
 using System;
 using System.Collections.Generic;
+using System.Drawing.Text;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -74,10 +75,7 @@ namespace ACManager.StateMachine
                     RespondWithPortals();
                 }
 
-                //if (Machine.RespondToOpenChat && !Machine.DecliningCommands)
-                //{
-                    CheckCommands(message);
-                //}
+                CheckCommands(guid, message);
             }
         }
 
@@ -187,14 +185,7 @@ namespace ACManager.StateMachine
                 }
                 else
                 {
-                    //if (!Machine.DecliningCommands)
-                    //{
-                        CheckCommands(message);
-                    //}
-                    //else
-                    //{
-                        //SendTell(Machine.CharacterMakingRequest, $"I'm finishing up a request. Once I'm done, please make your request again.");
-                    //}
+                    CheckCommands(guid, message);
                 }
             }
         }
@@ -296,7 +287,7 @@ namespace ACManager.StateMachine
         /// Determines the character that the portal is on and sets the appropriate variables on the machine to take action.
         /// </summary>
         /// <param name="message"></param>
-        private void CheckCommands(string message)
+        private void CheckCommands(int guid, string message)
         {
             Machine.Inventory.UpdateInventoryFile();
 
@@ -351,6 +342,7 @@ namespace ACManager.StateMachine
                     Request newRequest = new Request
                     {
                         RequestType = RequestType.Gem,
+                        RequesterName = Machine.CharacterMakingRequest,
                         Destination = gemSetting.Name,
                         Heading = gemSetting.Heading,
                         ItemToUse = gemSetting.Name
@@ -376,6 +368,26 @@ namespace ACManager.StateMachine
                             }
                         }
                     }
+                }
+            }
+
+            foreach (BuffProfile profile in Machine.Utility.BuffProfiles.BuffProfiles)
+            {
+                if (profile.Command.Equals(message))
+                {
+                    Request newRequest = new Request
+                    {
+                        RequestType = RequestType.Buff,
+                        Character = Machine.Core.CharacterFilter.Name,
+                        RequesterName = Machine.CharacterMakingRequest,
+                        RequesterGuid = guid
+                    };
+                    foreach (Buff buff in profile.Buffs)
+                    {
+                        newRequest.SpellsToCast.Add(buff.SpellId);
+                    }
+                    Machine.AddToQueue(newRequest);
+                    break;
                 }
             }
         }
