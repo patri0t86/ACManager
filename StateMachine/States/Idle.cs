@@ -14,6 +14,17 @@ namespace ACManager.StateMachine.States
         {
             machine.Inventory.GetComponentLevels();
             machine.Inventory.UpdateInventoryFile();
+            using (WorldObjectCollection inventory = machine.Core.WorldFilter.GetInventory())
+            {
+                inventory.SetFilter(new ByObjectClassFilter(ObjectClass.WandStaffOrb));
+                foreach (WorldObject item in inventory)
+                {
+                    if (!item.HasIdData)
+                    {
+                        machine.Core.Actions.RequestId(item.Id);
+                    }
+                }
+            }
         }
 
         public void Exit(Machine machine)

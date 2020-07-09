@@ -35,8 +35,6 @@ namespace ACManager.Views.Tabs
                     CharacterInventory inventory = GetInventory(selectedCharacter.Text);
                     if (inventory != null)
                     {
-
-
                         foreach (AcmComponent component in inventory.Components)
                         {
                             HudList.HudListRowAccessor row = InventoryList.AddRow();
