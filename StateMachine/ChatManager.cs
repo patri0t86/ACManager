@@ -74,10 +74,10 @@ namespace ACManager.StateMachine
                     RespondWithPortals();
                 }
 
-                //if (Machine.RespondToOpenChat && !Machine.DecliningCommands)
-                //{
+                if (Machine.RespondToOpenChat)
+                {
                     CheckCommands(message);
-                //}
+                }
             }
         }
 
@@ -187,14 +187,7 @@ namespace ACManager.StateMachine
                 }
                 else
                 {
-                    //if (!Machine.DecliningCommands)
-                    //{
-                        CheckCommands(message);
-                    //}
-                    //else
-                    //{
-                        //SendTell(Machine.CharacterMakingRequest, $"I'm finishing up a request. Once I'm done, please make your request again.");
-                    //}
+                    CheckCommands(message);
                 }
             }
         }
