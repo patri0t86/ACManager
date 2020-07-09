@@ -54,7 +54,7 @@ namespace ACManager.StateMachine.States
                 }
                 else if (machine.SpellsToCast.Count > 0 && !machine.CastStarted)
                 {
-                    if (machine.Core.CharacterFilter.Mana < machine.ManaThreshold * machine.MaxVitals[CharFilterVitalType.Mana] && machine.Core.CharacterFilter.EffectiveSkill[CharFilterSkillType.LifeMagic] > 50)
+                    if (machine.Core.CharacterFilter.Mana < machine.ManaThreshold * machine.MaxVitals[CharFilterVitalType.Mana] && machine.Core.CharacterFilter.Skills[CharFilterSkillType.LifeMagic].Base > 0)
                     {
                         machine.NextState = VitalManagement.GetInstance;
                     }
