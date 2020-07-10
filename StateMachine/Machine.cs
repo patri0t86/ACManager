@@ -219,6 +219,11 @@ namespace ACManager.StateMachine
         public Request CurrentRequest { get; set; } = new Request();
 
         /// <summary>
+        /// Character name on the account that is capable of being a buff bot.
+        /// </summary>
+        public string BuffingCharacter { get; set; }
+
+        /// <summary>
         /// Create the state machine in the StoppedState and begin processing commands on intervals (every time a frame is rendered).
         /// </summary>
         public Machine(CoreManager core, string path)
@@ -269,7 +274,7 @@ namespace ACManager.StateMachine
         public bool Update()
         {
             Utility.CharacterSettings = Utility.LoadCharacterSettings();
-            return Utility.CharacterSettings != null;
+            return Utility.CharacterSettings != null && Utility.LoadBuffProfiles();
         }
 
         /// <summary>
@@ -322,18 +327,37 @@ namespace ACManager.StateMachine
             else
             {
                 Requests.Enqueue(newRequest);
-                if (Requests.Count.Equals(1))
+                if (Requests.Count.Equals(1) && string.IsNullOrEmpty(CurrentRequest.RequesterName))
                 {
-                    ChatManager.SendTell(CharacterMakingRequest, "I have received your request. I will handle your request next.");
+                    ChatManager.SendTell(CharacterMakingRequest, "I have received your request.");
                 }
-                else if (Requests.Count.Equals(2))
+                else if (Requests.Count.Equals(1) && !string.IsNullOrEmpty(CurrentRequest.RequesterName))
                 {
                     ChatManager.SendTell(CharacterMakingRequest, $"I have received your request. There is currently 1 request in the queue ahead of you.");
                 }
                 else
                 {
-                    ChatManager.SendTell(CharacterMakingRequest, $"I have received your request. There are currently {Requests.Count - 1} requests in the queue ahead of you.");
+                    ChatManager.SendTell(CharacterMakingRequest, $"I have received your request. There are currently {Requests.Count + 1} requests in the queue ahead of you.");
                 }
+
+                // Give an estimated wait time
+                //TimeSpan waitTime;
+                //int seconds = 0;
+
+                //foreach (Request request in Requests)
+                //{
+                //    if (request.RequestType.Equals(RequestType.Buff))
+                //    {
+                //        seconds += request.SpellsToCast.Count * 4;
+                //    }
+                //}
+
+                //if (Requests.Count > 1)
+                //{
+                //    seconds += Requests.Count * 10;
+                //    waitTime = TimeSpan.FromSeconds(seconds);
+                //    ChatManager.SendTell(CurrentRequest.RequesterName, $"I should be able to get  to your request in about {waitTime.Minutes} minutes and {waitTime.Seconds} seconds.");
+                //}
             }
         }
     }

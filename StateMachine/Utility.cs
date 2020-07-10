@@ -1,5 +1,7 @@
 ﻿using ACManager.Settings;
+using ACManager.Settings.DefaultProfiles;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
@@ -24,13 +26,12 @@ namespace ACManager.StateMachine
         private string GUISettingsPath { get; set; }
         private string InventoryFile { get { return "acm_inventory.xml"; } }
         private string InventoryPath { get; set; }
-        private string BuffProfilesFile { get { return "acm_buff_profiles.xml"; } }
         private string BuffProfilesPath { get; set; }
         internal CharacterSettings CharacterSettings { get; set; } = new CharacterSettings();
         internal BotSettings BotSettings { get; set; } = new BotSettings();
         internal GUISettings GUISettings { get; set; } = new GUISettings();
         internal InventorySettings Inventory { get; set; } = new InventorySettings();
-        internal BuffSettings BuffProfiles { get; set; } = new BuffSettings();
+        internal List<BuffProfile> BuffProfiles { get; set; } = new List<BuffProfile>();
         internal string Version { get; set; }
 
         public Utility(Machine machine, string path)
@@ -42,7 +43,7 @@ namespace ACManager.StateMachine
             BotSettings = LoadBotSettings();
             GUISettings = LoadGUISettings();
             Inventory = LoadInventories();
-            BuffProfiles = LoadBuffProfiles(); 
+            LoadBuffProfiles();
         }
 
         internal Character GetCurrentCharacter()
@@ -83,7 +84,7 @@ namespace ACManager.StateMachine
                 BotSettingsPath = Path.Combine(AllSettingsPath, BotSettingsFile);
                 GUISettingsPath = Path.Combine(AllSettingsPath, GUISettingsFile);
                 InventoryPath = Path.Combine(AllSettingsPath, InventoryFile);
-                BuffProfilesPath = Path.Combine(root, BuffProfilesFile);
+                BuffProfilesPath = Path.Combine(root, "BuffProfiles");
             }
             catch (Exception ex) { Debug.LogException(ex); }
         }
@@ -92,11 +93,25 @@ namespace ACManager.StateMachine
         /// Creates the directory path if it does not exist.
         /// </summary>
         /// <returns>Boolean whether or not the directory path exists.</returns>
-        private bool SettingsPathExists()
+        private bool SettingsPathCreateOrExists()
         {
             try
             {
                 DirectoryInfo di = Directory.CreateDirectory(AllSettingsPath);
+                return di.Exists;
+            }
+            catch (Exception ex)
+            {
+                Debug.ToChat(ex.Message);
+                return false;
+            }
+        }
+        
+        private bool BuffsPathCreateOrExists()
+        {
+            try
+            {
+                DirectoryInfo di = Directory.CreateDirectory(BuffProfilesPath);
                 return di.Exists;
             }
             catch (Exception ex)
@@ -132,7 +147,7 @@ namespace ACManager.StateMachine
         {
             try
             {
-                if (SettingsPathExists())
+                if (SettingsPathCreateOrExists())
                 {
                     using (XmlTextWriter writer = new XmlTextWriter(CharacterSettingsPath, Encoding.UTF8))
                     {
@@ -185,7 +200,7 @@ namespace ACManager.StateMachine
         {
             try
             {
-                if (SettingsPathExists())
+                if (SettingsPathCreateOrExists())
                 {
                     using (XmlTextWriter writer = new XmlTextWriter(BotSettingsPath, Encoding.UTF8))
                     {
@@ -238,7 +253,7 @@ namespace ACManager.StateMachine
         {
             try
             {
-                if (SettingsPathExists())
+                if (SettingsPathCreateOrExists())
                 {
                     using (XmlTextWriter writer = new XmlTextWriter(GUISettingsPath, Encoding.UTF8))
                     {
@@ -291,7 +306,7 @@ namespace ACManager.StateMachine
         {
             try
             {
-                if (SettingsPathExists())
+                if (SettingsPathCreateOrExists())
                 {
                     using (XmlTextWriter writer = new XmlTextWriter(InventoryPath, Encoding.UTF8))
                     {
@@ -337,28 +352,72 @@ namespace ACManager.StateMachine
             }
         }
 
-        internal BuffSettings LoadBuffProfiles()
+        internal void SaveBuffProfile(BuffProfile profile)
         {
             try
             {
-                if (File.Exists(BuffProfilesPath))
+                if (BuffsPathCreateOrExists())
                 {
-                    using (XmlTextReader reader = new XmlTextReader(BuffProfilesPath))
+                    string ProfilePath = Path.Combine(BuffProfilesPath, profile.Command + ".xml");
+                    using (XmlTextWriter writer = new XmlTextWriter(ProfilePath, Encoding.UTF8))
                     {
-                        XmlSerializer xmlSerializer = new XmlSerializer(typeof(BuffSettings));
-                        return (BuffSettings)xmlSerializer.Deserialize(reader);
+                        writer.Formatting = Formatting.Indented;
+                        writer.WriteStartDocument();
+
+                        XmlSerializer xmlSerializer = new XmlSerializer(typeof(BuffProfile));
+                        xmlSerializer.Serialize(writer, profile);
                     }
-                }
-                else
-                {
-                    return new BuffSettings();
                 }
             }
             catch (Exception ex)
             {
                 Debug.ToChat(ex.Message);
-                return null;
             }
+        }
+
+        internal bool LoadBuffProfiles()
+        {
+            try
+            {
+                if (BuffsPathCreateOrExists())
+                {
+                    DirectoryInfo dir = new DirectoryInfo(BuffProfilesPath);
+                    FileInfo[] files = dir.GetFiles("*.xml");
+
+                    if (files.Length > 0)
+                    {
+                        foreach (FileInfo file in files)
+                        {
+                            using (XmlTextReader reader = new XmlTextReader(file.FullName))
+                            {
+                                XmlSerializer xmlSerializer = new XmlSerializer(typeof(BuffProfile));
+                                BuffProfiles.Add((BuffProfile)xmlSerializer.Deserialize(reader));
+                            }
+                        }
+                    }
+                    else
+                    {
+                        GenerateDefaultProfiles();
+                        LoadBuffProfiles();
+                    }
+                    return true;
+                }
+                return false;
+            }
+            catch (Exception ex)
+            {
+                Debug.ToChat(ex.Message);
+                return false;
+            }
+        }
+
+        internal void GenerateDefaultProfiles()
+        {
+            BuffProfile newProfile = new BuffProfile();
+            DefaultProfiles.Mage mage = new DefaultProfiles.Mage();
+            newProfile.Command = mage.Command;
+            newProfile.Buffs = mage.Buffs;
+            SaveBuffProfile(newProfile);
         }
     }
 }

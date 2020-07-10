@@ -1,5 +1,7 @@
-﻿using Decal.Adapter.Wrappers;
+﻿using ACManager.StateMachine.Queues;
+using Decal.Adapter.Wrappers;
 using Decal.Filters;
+using System;
 
 namespace ACManager.StateMachine.States
 {
@@ -8,20 +10,37 @@ namespace ACManager.StateMachine.States
     /// </summary>
     internal class Casting : StateBase<Casting>, IState
     {
+        private DateTime Started { get; set; }
+        private DateTime Finished { get; set; }
+        private bool SentInitialInfo { get; set; }
         public void Enter(Machine machine)
         {
             machine.Fizzled = false;
             machine.CastCompleted = false;
-            machine.CastStarted = false;
+            machine.CastStarted = false;            
+
             if (machine.Inventory.LowComponents.Count > 0)
             {
                 machine.ChatManager.Broadcast(machine.Inventory.LowCompsReport());
+            }
+
+            if (machine.CurrentRequest.RequestType.Equals(RequestType.Buff) && !SentInitialInfo)
+            {
+                Started = DateTime.Now;
+                SentInitialInfo = !SentInitialInfo;
+                TimeSpan buffTime = TimeSpan.FromSeconds(machine.SpellsToCast.Count * 4);
+                machine.ChatManager.SendTell(machine.CurrentRequest.RequesterName, $"Casting {machine.SpellsToCast.Count} buffs on you. This should take about {buffTime.Minutes} minutes and {buffTime.Seconds} seconds.");
             }
         }
 
         public void Exit(Machine machine)
         {
-
+            if (machine.CurrentRequest.RequestType.Equals(RequestType.Buff) && machine.SpellsToCast.Count.Equals(0))
+            {
+                SentInitialInfo = !SentInitialInfo;
+                TimeSpan duration = DateTime.Now - Started;
+                machine.ChatManager.SendTell(machine.CurrentRequest.RequesterName, $"Buffing is complete. This took {duration.Minutes} minutes and {duration.Seconds} seconds to complete.");
+            }
         }
 
         public void Process(Machine machine)
@@ -68,6 +87,8 @@ namespace ACManager.StateMachine.States
                         {
                             if (machine.ComponentChecker.HaveComponents(machine.SpellsToCast[0]))
                             {
+                                // check the distance of the player (they may have dc'd or run away - or are too far away to begin with)
+                                // when you get to banes, need to target the shield - is it buffable (Covenant)?
                                 machine.Core.Actions.CastSpell(machine.SpellsToCast[0], machine.CurrentRequest.RequesterGuid);
                             }
                             else

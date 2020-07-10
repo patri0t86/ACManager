@@ -31,6 +31,7 @@ namespace ACManager.Views.Tabs
         private HudTextBox PlatinumScarabThreshold { get; set; }
         private HudTextBox ManaScarabThreshold { get; set; }
         private HudTextBox ComponentThreshold { get; set; }
+        private HudCombo BuffingCharacterChoice { get; set; }
         private bool disposedValue;
 
         public ConfigTab(BotManagerView botManagerView)
@@ -106,6 +107,10 @@ namespace ACManager.Views.Tabs
             ComponentThreshold = Parent.View != null ? (HudTextBox)Parent.View["ComponentThreshold"] : new HudTextBox();
             ComponentThreshold.Change += ComponentThreshold_Change;
 
+            BuffingCharacterChoice = Parent.View != null ? (HudCombo)Parent.View["BuffingCharacterChoice"] : new HudCombo(new ControlGroup());
+            BuffingCharacterChoice.Change += BuffingCharacterChoice_Change;
+
+            PopulateCharacterChoice();
             LoadSettings();
         }
 
@@ -134,6 +139,23 @@ namespace ACManager.Views.Tabs
                 PlatinumScarabThreshold.Text = Parent.Machine.Utility.BotSettings.PlatinumScarabThreshold.ToString();
                 ManaScarabThreshold.Text = Parent.Machine.Utility.BotSettings.ManaScarabThreshold.ToString();
                 ComponentThreshold.Text = Parent.Machine.Utility.BotSettings.ComponentThreshold.ToString();
+
+                if (string.IsNullOrEmpty(Parent.Machine.Utility.BotSettings.BuffingCharacter))
+                {
+                    BuffingCharacterChoice.Current = 0;
+                }
+                else
+                {
+                    for (int i = 0; i < Parent.Machine.AccountCharacters.Count; i++)
+                    {
+                        if (Parent.Machine.AccountCharacters[i].Equals(Parent.Machine.Utility.BotSettings.BuffingCharacter))
+                        {
+                            BuffingCharacterChoice.Current = i + 1;
+                            break;
+                        }
+                    }
+                    
+                }
             }
             catch (Exception ex)
             {
@@ -563,6 +585,38 @@ namespace ACManager.Views.Tabs
             }
         }
 
+        private void BuffingCharacterChoice_Change(object sender, EventArgs e)
+        {
+            try
+            {
+                if (!BuffingCharacterChoice.Current.Equals(0))
+                {
+                    using (HudStaticText selectedCharacter = (HudStaticText)BuffingCharacterChoice[BuffingCharacterChoice.Current])
+                    {
+                        Parent.Machine.BuffingCharacter = Parent.Machine.Utility.BotSettings.BuffingCharacter = selectedCharacter.Text;
+                    }
+                }
+                else
+                {
+                    Parent.Machine.BuffingCharacter = Parent.Machine.Utility.BotSettings.BuffingCharacter = "";
+                }
+                Parent.Machine.Utility.SaveBotSettings();
+            }
+            catch (Exception ex)
+            {
+                Debug.LogException(ex);
+            }
+        }
+
+        private void PopulateCharacterChoice()
+        {
+            BuffingCharacterChoice.AddItem("None", null);
+            for (int i = 0; i < Parent.Machine.AccountCharacters.Count; i++)
+            {
+                BuffingCharacterChoice.AddItem(Parent.Machine.AccountCharacters[i], null);
+            }
+        }
+
         protected virtual void Dispose(bool disposing)
         {
             if (!disposedValue)
@@ -590,6 +644,7 @@ namespace ACManager.Views.Tabs
                     PlatinumScarabThreshold.Change -= PlatinumScarabThreshold_Change;
                     ManaScarabThreshold.Change -= ManaScarabThreshold_Change;
                     ComponentThreshold.Change -= ComponentThreshold_Change;
+                    BuffingCharacterChoice.Change -= BuffingCharacterChoice_Change;
                 }
                 disposedValue = true;
             }

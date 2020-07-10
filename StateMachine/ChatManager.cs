@@ -5,7 +5,6 @@ using Decal.Adapter.Wrappers;
 using Decal.Filters;
 using System;
 using System.Collections.Generic;
-using System.Drawing.Text;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -185,7 +184,7 @@ namespace ACManager.StateMachine
                 }
                 else
                 {
-                    CheckCommands(guid, message);
+                    CheckCommands(guid, message, true);
                 }
             }
         }
@@ -287,7 +286,7 @@ namespace ACManager.StateMachine
         /// Determines the character that the portal is on and sets the appropriate variables on the machine to take action.
         /// </summary>
         /// <param name="message"></param>
-        private void CheckCommands(int guid, string message)
+        private void CheckCommands(int guid, string message, bool fromTell = false)
         {
             Machine.Inventory.UpdateInventoryFile();
 
@@ -371,23 +370,26 @@ namespace ACManager.StateMachine
                 }
             }
 
-            foreach (BuffProfile profile in Machine.Utility.BuffProfiles.BuffProfiles)
+            if (!string.IsNullOrEmpty(Machine.BuffingCharacter) && fromTell)
             {
-                if (profile.Command.Equals(message))
+                foreach (BuffProfile profile in Machine.Utility.BuffProfiles)
                 {
-                    Request newRequest = new Request
+                    if (profile.Command.Equals(message))
                     {
-                        RequestType = RequestType.Buff,
-                        Character = Machine.Core.CharacterFilter.Name,
-                        RequesterName = Machine.CharacterMakingRequest,
-                        RequesterGuid = guid
-                    };
-                    foreach (Buff buff in profile.Buffs)
-                    {
-                        newRequest.SpellsToCast.Add(buff.SpellId);
+                        Request newRequest = new Request
+                        {
+                            RequestType = RequestType.Buff,
+                            Character = Machine.BuffingCharacter,
+                            RequesterName = Machine.CharacterMakingRequest,
+                            RequesterGuid = guid
+                        };
+                        foreach (Buff buff in profile.Buffs)
+                        {
+                            newRequest.SpellsToCast.Add(buff.SpellId);
+                        }
+                        Machine.AddToQueue(newRequest);
+                        break;
                     }
-                    Machine.AddToQueue(newRequest);
-                    break;
                 }
             }
         }
