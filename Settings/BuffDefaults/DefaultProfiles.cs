@@ -60,16 +60,6 @@ namespace ACManager.Settings.DefaultProfiles
                     };
                     Buffs.Add(buff);
                 }
-
-                //Buffs.Add(4391); // Incantation of Acid Bane
-                //Buffs.Add(4393); // Incantation of Blade Bane
-                //Buffs.Add(4397); // Incantation of Bludgeon Bane
-                //Buffs.Add(4401); // Incantation of Flame Bane
-                //Buffs.Add(4403); // Incantation of Frost Bane
-                //Buffs.Add(4407); // Incantation of Impenetrability
-                //Buffs.Add(4409); // Incantation of Lightning Bane
-                //Buffs.Add(4412); // Incantation of Piercing Bane
-
             }
         }
     }

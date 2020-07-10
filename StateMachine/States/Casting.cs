@@ -11,25 +11,58 @@ namespace ACManager.StateMachine.States
     internal class Casting : StateBase<Casting>, IState
     {
         private DateTime Started { get; set; }
-        private DateTime Finished { get; set; }
         private bool SentInitialInfo { get; set; }
+        private bool CastBanes { get; set; }
         public void Enter(Machine machine)
         {
             machine.Fizzled = false;
             machine.CastCompleted = false;
-            machine.CastStarted = false;            
+            machine.CastStarted = false;
 
             if (machine.Inventory.LowComponents.Count > 0)
             {
                 machine.ChatManager.Broadcast(machine.Inventory.LowCompsReport());
             }
 
-            if (machine.CurrentRequest.RequestType.Equals(RequestType.Buff) && !SentInitialInfo)
+            if (machine.CurrentRequest.RequestType.Equals(RequestType.Buff))
             {
-                Started = DateTime.Now;
-                SentInitialInfo = !SentInitialInfo;
-                TimeSpan buffTime = TimeSpan.FromSeconds(machine.SpellsToCast.Count * 4);
-                machine.ChatManager.SendTell(machine.CurrentRequest.RequesterName, $"Casting {machine.SpellsToCast.Count} buffs on you. This should take about {buffTime.Minutes} minutes and {buffTime.Seconds} seconds.");
+                if (!SentInitialInfo)
+                {
+                    Started = DateTime.Now;
+                    SentInitialInfo = !SentInitialInfo;
+                    TimeSpan buffTime = TimeSpan.FromSeconds(machine.SpellsToCast.Count * 4);
+                    if (machine.SpellsToCast.Contains(5989) || machine.SpellsToCast.Contains(5997) || machine.SpellsToCast.Contains(6006) || machine.SpellsToCast.Contains(6014) || machine.SpellsToCast.Contains(6023) || machine.SpellsToCast.Contains(6031))
+                    {
+                        machine.ChatManager.SendTell(machine.CurrentRequest.RequesterName, $"Casting {machine.SpellsToCast.Count} buffs on you. This should take about {buffTime.Minutes} minutes and {buffTime.Seconds} seconds. Make sure you are standing near me, Item Auras are short range spells.");
+                    }
+                    else
+                    {
+                        machine.ChatManager.SendTell(machine.CurrentRequest.RequesterName, $"Casting {machine.SpellsToCast.Count} buffs on you. This should take about {buffTime.Minutes} minutes and {buffTime.Seconds} seconds.");
+                    }
+                }
+
+                if (machine.CurrentRequest.RequesterGuid != 0 && !CastBanes)
+                {
+                    using (WorldObjectCollection items = machine.Core.WorldFilter.GetByContainer(machine.CurrentRequest.RequesterGuid))
+                    {
+                        items.SetFilter(new ByObjectClassFilter(ObjectClass.Armor));
+                        if (items.Count > 0)
+                        {
+                            if (!items.First.Name.Contains("Covenant"))
+                            {
+                                CastBanes = true;
+                            }
+                            else
+                            {
+                                machine.ChatManager.SendTell(machine.CurrentRequest.RequesterName, "You are wearing a covenant shield, so I will be skipping banes.");
+                            }
+                        }
+                        else
+                        {
+                            machine.ChatManager.SendTell(machine.CurrentRequest.RequesterName, "You are not wearing a shield, so I will be skipping banes.");
+                        }
+                    }
+                }
             }
         }
 
@@ -40,6 +73,7 @@ namespace ACManager.StateMachine.States
                 SentInitialInfo = !SentInitialInfo;
                 TimeSpan duration = DateTime.Now - Started;
                 machine.ChatManager.SendTell(machine.CurrentRequest.RequesterName, $"Buffing is complete. This took {duration.Minutes} minutes and {duration.Seconds} seconds to complete.");
+                CastBanes = false;
             }
         }
 
@@ -87,9 +121,21 @@ namespace ACManager.StateMachine.States
                         {
                             if (machine.ComponentChecker.HaveComponents(machine.SpellsToCast[0]))
                             {
-                                // check the distance of the player (they may have dc'd or run away - or are too far away to begin with)
-                                // when you get to banes, need to target the shield - is it buffable (Covenant)?
-                                machine.Core.Actions.CastSpell(machine.SpellsToCast[0], machine.CurrentRequest.RequesterGuid);
+                                if (SpellIsBane(machine.SpellsToCast[0]))
+                                {
+                                    if (CastBanes)
+                                    {
+                                        machine.Core.Actions.CastSpell(machine.SpellsToCast[0], machine.CurrentRequest.RequesterGuid);
+                                    }
+                                    else
+                                    {
+                                        machine.SpellsToCast.RemoveAt(0);
+                                    }
+                                }
+                                else
+                                {
+                                    machine.Core.Actions.CastSpell(machine.SpellsToCast[0], machine.CurrentRequest.RequesterGuid);
+                                }
                             }
                             else
                             {
@@ -120,6 +166,18 @@ namespace ACManager.StateMachine.States
             {
                 machine.NextState = Equipping.GetInstance;
             }
+        }
+
+        private bool SpellIsBane(int spellId)
+        {
+            return spellId.Equals(4391)
+                || spellId.Equals(4393)
+                || spellId.Equals(4397)
+                || spellId.Equals(4401)
+                || spellId.Equals(4403)
+                || spellId.Equals(4407)
+                || spellId.Equals(4409)
+                || spellId.Equals(4412);
         }
 
         public override string ToString()
