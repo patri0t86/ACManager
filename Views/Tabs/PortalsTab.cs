@@ -343,7 +343,7 @@ namespace ACManager.Views.Tabs
                 CharacterChoice.AddItem(Parent.Machine.AccountCharacters[i], null);
             }
 
-            
+
 
             for (int i = 0; i < Parent.Machine.AccountCharacters.Count; i++)
             {

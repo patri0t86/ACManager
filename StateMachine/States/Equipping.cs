@@ -29,7 +29,7 @@ namespace ACManager.StateMachine.States
 
         public void Exit(Machine machine)
         {
-        
+
         }
 
         public void Process(Machine machine)
@@ -130,7 +130,7 @@ namespace ACManager.StateMachine.States
             {
                 return true;
             }
-            
+
             if (wand.Values(LongValueKey.WieldReqType).Equals(7) || wand.Values(LongValueKey.WieldReqType).Equals(2))
             {
                 if (wand.Values(LongValueKey.WieldReqType).Equals(7) && !(machine.Core.CharacterFilter.Level >= wand.Values(LongValueKey.WieldReqValue)))

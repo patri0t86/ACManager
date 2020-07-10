@@ -106,7 +106,7 @@ namespace ACManager.StateMachine
                 return false;
             }
         }
-        
+
         private bool BuffsPathCreateOrExists()
         {
             try
