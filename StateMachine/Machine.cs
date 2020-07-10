@@ -337,7 +337,7 @@ namespace ACManager.StateMachine
                 }
                 else
                 {
-                    ChatManager.SendTell(CharacterMakingRequest, $"I have received your request. There are currently {Requests.Count + 1} requests in the queue ahead of you.");
+                    ChatManager.SendTell(CharacterMakingRequest, $"I have received your request. There are currently {Requests.Count} requests in the queue ahead of you.");
                 }
 
                 // Give an estimated wait time
