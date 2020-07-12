@@ -2,7 +2,6 @@
 using ACManager.StateMachine.States;
 using ACManager.Views;
 using Decal.Adapter;
-using Decal.Adapter.Wrappers;
 using System;
 using System.Collections.Generic;
 
@@ -87,11 +86,6 @@ namespace ACManager.StateMachine
         /// Time reference to control when advertisements are broadcast.
         /// </summary>
         public DateTime LastBroadcast { get; set; }
-
-        /// <summary>
-        /// Maximum vital stats for the current character.
-        /// </summary>
-        public IndexedCollection<CharFilterIndex, CharFilterVitalType, int> MaxVitals { get; set; }
 
         /// <summary>
         /// Used to selectively decline new commands as necessary.
@@ -224,6 +218,11 @@ namespace ACManager.StateMachine
         public string BuffingCharacter { get; set; }
 
         /// <summary>
+        /// Determines state of the bot being buffed for buffing.
+        /// </summary>
+        public bool IsBuffed { get; set; }
+
+        /// <summary>
         /// Create the state machine in the StoppedState and begin processing commands on intervals (every time a frame is rendered).
         /// </summary>
         public Machine(CoreManager core, string path)
@@ -250,9 +249,6 @@ namespace ACManager.StateMachine
         {
             if (LoggedIn)
             {
-                // Gets the character's current vitals (Health/Stamina/Mana)
-                MaxVitals = Core.CharacterFilter.EffectiveVital;
-
                 if (NextState == null)
                 {
                     CurrentState.Process(this);
@@ -299,8 +295,8 @@ namespace ACManager.StateMachine
         public bool InPosition()
         {
             return Core.Actions.Landcell == DesiredLandBlock
-                && Math.Abs(Core.Actions.LocationX - DesiredBotLocationX) < 1
-                && Math.Abs(Core.Actions.LocationY - DesiredBotLocationY) < 1;
+                && Math.Abs(Core.Actions.LocationX - DesiredBotLocationX) < 2
+                && Math.Abs(Core.Actions.LocationY - DesiredBotLocationY) < 2;
         }
 
         /// <summary>
@@ -312,53 +308,6 @@ namespace ACManager.StateMachine
             return (Core.Actions.Heading <= NextHeading + 1
                 && Core.Actions.Heading >= NextHeading - 1)
                 || NextHeading.Equals(-1);
-        }
-
-        public void AddToQueue(Request newRequest)
-        {
-            if (Requests.Contains(newRequest))
-            {
-                ChatManager.SendTell(CharacterMakingRequest, $"You already have a {newRequest.RequestType} request in.");
-            }
-            else if (CurrentRequest.Equals(newRequest))
-            {
-                ChatManager.SendTell(CharacterMakingRequest, $"I'm already helping you, please be patient.");
-            }
-            else
-            {
-                Requests.Enqueue(newRequest);
-                if (Requests.Count.Equals(1) && string.IsNullOrEmpty(CurrentRequest.RequesterName))
-                {
-                    ChatManager.SendTell(CharacterMakingRequest, "I have received your request.");
-                }
-                else if (Requests.Count.Equals(1) && !string.IsNullOrEmpty(CurrentRequest.RequesterName))
-                {
-                    ChatManager.SendTell(CharacterMakingRequest, $"I have received your request. There is currently 1 request in the queue ahead of you.");
-                }
-                else
-                {
-                    ChatManager.SendTell(CharacterMakingRequest, $"I have received your request. There are currently {Requests.Count} requests in the queue ahead of you.");
-                }
-
-                // Give an estimated wait time
-                //TimeSpan waitTime;
-                //int seconds = 0;
-
-                //foreach (Request request in Requests)
-                //{
-                //    if (request.RequestType.Equals(RequestType.Buff))
-                //    {
-                //        seconds += request.SpellsToCast.Count * 4;
-                //    }
-                //}
-
-                //if (Requests.Count > 1)
-                //{
-                //    seconds += Requests.Count * 10;
-                //    waitTime = TimeSpan.FromSeconds(seconds);
-                //    ChatManager.SendTell(CurrentRequest.RequesterName, $"I should be able to get  to your request in about {waitTime.Minutes} minutes and {waitTime.Seconds} seconds.");
-                //}
-            }
         }
     }
 }

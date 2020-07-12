@@ -1,14 +1,17 @@
 ﻿using System.Collections.Generic;
 
-namespace ACManager.Settings.DefaultProfiles
+namespace ACManager.Settings.BuffDefaults
 {
-    internal class DefaultProfiles
+    public class Mage
     {
-        public class Mage
-        {
-            public string Command = "mage";
-            public List<Buff> Buffs = new List<Buff>();
-            public List<int> SpellList = new List<int>()
+        public string Command = "mage";
+        public List<string> Commands = new List<string>()
+            {
+                "mage",
+                "war"
+            };
+        public List<Buff> Buffs = new List<Buff>();
+        public List<int> SpellList = new List<int>()
             {
                 2086,
                 2060,
@@ -50,16 +53,15 @@ namespace ACManager.Settings.DefaultProfiles
                 6023
             };
 
-            public Mage()
+        public Mage()
+        {
+            foreach (int spellId in SpellList)
             {
-                foreach (int spellId in SpellList)
+                Buff buff = new Buff
                 {
-                    Buff buff = new Buff
-                    {
-                        SpellId = spellId
-                    };
-                    Buffs.Add(buff);
-                }
+                    SpellId = spellId
+                };
+                Buffs.Add(buff);
             }
         }
     }

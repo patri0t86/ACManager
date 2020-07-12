@@ -1,6 +1,8 @@
-﻿using ACManager.StateMachine.Queues;
+﻿using ACManager.Settings;
+using ACManager.StateMachine.Queues;
 using Decal.Adapter.Wrappers;
 using System;
+using System.Collections.Generic;
 
 namespace ACManager.StateMachine.States
 {
@@ -61,6 +63,10 @@ namespace ACManager.StateMachine.States
                 }
                 else if (machine.SpellsToCast.Count > 0 && machine.Core.CharacterFilter.Name.Equals(machine.NextCharacter))
                 {
+                    if (machine.CurrentRequest.RequestType.Equals(RequestType.Buff) && machine.Core.CharacterFilter.Name.Equals(machine.BuffingCharacter))
+                    {
+                        machine.IsBuffed = HaveAllBuffs(machine);
+                    }
                     machine.NextState = Equipping.GetInstance;
                 }
                 else if (!string.IsNullOrEmpty(machine.ItemToUse) && machine.Core.CharacterFilter.Name.Equals(machine.NextCharacter))
@@ -75,13 +81,13 @@ namespace ACManager.StateMachine.States
                         machine.NextCharacter = machine.CurrentRequest.Character;
                         machine.PortalDescription = machine.CurrentRequest.Destination;
                         machine.NextHeading = machine.CurrentRequest.Heading;
-                        machine.SpellsToCast = machine.CurrentRequest.SpellsToCast;
+                        machine.SpellsToCast.AddRange(machine.CurrentRequest.SpellsToCast);
                     }
                     else if (machine.CurrentRequest.RequestType.Equals(RequestType.Buff))
                     {
                         machine.NextCharacter = machine.CurrentRequest.Character;
                         machine.NextHeading = machine.CurrentRequest.Heading;
-                        machine.SpellsToCast = machine.CurrentRequest.SpellsToCast;
+                        machine.SpellsToCast.AddRange(machine.CurrentRequest.SpellsToCast);
                     }
                     else if (machine.CurrentRequest.RequestType.Equals(RequestType.Gem))
                     {
@@ -132,6 +138,48 @@ namespace ACManager.StateMachine.States
         public override string ToString()
         {
             return nameof(Idle);
+        }
+
+        public bool HaveAllBuffs(Machine machine)
+        {
+            try
+            {
+                BuffProfile profile = machine.Utility.GetProfile("botbuffs");
+
+                List<int> requiredBuffs = new List<int>();
+                foreach (Buff buff in profile.Buffs)
+                {
+                    requiredBuffs.Add(buff.SpellId);
+                }
+
+                Dictionary<int, int> enchantments = new Dictionary<int, int>();
+                foreach (EnchantmentWrapper enchantment in machine.Core.CharacterFilter.Enchantments)
+                {
+                    if (requiredBuffs.Contains(enchantment.SpellId))
+                    {
+                        enchantments.Add(enchantment.SpellId, enchantment.TimeRemaining);
+                    }
+                }
+
+                foreach (int requiredBuff in requiredBuffs)
+                {
+                    if (!enchantments.ContainsKey(requiredBuff))
+                    {
+                        return false;
+                    }
+
+                    if (enchantments[requiredBuff] < 300)
+                    {
+                        return false;
+                    }
+                }
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Debug.ToChat(ex.Message);
+                return false;
+            }
         }
     }
 }

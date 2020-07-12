@@ -1,5 +1,5 @@
 ﻿using ACManager.Settings;
-using ACManager.Settings.DefaultProfiles;
+using ACManager.Settings.BuffDefaults;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -17,6 +17,7 @@ namespace ACManager.StateMachine
     internal class Utility
     {
         private Machine Machine { get; set; }
+        internal string Version { get; set; }
         private string AllSettingsPath { get; set; }
         private string CharacterSettingsFile { get { return "acm_settings.xml"; } }
         private string CharacterSettingsPath { get; set; }
@@ -32,7 +33,6 @@ namespace ACManager.StateMachine
         internal GUISettings GUISettings { get; set; } = new GUISettings();
         internal InventorySettings Inventory { get; set; } = new InventorySettings();
         internal List<BuffProfile> BuffProfiles { get; set; } = new List<BuffProfile>();
-        internal string Version { get; set; }
 
         public Utility(Machine machine, string path)
         {
@@ -383,7 +383,7 @@ namespace ACManager.StateMachine
                 {
                     DirectoryInfo dir = new DirectoryInfo(BuffProfilesPath);
                     FileInfo[] files = dir.GetFiles("*.xml");
-
+                    BuffProfiles.Clear();
                     if (files.Length > 0)
                     {
                         foreach (FileInfo file in files)
@@ -414,10 +414,71 @@ namespace ACManager.StateMachine
         internal void GenerateDefaultProfiles()
         {
             BuffProfile newProfile = new BuffProfile();
-            DefaultProfiles.Mage mage = new DefaultProfiles.Mage();
+
+            BotBuffs botBuffs = new BotBuffs();
+            newProfile.Command = botBuffs.Command;
+            newProfile.Buffs = botBuffs.Buffs;
+            SaveBuffProfile(newProfile);
+
+            Mage mage = new Mage();
             newProfile.Command = mage.Command;
+            newProfile.Commands = mage.Commands;
             newProfile.Buffs = mage.Buffs;
             SaveBuffProfile(newProfile);
+
+            Heavy heavy = new Heavy();
+            newProfile.Command = heavy.Command;
+            newProfile.Commands = heavy.Commands;
+            newProfile.Buffs = heavy.Buffs;
+            SaveBuffProfile(newProfile);
+
+            VoidBuffs voidBuffs = new VoidBuffs();
+            newProfile.Command = voidBuffs.Command;
+            newProfile.Commands = voidBuffs.Commands;
+            newProfile.Buffs = voidBuffs.Buffs;
+            SaveBuffProfile(newProfile);
+
+            Missile missile = new Missile();
+            newProfile.Command = missile.Command;
+            newProfile.Commands = missile.Commands;
+            newProfile.Buffs = missile.Buffs;
+            SaveBuffProfile(newProfile);
+
+            Light light = new Light();
+            newProfile.Command = light.Command;
+            newProfile.Commands = light.Commands;
+            newProfile.Buffs = light.Buffs;
+            SaveBuffProfile(newProfile);
+
+            TwoHand twoHand = new TwoHand();
+            newProfile.Command = twoHand.Command;
+            newProfile.Commands = twoHand.Commands;
+            newProfile.Buffs = twoHand.Buffs;
+            SaveBuffProfile(newProfile);
+
+            XpChain xpChain = new XpChain();
+            newProfile.Command = xpChain.Command;
+            newProfile.Commands = xpChain.Commands;
+            newProfile.Buffs = xpChain.Buffs;
+            SaveBuffProfile(newProfile);
+
+            Finesse finesse = new Finesse();
+            newProfile.Command = finesse.Command;
+            newProfile.Commands = finesse.Commands;
+            newProfile.Buffs = finesse.Buffs;
+            SaveBuffProfile(newProfile);
+        }
+
+        internal BuffProfile GetProfile(string command)
+        {
+            for (int i = 0; i < BuffProfiles.Count; i++)
+            {
+                if (BuffProfiles[i].Command.Equals(command))
+                {
+                    return BuffProfiles[i];
+                }
+            }
+            return null;
         }
     }
 }

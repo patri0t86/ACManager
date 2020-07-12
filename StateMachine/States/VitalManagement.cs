@@ -25,14 +25,21 @@ namespace ACManager.StateMachine.States
         {
             if (machine.Enabled)
             {
-                if (machine.Core.CharacterFilter.Mana >= machine.ManaThreshold * machine.MaxVitals[CharFilterVitalType.Mana])
+                if (machine.Core.CharacterFilter.Mana >= machine.ManaThreshold * machine.Core.CharacterFilter.EffectiveVital[CharFilterVitalType.Mana])
                 {
                     if (machine.CastStarted && machine.CastCompleted)
                     {
-                        machine.NextState = Casting.GetInstance;
+                        if (machine.IsBuffed)
+                        {
+                            machine.NextState = Casting.GetInstance;
+                        }
+                        else
+                        {
+                            machine.NextState = SelfBuffing.GetInstance;
+                        }
                     }
                 }
-                else if (machine.Core.CharacterFilter.Stamina < machine.StaminaThreshold * machine.MaxVitals[CharFilterVitalType.Stamina])
+                else if (machine.Core.CharacterFilter.Stamina < machine.StaminaThreshold * machine.Core.CharacterFilter.EffectiveVital[CharFilterVitalType.Stamina])
                 {
                     if (machine.CastStarted && machine.CastCompleted)
                     {

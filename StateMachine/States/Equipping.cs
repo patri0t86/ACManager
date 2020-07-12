@@ -1,4 +1,5 @@
-﻿using Decal.Adapter.Wrappers;
+﻿using ACManager.StateMachine.Queues;
+using Decal.Adapter.Wrappers;
 using System;
 
 namespace ACManager.StateMachine.States
@@ -40,7 +41,14 @@ namespace ACManager.StateMachine.States
                 {
                     if (IsWandEquipped)
                     {
-                        machine.NextState = Casting.GetInstance;
+                        if (machine.IsBuffed || !machine.CurrentRequest.RequestType.Equals(RequestType.Buff))
+                        {
+                            machine.NextState = Casting.GetInstance;
+                        }
+                        else if (machine.Core.CharacterFilter.Name.Equals(machine.BuffingCharacter))
+                        {
+                            machine.NextState = SelfBuffing.GetInstance;
+                        }
                     }
                     else
                     {

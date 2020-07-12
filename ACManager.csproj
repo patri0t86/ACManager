@@ -83,8 +83,17 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Settings\BuffDefaults\DefaultProfiles.cs" />
+    <Compile Include="Settings\BuffDefaults\BotBuffs.cs" />
+    <Compile Include="Settings\BuffDefaults\Finesse.cs" />
+    <Compile Include="Settings\BuffDefaults\Heavy.cs" />
+    <Compile Include="Settings\BuffDefaults\Mage.cs" />
+    <Compile Include="Settings\BuffDefaults\Missile.cs" />
+    <Compile Include="Settings\BuffDefaults\Trades.cs" />
+    <Compile Include="Settings\BuffDefaults\TwoHand.cs" />
+    <Compile Include="Settings\BuffDefaults\VoidBuffs.cs" />
+    <Compile Include="Settings\BuffDefaults\XpChain.cs" />
     <Compile Include="Settings\BuffSettings.cs" />
+    <Compile Include="Settings\Light.cs" />
     <Compile Include="StateMachine\ComponentChecker.cs" />
     <Compile Include="ExpTracker.cs" />
     <Compile Include="FellowshipControl.cs" />
@@ -104,6 +113,7 @@
     <Compile Include="StateMachine\States\Idle.cs" />
     <Compile Include="StateMachine\Machine.cs" />
     <Compile Include="StateMachine\States\Positioning.cs" />
+    <Compile Include="StateMachine\States\SelfBuffing.cs" />
     <Compile Include="StateMachine\States\StateBase.cs" />
     <Compile Include="StateMachine\States\StateTemplate.cs" />
     <Compile Include="StateMachine\States\SwitchingCharacters.cs" />
