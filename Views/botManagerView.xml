@@ -50,6 +50,8 @@
         <control progid="DecalControls.Slider"      name="StamThresh"               left="160"  top="183"  width="205" height="16" minimum="0" maximum="100" />
         <control progid="DecalControls.StaticText"  name="StamThreshText"           left="370"  top="183"  width="27"  height="16" text="" />
         
+        <control progid="DecalControls.CheckBox"    name="StayBuffed"               left="160"  top="202"  width="235" height="16" text="Keep Buffs Alive" />
+        
       </control>
     </page>
   

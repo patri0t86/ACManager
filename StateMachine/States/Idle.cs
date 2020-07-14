@@ -12,6 +12,7 @@ namespace ACManager.StateMachine.States
     /// </summary>
     internal class Idle : StateBase<Idle>, IState
     {
+        private DateTime BuffCheck { get; set; }
         public void Enter(Machine machine)
         {
             machine.Inventory.GetComponentLevels();
@@ -125,6 +126,16 @@ namespace ACManager.StateMachine.States
                         if (!machine.NextHeading.Equals(-1))
                         {
                             machine.NextHeading = -1;
+                        }
+                    }
+
+                    if (machine.StayBuffed && machine.Core.CharacterFilter.Name.Equals(machine.BuffingCharacter) && (DateTime.Now - BuffCheck).TotalSeconds > 300)
+                    {
+                        BuffCheck = DateTime.Now;
+                        machine.IsBuffed = HaveAllBuffs(machine);
+                        if (!machine.IsBuffed)
+                        {
+                            machine.NextState = Equipping.GetInstance;
                         }
                     }
                 }

@@ -41,6 +41,7 @@ namespace ACManager.StateMachine.States
                 machine.DesiredBotLocationY = machine.Utility.BotSettings.DesiredBotLocationY;
                 machine.EnablePositioning = machine.Utility.BotSettings.BotPositioning;
                 machine.BuffingCharacter = machine.Utility.BotSettings.BuffingCharacter;
+                machine.StayBuffed = machine.Utility.BotSettings.StayBuffed;
 
                 Debug.ToChat("Started successfully.");
                 machine.ChatManager.Broadcast($"/me is running ACManager Bot {machine.Utility.Version}. Whisper 'help' to get started.");

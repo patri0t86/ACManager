@@ -37,7 +37,7 @@ namespace ACManager.StateMachine.States
         {
             if (machine.Enabled)
             {
-                if (machine.SpellsToCast.Count > 0) // need to equip a wand
+                if (machine.SpellsToCast.Count > 0 || !machine.IsBuffed) // need to equip a wand
                 {
                     if (IsWandEquipped)
                     {

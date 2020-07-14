@@ -32,6 +32,7 @@ namespace ACManager.Views.Tabs
         private HudTextBox ManaScarabThreshold { get; set; }
         private HudTextBox ComponentThreshold { get; set; }
         private HudCombo BuffingCharacterChoice { get; set; }
+        private HudCheckBox StayBuffed { get; set; }
         private bool disposedValue;
 
         public ConfigTab(BotManagerView botManagerView)
@@ -110,6 +111,9 @@ namespace ACManager.Views.Tabs
             BuffingCharacterChoice = Parent.View != null ? (HudCombo)Parent.View["BuffingCharacterChoice"] : new HudCombo(new ControlGroup());
             BuffingCharacterChoice.Change += BuffingCharacterChoice_Change;
 
+            StayBuffed = Parent.View != null ? (HudCheckBox)Parent.View["StayBuffed"] : new HudCheckBox();
+            StayBuffed.Change += StayBuffed_Change;
+
             PopulateCharacterChoice();
             LoadSettings();
         }
@@ -139,6 +143,7 @@ namespace ACManager.Views.Tabs
                 PlatinumScarabThreshold.Text = Parent.Machine.Utility.BotSettings.PlatinumScarabThreshold.ToString();
                 ManaScarabThreshold.Text = Parent.Machine.Utility.BotSettings.ManaScarabThreshold.ToString();
                 ComponentThreshold.Text = Parent.Machine.Utility.BotSettings.ComponentThreshold.ToString();
+                StayBuffed.Checked = Parent.Machine.Utility.BotSettings.StayBuffed;
 
                 if (string.IsNullOrEmpty(Parent.Machine.Utility.BotSettings.BuffingCharacter))
                 {
@@ -608,6 +613,20 @@ namespace ACManager.Views.Tabs
             }
         }
 
+        private void StayBuffed_Change(object sender, EventArgs e)
+        {
+            try
+            {
+                Parent.Machine.StayBuffed = Parent.Machine.Utility.BotSettings.StayBuffed = StayBuffed.Checked;
+                Parent.Machine.Utility.SaveBotSettings();
+                Debug.ToChat($"{(StayBuffed.Checked ? "The bot will now ensure self buffs will never run out, even when idle." : "The bot will now let self buffs run out, and only self buff when required.")}");
+            }
+            catch (Exception ex)
+            {
+                Debug.LogException(ex);
+            }
+        }
+
         private void PopulateCharacterChoice()
         {
             BuffingCharacterChoice.AddItem("None", null);
@@ -645,6 +664,7 @@ namespace ACManager.Views.Tabs
                     ManaScarabThreshold.Change -= ManaScarabThreshold_Change;
                     ComponentThreshold.Change -= ComponentThreshold_Change;
                     BuffingCharacterChoice.Change -= BuffingCharacterChoice_Change;
+                    StayBuffed.Change -= StayBuffed_Change;
                 }
                 disposedValue = true;
             }
