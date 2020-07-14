@@ -295,8 +295,8 @@ namespace ACManager.StateMachine
         public bool InPosition()
         {
             return Core.Actions.Landcell == DesiredLandBlock
-                && Math.Abs(Core.Actions.LocationX - DesiredBotLocationX) < 2
-                && Math.Abs(Core.Actions.LocationY - DesiredBotLocationY) < 2;
+                && Math.Abs(Core.Actions.LocationX - DesiredBotLocationX) < 1
+                && Math.Abs(Core.Actions.LocationY - DesiredBotLocationY) < 1;
         }
 
         /// <summary>

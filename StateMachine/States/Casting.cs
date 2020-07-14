@@ -42,7 +42,7 @@ namespace ACManager.StateMachine.States
                         || machine.SpellsToCast.Contains(6023)
                         || machine.SpellsToCast.Contains(6031))
                     {
-                        machine.ChatManager.SendTell(machine.CurrentRequest.RequesterName, $"Casting {machine.SpellsToCast.Count} buffs on you. This should take about {buffTime.Minutes} minutes and {buffTime.Seconds} seconds. Make sure you are standing near me, Item Enchantments are short range spells.");
+                        machine.ChatManager.SendTell(machine.CurrentRequest.RequesterName, $"Casting {machine.SpellsToCast.Count} buffs on you. This should take about {buffTime.Minutes} minutes and {buffTime.Seconds} seconds. Make sure you are standing near me as Item Enchantments are short range spells.");
                     }
                     else
                     {
@@ -121,7 +121,7 @@ namespace ACManager.StateMachine.States
                     }
                     else if (!machine.CastStarted)
                     {
-                        if (machine.Core.CharacterFilter.Mana < machine.ManaThreshold * machine.Core.CharacterFilter.EffectiveVital[CharFilterVitalType.Mana] && machine.Core.Actions.SkillTrainLevel[Decal.Adapter.Wrappers.SkillType.BaseLifeMagic] != 1)
+                        if (machine.Core.CharacterFilter.Mana < machine.ManaThreshold * machine.Core.CharacterFilter.EffectiveVital[CharFilterVitalType.Mana] && machine.Core.Actions.SkillTrainLevel[SkillType.BaseLifeMagic] != 1)
                         {
                             machine.NextState = VitalManagement.GetInstance;
                         }
@@ -146,7 +146,6 @@ namespace ACManager.StateMachine.States
                                         {
                                             StartedTracking = !StartedTracking;
                                             machine.SpellsToCast.Clear();
-                                            Debug.ToChat("Cancelling request.");
                                         }
                                     }
                                     else if (StartedTracking)
@@ -196,9 +195,6 @@ namespace ACManager.StateMachine.States
                                 {
                                     machine.SpellsToCast.Insert(0, fallbackSpell);
                                 }
-
-                                //machine.ChatManager.Broadcast($"I tried casting {machine.Core.Filter<FileService>().SpellTable.GetById(machine.SpellsToCast[0]).Name}, but I do not know it yet.");
-                                //machine.SpellsToCast.RemoveAt(0);
                             }
                         }
                     }
@@ -217,6 +213,7 @@ namespace ACManager.StateMachine.States
             }
             else
             {
+                SentInitialInfo = !SentInitialInfo;
                 machine.NextState = Equipping.GetInstance;
             }
         }

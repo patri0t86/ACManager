@@ -39,7 +39,7 @@ namespace ACManager.StateMachine.States
                     {
                         TempHeading = GetHeading(machine.Core.Actions.Landcell, machine.DesiredLandBlock, machine.Core.Actions.LocationX, machine.Core.Actions.LocationY, machine.DesiredBotLocationX, machine.DesiredBotLocationY);
 
-                        if (machine.Core.Actions.Heading <= TempHeading + 2 && machine.Core.Actions.Heading >= TempHeading - 2)
+                        if (machine.Core.Actions.Heading <= TempHeading + 1 && machine.Core.Actions.Heading >= TempHeading - 1)
                         {
                             if (!AutoRunEnabled)
                             {

@@ -155,7 +155,7 @@ namespace ACManager.StateMachine.States
                 Dictionary<int, int> enchantments = new Dictionary<int, int>();
                 foreach (EnchantmentWrapper enchantment in machine.Core.CharacterFilter.Enchantments)
                 {
-                    if (requiredBuffs.Contains(enchantment.SpellId))
+                    if (requiredBuffs.Contains(enchantment.SpellId) && !enchantments.ContainsKey(enchantment.SpellId))
                     {
                         enchantments.Add(enchantment.SpellId, enchantment.TimeRemaining);
                     }
@@ -168,7 +168,7 @@ namespace ACManager.StateMachine.States
                         return false;
                     }
 
-                    if (enchantments[requiredBuff] < 300)
+                    else if (enchantments[requiredBuff] < 300 && !enchantments[requiredBuff].Equals(-1))
                     {
                         return false;
                     }
