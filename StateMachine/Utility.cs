@@ -420,6 +420,11 @@ namespace ACManager.StateMachine
             newProfile.Buffs = botBuffs.Buffs;
             SaveBuffProfile(newProfile);
 
+            BotBuffs7 botBuffs7 = new BotBuffs7();
+            newProfile.Command = botBuffs7.Command;
+            newProfile.Buffs = botBuffs7.Buffs;
+            SaveBuffProfile(newProfile);
+
             Mage mage = new Mage();
             newProfile.Command = mage.Command;
             newProfile.Commands = mage.Commands;

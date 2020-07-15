@@ -16,7 +16,7 @@ namespace ACManager.StateMachine.States
             if (!StartedBuffing)
             {
                 machine.ChatManager.SendTell(machine.CurrentRequest.RequesterName, "I need to buff myself, standy.");
-                BuffProfile profile = machine.Utility.GetProfile("botbuffs");
+                BuffProfile profile = machine.Level7Self ? machine.Utility.GetProfile("botbuffs7") : machine.Utility.GetProfile("botbuffs");
                 machine.SpellsToCast.Clear();
                 foreach (Buff buff in profile.Buffs)
                 {
@@ -127,7 +127,8 @@ namespace ACManager.StateMachine.States
                 4582, // life self 8
                 4602, // mana c self 8
                 4494, // mana renewal 8
-                4498  // rejuv 8
+                4498, // rejuv 8
+                4510  // arcane enlightenment 8
             };
 
             if (selfBuffs.Contains(spellId))
@@ -167,6 +168,10 @@ namespace ACManager.StateMachine.States
                 else if (spellId.Equals(4498))
                 {
                     return 2187;
+                }
+                else if (spellId.Equals(4510))
+                {
+                    return 2195;
                 }
             }
             return 0;

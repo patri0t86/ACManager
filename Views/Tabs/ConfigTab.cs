@@ -33,6 +33,7 @@ namespace ACManager.Views.Tabs
         private HudTextBox ComponentThreshold { get; set; }
         private HudCombo BuffingCharacterChoice { get; set; }
         private HudCheckBox StayBuffed { get; set; }
+        private HudCheckBox Level7Self { get; set; }
         private bool disposedValue;
 
         public ConfigTab(BotManagerView botManagerView)
@@ -114,6 +115,9 @@ namespace ACManager.Views.Tabs
             StayBuffed = Parent.View != null ? (HudCheckBox)Parent.View["StayBuffed"] : new HudCheckBox();
             StayBuffed.Change += StayBuffed_Change;
 
+            Level7Self = Parent.View != null ? (HudCheckBox)Parent.View["Level7Self"] : new HudCheckBox();
+            Level7Self.Change += Level7Self_Change;
+
             PopulateCharacterChoice();
             LoadSettings();
         }
@@ -144,6 +148,7 @@ namespace ACManager.Views.Tabs
                 ManaScarabThreshold.Text = Parent.Machine.Utility.BotSettings.ManaScarabThreshold.ToString();
                 ComponentThreshold.Text = Parent.Machine.Utility.BotSettings.ComponentThreshold.ToString();
                 StayBuffed.Checked = Parent.Machine.Utility.BotSettings.StayBuffed;
+                Level7Self.Checked = Parent.Machine.Utility.BotSettings.Level7Self;
 
                 if (string.IsNullOrEmpty(Parent.Machine.Utility.BotSettings.BuffingCharacter))
                 {
@@ -627,6 +632,20 @@ namespace ACManager.Views.Tabs
             }
         }
 
+        private void Level7Self_Change(object sender, EventArgs e)
+        {
+            try
+            {
+                Parent.Machine.Level7Self = Parent.Machine.Utility.BotSettings.Level7Self = Level7Self.Checked;
+                Parent.Machine.Utility.SaveBotSettings();
+                Debug.ToChat(Level7Self.Checked ? "The bot will now buff the buffing character with level 7 spells only, no level 8 spells are used for self spells. Use this if level 8 self spells are not known." : "The bot will now buff the buffing character with level 8 spells only, with level 7 fallback if a spell is not known. Use this if level 8 self spells are known.");
+            }
+            catch (Exception ex)
+            {
+                Debug.LogException(ex);
+            }
+        }
+
         private void PopulateCharacterChoice()
         {
             BuffingCharacterChoice.AddItem("None", null);
@@ -665,6 +684,7 @@ namespace ACManager.Views.Tabs
                     ComponentThreshold.Change -= ComponentThreshold_Change;
                     BuffingCharacterChoice.Change -= BuffingCharacterChoice_Change;
                     StayBuffed.Change -= StayBuffed_Change;
+                    Level7Self.Change -= Level7Self_Change;
                 }
                 disposedValue = true;
             }

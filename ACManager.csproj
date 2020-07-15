@@ -84,6 +84,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Settings\BuffDefaults\BotBuffs.cs" />
+    <Compile Include="Settings\BuffDefaults\BotBuffs7.cs" />
     <Compile Include="Settings\BuffDefaults\Finesse.cs" />
     <Compile Include="Settings\BuffDefaults\Heavy.cs" />
     <Compile Include="Settings\BuffDefaults\Mage.cs" />

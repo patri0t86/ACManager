@@ -155,7 +155,7 @@ namespace ACManager.StateMachine.States
         {
             try
             {
-                BuffProfile profile = machine.Utility.GetProfile("botbuffs");
+                BuffProfile profile = machine.Level7Self ? machine.Utility.GetProfile("botbuffs7") : machine.Utility.GetProfile("botbuffs");
 
                 List<int> requiredBuffs = new List<int>();
                 foreach (Buff buff in profile.Buffs)

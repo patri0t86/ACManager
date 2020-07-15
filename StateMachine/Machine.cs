@@ -228,6 +228,11 @@ namespace ACManager.StateMachine
         public bool StayBuffed { get; set; }
 
         /// <summary>
+        /// Setting determines whether to only buff the bot with lvl 7 self spells.
+        /// </summary>
+        public bool Level7Self { get; set; }
+
+        /// <summary>
         /// Create the state machine in the StoppedState and begin processing commands on intervals (every time a frame is rendered).
         /// </summary>
         public Machine(CoreManager core, string path)

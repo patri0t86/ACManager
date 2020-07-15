@@ -76,6 +76,9 @@ namespace ACManager.Settings
         [XmlElement(IsNullable = false)]
         public bool StayBuffed;
 
+        [XmlElement(IsNullable = false)]
+        public bool Level7Self;
+
         public List<GemSetting> GemSettings = new List<GemSetting>();
 
         public List<Advertisement> Advertisements = new List<Advertisement>();
