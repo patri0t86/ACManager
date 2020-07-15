@@ -129,7 +129,7 @@ namespace ACManager.StateMachine.States
                         }
                     }
 
-                    if (machine.StayBuffed && machine.Core.CharacterFilter.Name.Equals(machine.BuffingCharacter) && (DateTime.Now - BuffCheck).TotalSeconds > 300)
+                    if (machine.StayBuffed && machine.Core.CharacterFilter.Name.Equals(machine.BuffingCharacter) && (DateTime.Now - BuffCheck).TotalSeconds > 30)
                     {
                         BuffCheck = DateTime.Now;
                         machine.IsBuffed = HaveAllBuffs(machine);

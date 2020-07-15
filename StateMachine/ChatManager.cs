@@ -488,37 +488,55 @@ namespace ACManager.StateMachine
             else
             {
                 Machine.Requests.Enqueue(newRequest);
+
+                // Give an estimated wait time
+                TimeSpan waitTime;
+                int seconds = 0;
+                string lastCharacter = Machine.Core.CharacterFilter.Name;
+
+                int currentRequest = Machine.CurrentRequest.SpellsToCast.Count * 4;
+
+                // add the current request time in
+                seconds += currentRequest;
+
+                foreach (Request request in Machine.Requests)
+                {
+                    seconds += request.SpellsToCast.Count * 4;
+
+                    if (!request.Character.Equals(lastCharacter))
+                    {
+                        lastCharacter = request.Character;
+                        seconds += 17;
+                    }
+                }
+
+                string estimatedWait = "";
+
+                if (Machine.Requests.Count > 1)
+                {
+                    seconds += Machine.Requests.Count * 5;
+                    waitTime = TimeSpan.FromSeconds(seconds);
+                    estimatedWait = $" I should be able to get to your request in {waitTime.Minutes} minutes and {waitTime.Seconds} seconds, or less.";
+                }
+                else if (!string.IsNullOrEmpty(Machine.CurrentRequest.RequesterName))
+                {
+                    seconds = currentRequest + 5;
+                    waitTime = TimeSpan.FromSeconds(seconds);
+                    estimatedWait = $" I should be able to get to your request in {waitTime.Minutes} minutes and {waitTime.Seconds} seconds, or less.";
+                }
+
                 if (Machine.Requests.Count.Equals(1) && string.IsNullOrEmpty(Machine.CurrentRequest.RequesterName))
                 {
                     SendTell(CharacterMakingRequest, "I have received your request and will help you now.");
                 }
                 else if (Machine.Requests.Count.Equals(1) && !string.IsNullOrEmpty(Machine.CurrentRequest.RequesterName))
                 {
-                    SendTell(CharacterMakingRequest, $"I have received your request. There is currently 1 request in the queue ahead of you.");
+                    SendTell(CharacterMakingRequest, $"I have received your request. There is currently 1 request in the queue ahead of you.{(!string.IsNullOrEmpty(estimatedWait) ? estimatedWait : "")}");
                 }
                 else
                 {
-                    SendTell(CharacterMakingRequest, $"I have received your request. There are currently {Machine.Requests.Count} requests in the queue ahead of you, including the person I'm currently helping.");
+                    SendTell(CharacterMakingRequest, $"I have received your request. There are currently {Machine.Requests.Count} requests in the queue ahead of you, including the person I'm currently helping.{(!string.IsNullOrEmpty(estimatedWait) ? estimatedWait : "")}");
                 }
-
-                // Give an estimated wait time
-                //TimeSpan waitTime;
-                //int seconds = 0;
-
-                //foreach (Request request in Requests)
-                //{
-                //    if (request.RequestType.Equals(RequestType.Buff))
-                //    {
-                //        seconds += request.SpellsToCast.Count * 4;
-                //    }
-                //}
-
-                //if (Requests.Count > 1)
-                //{
-                //    seconds += Requests.Count * 10;
-                //    waitTime = TimeSpan.FromSeconds(seconds);
-                //    ChatManager.SendTell(CurrentRequest.RequesterName, $"I should be able to get  to your request in about {waitTime.Minutes} minutes and {waitTime.Seconds} seconds.");
-                //}
             }
         }
     }
