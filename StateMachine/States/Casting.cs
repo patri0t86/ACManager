@@ -16,6 +16,7 @@ namespace ACManager.StateMachine.States
         private int LastSpell { get; set; }
         private bool StartedTracking { get; set; }
         private DateTime StartedTrackingTime { get; set; }
+        private int SpellCastCount { get; set; }
 
         public void Enter(Machine machine)
         {
@@ -34,6 +35,7 @@ namespace ACManager.StateMachine.States
                 {
                     Started = DateTime.Now;
                     SentInitialInfo = !SentInitialInfo;
+                    SpellCastCount = 0;
                     TimeSpan buffTime = TimeSpan.FromSeconds(machine.SpellsToCast.Count * 4);
                     if (machine.SpellsToCast.Contains(5989)
                         || machine.SpellsToCast.Contains(5997)
@@ -84,7 +86,7 @@ namespace ACManager.StateMachine.States
             {
                 SentInitialInfo = !SentInitialInfo;
                 TimeSpan duration = DateTime.Now - Started;
-                machine.ChatManager.SendTell(machine.CurrentRequest.RequesterName, $"Buffing is complete, it took {duration.Minutes} minutes and {duration.Seconds} seconds.");
+                machine.ChatManager.SendTell(machine.CurrentRequest.RequesterName, $"Buffing is complete with {SpellCastCount} buffs, it took {duration.Minutes} minutes and {duration.Seconds} seconds.");
                 CastBanes = false;
             }
         }
@@ -109,6 +111,7 @@ namespace ACManager.StateMachine.States
                                 machine.ChatManager.Broadcast($"/s Portal now open. Safe journey, friend.");
                             }
                         }
+                        SpellCastCount += 1;
                         machine.SpellsToCast.RemoveAt(0);
                         machine.CastCompleted = false;
                         machine.CastStarted = false;

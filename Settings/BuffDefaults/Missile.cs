@@ -5,9 +5,8 @@ namespace ACManager.Settings.BuffDefaults
     public class Missile
     {
         public string Command = "missile";
-        public List<string> Commands = new List<string>()
+        public List<string> Commands = new List<string>() 
             {
-                "missile",
                 "bow",
                 "archer",
                 "xbow"

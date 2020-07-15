@@ -5,10 +5,7 @@ namespace ACManager.Settings.BuffDefaults
     public class VoidBuffs
     {
         public string Command = "void";
-        public List<string> Commands = new List<string>()
-            {
-                "void"
-            };
+        public List<string> Commands = new List<string>();
         public List<Buff> Buffs = new List<Buff>();
         public List<int> SpellList = new List<int>()
             {

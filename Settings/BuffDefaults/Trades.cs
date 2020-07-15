@@ -7,8 +7,9 @@ namespace ACManager.Settings.BuffDefaults
         public string Command = "trades";
         public List<string> Commands = new List<string>()
             {
-                "trades",
-                "alltrades"
+                "alltrades",
+                "tinker",
+                "tink"
             };
         public List<Buff> Buffs = new List<Buff>();
         public List<int> SpellList = new List<int>()

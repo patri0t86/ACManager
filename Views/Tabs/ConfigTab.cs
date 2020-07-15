@@ -604,11 +604,13 @@ namespace ACManager.Views.Tabs
                     using (HudStaticText selectedCharacter = (HudStaticText)BuffingCharacterChoice[BuffingCharacterChoice.Current])
                     {
                         Parent.Machine.BuffingCharacter = Parent.Machine.Utility.BotSettings.BuffingCharacter = selectedCharacter.Text;
+                        Debug.ToChat($"The buff bot feature is now enabled using {selectedCharacter.Text}.");
                     }
                 }
                 else
                 {
                     Parent.Machine.BuffingCharacter = Parent.Machine.Utility.BotSettings.BuffingCharacter = "";
+                    Debug.ToChat("The buff bot feature is now disabled.");
                 }
                 Parent.Machine.Utility.SaveBotSettings();
             }

@@ -306,7 +306,7 @@ namespace ACManager.StateMachine
                 sb.Append("My profile commands are: ");
                 for (int i = 0; i < profiles.Count; i++)
                 {
-                    if (!profiles[i].Equals("botbuffs"))
+                    if (!profiles[i].Equals("botbuffs") && !profiles[i].Equals("botbuffs7"))
                     {
                         if (!i.Equals(profiles.Count - 1))
                         {
@@ -425,11 +425,11 @@ namespace ACManager.StateMachine
 
             if (!string.IsNullOrEmpty(Machine.BuffingCharacter) && fromTell)
             {
-                if (!message.Equals("botbuffs"))
+                if (!message.Equals("botbuffs") && !message.Equals("botbuffs7"))
                 {
                     foreach (BuffProfile profile in Machine.Utility.BuffProfiles)
                     {
-                        if (profile.Commands.Contains(message))
+                        if (profile.Commands.Contains(message) || profile.Command.Equals(message))
                         {
                             Request newRequest = new Request
                             {
@@ -494,7 +494,7 @@ namespace ACManager.StateMachine
                 int seconds = 0;
                 string lastCharacter = Machine.Core.CharacterFilter.Name;
 
-                int currentRequest = Machine.CurrentRequest.SpellsToCast.Count * 4;
+                int currentRequest = Machine.SpellsToCast.Count * 4;
 
                 // add the current request time in
                 seconds += currentRequest;
