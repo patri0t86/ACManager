@@ -134,26 +134,29 @@
     </page>
 
     <page label="Equipment">
-        <control progid="DecalControls.Notebook" name="nbPortalMain">
-          <page label="Idle">
-            <control progid="DecalControls.FixedLayout" clipped="">
-              <control progid="DecalControls.List"        name="IdleEquipmentList"    left="5"    top="5"  width="390" height="300">
-                <column progid="DecalControls.TextColumn"                             fixedwidth="150" />
+      <control progid="DecalControls.Notebook" name="nbEq">
+        <page label="Buffing Character">
+          <control progid="DecalControls.Notebook" name="nbBuffing">
+            <page label="Idle">
+              <control progid="DecalControls.FixedLayout" clipped="">
+                <control progid="DecalControls.List"        name="IdleEquipmentList"    left="5"    top="5"  width="390" height="300">
+                  <column progid="DecalControls.TextColumn"                             fixedwidth="150" />
+                </control>
+                <control progid="DecalControls.PushButton"  name="IdleAddEquipment"     left="285"  top="310"  width="110"  height="19" text="Add Selected Item" />
               </control>
-              <control progid="DecalControls.PushButton"  name="IdleAddEquipment"     left="285"  top="310"  width="110"  height="19" text="Add Selected Item" />
-            </control>
-          </page>
-          <page label="Buffing">
-            <control progid="DecalControls.FixedLayout" clipped="">
-              <control progid="DecalControls.List"        name="BuffEquipmentList"    left="5"    top="5"  width="390"    height="300">
-                <column progid="DecalControls.TextColumn"                             fixedwidth="150" />
+            </page>
+            <page label="Buffing">
+              <control progid="DecalControls.FixedLayout" clipped="">
+                <control progid="DecalControls.List"        name="BuffEquipmentList"    left="5"    top="5"  width="390"    height="280">
+                  <column progid="DecalControls.TextColumn"                             fixedwidth="150" />
+                </control>
+                <control progid="DecalControls.PushButton"  name="BuffAddEquipment"     left="285"  top="290" width="110"   height="19" text="Add Selected Item" />
+                <control progid="DecalControls.StaticText"                              left="5"    top="320" width="390"   height="16" text="IMPORTANT: If you set anything, you MUST also set a wand" />
               </control>
-              <control progid="DecalControls.PushButton"  name="BuffAddEquipment"     left="285"  top="310" width="110"   height="19" text="Add Selected Item" />
-              <control progid="DecalControls.StaticText"                              left="5"    top="332" width="390"   height="16" text="IMPORTANT: If you set anything, you MUST also set a wand" />
-            </control>
-          </page>
-        </control>
+            </page>
+          </control>
+        </page>
+      </control>
     </page>
-
   </control>
 </view>
