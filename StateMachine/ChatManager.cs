@@ -519,13 +519,13 @@ namespace ACManager.StateMachine
                 {
                     seconds += Machine.Requests.Count * 5;
                     waitTime = TimeSpan.FromSeconds(seconds);
-                    estimatedWait = $" I should be able to get to your request in {waitTime.Minutes} minutes and {waitTime.Seconds} seconds, or less.";
+                    estimatedWait = $" I should be able to get to your request in about {waitTime.Minutes} minutes and {waitTime.Seconds} seconds.";
                 }
                 else if (!string.IsNullOrEmpty(Machine.CurrentRequest.RequesterName))
                 {
                     seconds = currentRequest + 5;
                     waitTime = TimeSpan.FromSeconds(seconds);
-                    estimatedWait = $" I should be able to get to your request in {waitTime.Minutes} minutes and {waitTime.Seconds} seconds, or less.";
+                    estimatedWait = $" I should be able to get to your request in about {waitTime.Minutes} minutes and {waitTime.Seconds} seconds.";
                 }
 
                 if (Machine.Requests.Count.Equals(1) && string.IsNullOrEmpty(Machine.CurrentRequest.RequesterName))

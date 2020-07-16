@@ -133,7 +133,16 @@ namespace ACManager.StateMachine.States
                         {
                             if (machine.Core.Actions.CombatMode != CombatState.Magic)
                             {
-                                machine.Core.Actions.SetCombatMode(CombatState.Magic);
+                                if ((DateTime.Now - Started).TotalSeconds > 1)
+                                {
+                                    Debug.ToChat("No wand setup in equipment.");
+                                    machine.ChatManager.SendTell(machine.CurrentRequest.RequesterName, "I don't have a wand setup, I'm sorry. Cancelling this request.");
+                                    machine.SpellsToCast.Clear();
+                                }
+                                else
+                                {
+                                    machine.Core.Actions.SetCombatMode(CombatState.Magic);
+                                }                                
                             }
                             else if (machine.Core.CharacterFilter.IsSpellKnown(machine.SpellsToCast[0]))
                             {
