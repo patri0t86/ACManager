@@ -4,9 +4,9 @@ namespace ACManager.Settings.BuffDefaults
 {
     public class XpChain
     {
-        public string Command = "xpchain";
         public List<string> Commands = new List<string>()
             {
+                "xpchain",
                 "xp"
             };
         public List<Buff> Buffs = new List<Buff>();

@@ -4,9 +4,9 @@ namespace ACManager.Settings.BuffDefaults
 {
     public class Trades
     {
-        public string Command = "trades";
         public List<string> Commands = new List<string>()
             {
+                "trades",
                 "alltrades",
                 "tinker",
                 "tink"

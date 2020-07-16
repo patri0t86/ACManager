@@ -4,11 +4,11 @@ namespace ACManager.Settings.BuffDefaults
 {
     public class Mage
     {
-        public string Command = "mage";
-        public List<string> Commands = new List<string>() 
-            { 
-                "war" 
-            };
+        public List<string> Commands = new List<string>()
+        {
+            "mage",
+            "war"
+        };
         public List<Buff> Buffs = new List<Buff>();
         public List<int> SpellList = new List<int>()
             {

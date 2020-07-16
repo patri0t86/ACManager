@@ -85,6 +85,7 @@
   <ItemGroup>
     <Compile Include="Settings\BuffDefaults\BotBuffs.cs" />
     <Compile Include="Settings\BuffDefaults\BotBuffs7.cs" />
+    <Compile Include="Settings\EquipmentSettings.cs" />
     <Compile Include="Settings\BuffDefaults\Finesse.cs" />
     <Compile Include="Settings\BuffDefaults\Heavy.cs" />
     <Compile Include="Settings\BuffDefaults\Mage.cs" />
@@ -94,7 +95,7 @@
     <Compile Include="Settings\BuffDefaults\VoidBuffs.cs" />
     <Compile Include="Settings\BuffDefaults\XpChain.cs" />
     <Compile Include="Settings\BuffSettings.cs" />
-    <Compile Include="Settings\Light.cs" />
+    <Compile Include="Settings\BuffDefaults\Light.cs" />
     <Compile Include="StateMachine\ComponentChecker.cs" />
     <Compile Include="ExpTracker.cs" />
     <Compile Include="FellowshipControl.cs" />
@@ -130,6 +131,7 @@
     <Compile Include="Views\BotManagerView.cs" />
     <Compile Include="Views\Tabs\AdvertisementsTab.cs" />
     <Compile Include="Views\Tabs\ConfigTab.cs" />
+    <Compile Include="Views\Tabs\EquipmentTab.cs" />
     <Compile Include="Views\Tabs\GemsTab.cs" />
     <Compile Include="Views\Tabs\InventoryTab.cs" />
     <Compile Include="Views\Tabs\PortalsTab.cs" />

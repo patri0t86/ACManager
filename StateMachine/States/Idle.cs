@@ -68,6 +68,10 @@ namespace ACManager.StateMachine.States
                     {
                         machine.IsBuffed = HaveAllBuffs(machine);
                     }
+                    else
+                    {
+                        machine.IsBuffed = true;
+                    }
                     machine.NextState = Equipping.GetInstance;
                 }
                 else if (!string.IsNullOrEmpty(machine.ItemToUse) && machine.Core.CharacterFilter.Name.Equals(machine.NextCharacter))

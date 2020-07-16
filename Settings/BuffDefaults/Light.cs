@@ -1,10 +1,9 @@
 ﻿using System.Collections.Generic;
 
-namespace ACManager.Settings
+namespace ACManager.Settings.BuffDefaults
 {
     public class Light
     {
-        public string Command = "light";
         public List<string> Commands = new List<string>()
             {
                 "light"

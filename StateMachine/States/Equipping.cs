@@ -1,6 +1,8 @@
-﻿using ACManager.StateMachine.Queues;
+﻿using ACManager.Settings;
+using ACManager.StateMachine.Queues;
 using Decal.Adapter.Wrappers;
 using System;
+using System.Collections.Generic;
 
 namespace ACManager.StateMachine.States
 {
@@ -9,14 +11,32 @@ namespace ACManager.StateMachine.States
     /// </summary>
     class Equipping : StateBase<Equipping>, IState
     {
-        private bool IsWandEquipped { get; set; }
-        private WorldObject EquippedWand { get; set; }
-
+        private bool FullyEquipped { get; set; }
+        private bool IdleEquipped { get; set; }
         private readonly DateTime UnixTime = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
-        private DateTime LastIDCheck { get; set; }
+        private Dictionary<int, bool> Equipment { get; set; } = new Dictionary<int, bool>();
+        private Dictionary<int, bool> IdleEquipment { get; set; } = new Dictionary<int, bool>();
 
         public void Enter(Machine machine)
         {
+            machine.Utility.EquipmentSettings = machine.Utility.LoadEquipmentSettings();
+
+            if (Equipment.Count.Equals(0) && machine.Core.CharacterFilter.Name.Equals(machine.BuffingCharacter))
+            {
+                foreach (Equipment item in machine.Utility.EquipmentSettings.BuffingEquipment)
+                {
+                    Equipment.Add(item.Id, false);
+                }
+            }
+
+            if (IdleEquipment.Count.Equals(0) && machine.Core.CharacterFilter.Name.Equals(machine.BuffingCharacter))
+            {
+                foreach (Equipment item in machine.Utility.EquipmentSettings.IdleEquipment)
+                {
+                    IdleEquipment.Add(item.Id, true);
+                }
+            }
+
             using (WorldObjectCollection wands = machine.Core.WorldFilter.GetInventory())
             {
                 wands.SetFilter(new ByObjectClassFilter(ObjectClass.WandStaffOrb));
@@ -25,32 +45,35 @@ namespace ACManager.StateMachine.States
                     machine.Core.Actions.RequestId(wand.Id);
                 }
             }
-            LastIDCheck = DateTime.UtcNow;
         }
 
         public void Exit(Machine machine)
         {
-
+            if (machine.NextState == Idle.GetInstance)
+            {
+                Equipment.Clear();
+                IdleEquipment.Clear();
+            }
         }
 
         public void Process(Machine machine)
         {
             if (machine.Enabled)
             {
-                if (machine.SpellsToCast.Count > 0 || !machine.IsBuffed) // need to equip a wand
+                if (machine.SpellsToCast.Count > 0 || !machine.IsBuffed)
                 {
-                    if (IsWandEquipped)
+                    if (FullyEquipped)
                     {
-                        if (machine.IsBuffed || !machine.CurrentRequest.RequestType.Equals(RequestType.Buff))
-                        {
-                            machine.NextState = Casting.GetInstance;
-                        }
-                        else if (machine.Core.CharacterFilter.Name.Equals(machine.BuffingCharacter))
+                        if (!machine.IsBuffed && machine.Core.CharacterFilter.Name.Equals(machine.BuffingCharacter))
                         {
                             machine.NextState = SelfBuffing.GetInstance;
                         }
+                        else
+                        {
+                            machine.NextState = Casting.GetInstance;
+                        }
                     }
-                    else
+                    else if (Equipment.Count.Equals(0) || !machine.CurrentRequest.RequestType.Equals(RequestType.Buff))
                     {
                         using (WorldObjectCollection wands = machine.Core.WorldFilter.GetInventory())
                         {
@@ -58,7 +81,7 @@ namespace ACManager.StateMachine.States
 
                             if (wands.Count.Equals(0))
                             {
-                                machine.ChatManager.Broadcast("Oops, my owner didn't give me a wand. I'm cancelling this request.");
+                                machine.ChatManager.Broadcast("Oops, my owner didn't give me a wand I can equip. I'm cancelling this request.");
                                 machine.SpellsToCast.Clear();
                                 machine.NextState = Idle.GetInstance;
                             }
@@ -67,13 +90,13 @@ namespace ACManager.StateMachine.States
                             {
                                 if (wand.Values(LongValueKey.EquippedSlots) > 0)
                                 {
-                                    EquippedWand = wand;
-                                    IsWandEquipped = true;
+                                    FullyEquipped = true;
+                                    IdleEquipped = true;
                                     break;
                                 }
                             }
 
-                            if (!IsWandEquipped)
+                            if (!FullyEquipped)
                             {
                                 foreach (WorldObject wand in wands)
                                 {
@@ -86,36 +109,143 @@ namespace ACManager.StateMachine.States
                             }
                         }
                     }
-                }
-                else // need to take the wand off
-                {
-                    if (IsWandEquipped)
+                    else // equip the entire suit
                     {
-                        if (EquippedWand.HasIdData && !(((int)(LastIDCheck - UnixTime).TotalSeconds - EquippedWand.LastIdTime) > 1))
+                        foreach (KeyValuePair<int, bool> item in IdleEquipment)
                         {
-                            if (EquippedWand.Values(LongValueKey.EquippedSlots).Equals(0))
+                            if (machine.Core.Actions.BusyState.Equals(0))
                             {
-                                IsWandEquipped = false;
-                            }
-                            else
-                            {
-                                if (machine.Core.Actions.BusyState.Equals(0))
+                                if (IdleEquipment[item.Key].Equals(true))
                                 {
-                                    machine.Core.Actions.MoveItem(EquippedWand.Id, machine.Core.CharacterFilter.Id);
+                                    if (!Equipment.ContainsKey(item.Key))
+                                    {
+                                        IdleEquipment[item.Key] = false;
+                                        machine.Core.Actions.MoveItem(item.Key, machine.Core.CharacterFilter.Id);
+                                    }
+                                    else
+                                    {
+                                        Equipment[item.Key] = true;
+                                        IdleEquipment[item.Key] = false;
+                                    }
                                 }
                             }
                         }
+
+                        foreach (KeyValuePair<int, bool> item in Equipment)
+                        {
+                            if (machine.Core.Actions.BusyState.Equals(0) && !item.Value)
+                            {
+                                machine.Core.Actions.AutoWield(item.Key);
+                                Equipment[item.Key] = true;
+                            }
+                        }
+
+                        FullyEquipped = true;
+
+                        foreach (KeyValuePair<int, bool> item in Equipment)
+                        {
+                            if (item.Value == false)
+                            {
+                                FullyEquipped = false;
+                                break;
+                            }
+                        }
+
+                        if (FullyEquipped)
+                        {
+                            IdleEquipped = false;
+                        }
+                    }
+                }
+                else // done casting/buffing - remove suit
+                {
+                    if (FullyEquipped)
+                    {
+                        if (Equipment.Count > 0 && machine.CurrentRequest.RequestType.Equals(RequestType.Buff))
+                        {
+                            foreach (KeyValuePair<int, bool> item in Equipment)
+                            {
+                                if (machine.Core.Actions.BusyState.Equals(0))
+                                {
+                                    if (Equipment[item.Key].Equals(true))
+                                    {
+                                        if (!IdleEquipment.ContainsKey(item.Key))
+                                        {
+                                            Equipment[item.Key] = false;
+                                            machine.Core.Actions.MoveItem(item.Key, machine.Core.CharacterFilter.Id);
+                                        }
+                                        else
+                                        {
+                                            Equipment[item.Key] = false;
+                                            IdleEquipment[item.Key] = true;
+                                        }
+                                    }
+                                }
+                            }
+
+                            FullyEquipped = false;
+
+                            foreach (KeyValuePair<int, bool> item in Equipment)
+                            {
+                                if (item.Value == true)
+                                {
+                                    FullyEquipped = true;
+                                    break;
+                                }
+                            }
+                        }
+                        else // no suit equipped - remove the wand
+                        {
+                            using (WorldObjectCollection wands = machine.Core.WorldFilter.GetInventory())
+                            {
+                                wands.SetFilter(new ByObjectClassFilter(ObjectClass.WandStaffOrb));
+                                foreach (WorldObject wand in wands)
+                                {
+                                    if (wand.Values(LongValueKey.EquippedSlots) > 0)
+                                    {
+                                        if (machine.Core.Actions.BusyState.Equals(0))
+                                        {
+                                            machine.Core.Actions.MoveItem(wand.Id, machine.Core.CharacterFilter.Id);
+                                            FullyEquipped = false;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    else if (!IdleEquipped) // suit is unequipped
+                    {
+                        if (machine.Utility.EquipmentSettings.IdleEquipment.Count.Equals(0))
+                        {
+                            IdleEquipped = true;
+                        }
                         else
                         {
-                            LastIDCheck = DateTime.UtcNow;
-                            machine.Core.Actions.RequestId(EquippedWand.Id);
+                            foreach (KeyValuePair<int, bool> item in IdleEquipment)
+                            {
+                                if (machine.Core.Actions.BusyState.Equals(0) && !item.Value)
+                                {
+                                    IdleEquipment[item.Key] = true;
+                                    machine.Core.Actions.AutoWield(item.Key);
+                                }
+                            }
+
+                            IdleEquipped = true;
+
+                            foreach (KeyValuePair<int, bool> item in IdleEquipment)
+                            {
+                                if (item.Value == false)
+                                {
+                                    IdleEquipped = false;
+                                    break;
+                                }
+                            }
                         }
                     }
                     else
                     {
                         if (machine.Core.Actions.BusyState.Equals(0))
                         {
-                            EquippedWand.Dispose();
                             machine.NextState = Idle.GetInstance;
                         }
                     }

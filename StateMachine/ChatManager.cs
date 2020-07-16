@@ -299,7 +299,10 @@ namespace ACManager.StateMachine
                 List<string> profiles = new List<string>();
                 foreach (BuffProfile profile in Machine.Utility.BuffProfiles)
                 {
-                    profiles.Add(profile.Command);
+                    foreach (string command in profile.Commands)
+                    {
+                        profiles.Add(command);
+                    }
                 }
 
                 StringBuilder sb = new StringBuilder();
@@ -429,7 +432,7 @@ namespace ACManager.StateMachine
                 {
                     foreach (BuffProfile profile in Machine.Utility.BuffProfiles)
                     {
-                        if (profile.Commands.Contains(message) || profile.Command.Equals(message))
+                        if (profile.Commands.Contains(message))
                         {
                             Request newRequest = new Request
                             {

@@ -4,13 +4,13 @@ namespace ACManager.Settings.BuffDefaults
 {
     public class Missile
     {
-        public string Command = "missile";
-        public List<string> Commands = new List<string>() 
-            {
-                "bow",
-                "archer",
-                "xbow"
-            };
+        public List<string> Commands = new List<string>()
+        {
+            "missile",
+            "bow",
+            "archer",
+            "xbow"
+        };
         public List<Buff> Buffs = new List<Buff>();
         public List<int> SpellList = new List<int>()
             {

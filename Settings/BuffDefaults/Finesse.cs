@@ -4,8 +4,10 @@ namespace ACManager.Settings.BuffDefaults
 {
     public class Finesse
     {
-        public string Command = "finesse";
-        public List<string> Commands = new List<string>();
+        public List<string> Commands = new List<string>()
+        {
+            "finesse"
+        };
         public List<Buff> Buffs = new List<Buff>();
         public List<int> SpellList = new List<int>()
             {

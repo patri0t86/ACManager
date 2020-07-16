@@ -4,7 +4,10 @@ namespace ACManager.Settings.BuffDefaults
 {
     public class BotBuffs
     {
-        public string Command = "botbuffs";
+        public List<string> Commands = new List<string>()
+        {
+            "botbuffs"
+        };
         public List<Buff> Buffs = new List<Buff>();
         public List<int> SpellList = new List<int>()
             {

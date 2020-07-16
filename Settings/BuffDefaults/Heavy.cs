@@ -4,8 +4,10 @@ namespace ACManager.Settings.BuffDefaults
 {
     public class Heavy
     {
-        public string Command = "heavy";
-        public List<string> Commands = new List<string>();
+        public List<string> Commands = new List<string>()
+        {
+            "heavy"
+        };
         public List<Buff> Buffs = new List<Buff>();
         public List<int> SpellList = new List<int>()
             {

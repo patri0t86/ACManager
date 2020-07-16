@@ -26,6 +26,8 @@ namespace ACManager.StateMachine
         private string GUISettingsFile { get { return "acm_gui_settings.xml"; } }
         private string GUISettingsPath { get; set; }
         private string InventoryFile { get { return "acm_inventory.xml"; } }
+        private string EquipmentSettingsFile { get { return "acm_equipment.xml"; } }
+        private string EquipmentSettingsPath { get; set; }
         private string InventoryPath { get; set; }
         private string BuffProfilesPath { get; set; }
         internal CharacterSettings CharacterSettings { get; set; } = new CharacterSettings();
@@ -33,6 +35,7 @@ namespace ACManager.StateMachine
         internal GUISettings GUISettings { get; set; } = new GUISettings();
         internal InventorySettings Inventory { get; set; } = new InventorySettings();
         internal List<BuffProfile> BuffProfiles { get; set; } = new List<BuffProfile>();
+        internal EquipmentSettings EquipmentSettings { get; set; } = new EquipmentSettings();
 
         public Utility(Machine machine, string path)
         {
@@ -43,6 +46,7 @@ namespace ACManager.StateMachine
             BotSettings = LoadBotSettings();
             GUISettings = LoadGUISettings();
             Inventory = LoadInventories();
+            EquipmentSettings = LoadEquipmentSettings();
             LoadBuffProfiles();
         }
 
@@ -85,6 +89,7 @@ namespace ACManager.StateMachine
                 GUISettingsPath = Path.Combine(AllSettingsPath, GUISettingsFile);
                 InventoryPath = Path.Combine(AllSettingsPath, InventoryFile);
                 BuffProfilesPath = Path.Combine(root, "BuffProfiles");
+                EquipmentSettingsPath = Path.Combine(AllSettingsPath, EquipmentSettingsFile);
             }
             catch (Exception ex) { Debug.LogException(ex); }
         }
@@ -168,7 +173,7 @@ namespace ACManager.StateMachine
         /// <summary>
         /// Loads the character settings file if it exists.
         /// </summary>
-        /// <returns>AllSettings</returns>
+        /// <returns></returns>
         internal CharacterSettings LoadCharacterSettings()
         {
             try
@@ -221,7 +226,7 @@ namespace ACManager.StateMachine
         /// <summary>
         /// Loads the bot settings file if it exists.
         /// </summary>
-        /// <returns>AllSettings</returns>
+        /// <returns></returns>
         internal BotSettings LoadBotSettings()
         {
             try
@@ -358,7 +363,7 @@ namespace ACManager.StateMachine
             {
                 if (BuffsPathCreateOrExists())
                 {
-                    string ProfilePath = Path.Combine(BuffProfilesPath, profile.Command + ".xml");
+                    string ProfilePath = Path.Combine(BuffProfilesPath, profile.Commands[0] + ".xml");
                     using (XmlTextWriter writer = new XmlTextWriter(ProfilePath, Encoding.UTF8))
                     {
                         writer.Formatting = Formatting.Indented;
@@ -411,66 +416,117 @@ namespace ACManager.StateMachine
             }
         }
 
+        /// <summary>
+        /// Saves Equipment profiles to disk.
+        /// </summary>
+        public void SaveEquipmentSettings()
+        {
+            try
+            {
+                if (SettingsPathCreateOrExists())
+                {
+                    using (XmlTextWriter writer = new XmlTextWriter(EquipmentSettingsPath, Encoding.UTF8))
+                    {
+                        writer.Formatting = Formatting.Indented;
+                        writer.WriteStartDocument();
+
+                        XmlSerializer xmlSerializer = new XmlSerializer(typeof(EquipmentSettings));
+                        xmlSerializer.Serialize(writer, EquipmentSettings);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.ToChat(ex.Message);
+            }
+        }
+
+        /// <summary>
+        /// Loads Equipment profiles if they exist.
+        /// </summary>
+        /// <returns></returns>
+        internal EquipmentSettings LoadEquipmentSettings()
+        {
+            try
+            {
+                if (File.Exists(EquipmentSettingsPath))
+                {
+                    using (XmlTextReader reader = new XmlTextReader(EquipmentSettingsPath))
+                    {
+                        XmlSerializer xmlSerializer = new XmlSerializer(typeof(EquipmentSettings));
+                        return (EquipmentSettings)xmlSerializer.Deserialize(reader);
+                    }
+                }
+                else
+                {
+                    return new EquipmentSettings();
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.ToChat(ex.Message);
+                return null;
+            }
+        }
+
+
         internal void GenerateDefaultProfiles()
         {
             BuffProfile newProfile = new BuffProfile();
 
             BotBuffs botBuffs = new BotBuffs();
-            newProfile.Command = botBuffs.Command;
+            newProfile.Commands = botBuffs.Commands;
             newProfile.Buffs = botBuffs.Buffs;
             SaveBuffProfile(newProfile);
 
             BotBuffs7 botBuffs7 = new BotBuffs7();
-            newProfile.Command = botBuffs7.Command;
+            newProfile.Commands = botBuffs7.Commands;
             newProfile.Buffs = botBuffs7.Buffs;
             SaveBuffProfile(newProfile);
 
-            Mage mage = new Mage();
-            newProfile.Command = mage.Command;
-            newProfile.Commands = mage.Commands;
-            newProfile.Buffs = mage.Buffs;
+            Finesse finesse = new Finesse();
+            newProfile.Commands = finesse.Commands;
+            newProfile.Buffs = finesse.Buffs;
             SaveBuffProfile(newProfile);
 
             Heavy heavy = new Heavy();
-            newProfile.Command = heavy.Command;
             newProfile.Commands = heavy.Commands;
             newProfile.Buffs = heavy.Buffs;
             SaveBuffProfile(newProfile);
 
-            VoidBuffs voidBuffs = new VoidBuffs();
-            newProfile.Command = voidBuffs.Command;
-            newProfile.Commands = voidBuffs.Commands;
-            newProfile.Buffs = voidBuffs.Buffs;
-            SaveBuffProfile(newProfile);
-
-            Missile missile = new Missile();
-            newProfile.Command = missile.Command;
-            newProfile.Commands = missile.Commands;
-            newProfile.Buffs = missile.Buffs;
-            SaveBuffProfile(newProfile);
-
             Light light = new Light();
-            newProfile.Command = light.Command;
             newProfile.Commands = light.Commands;
             newProfile.Buffs = light.Buffs;
             SaveBuffProfile(newProfile);
 
+            Mage mage = new Mage();
+            newProfile.Commands = mage.Commands;
+            newProfile.Buffs = mage.Buffs;
+            SaveBuffProfile(newProfile);
+
+            Missile missile = new Missile();
+            newProfile.Commands = missile.Commands;
+            newProfile.Buffs = missile.Buffs;
+            SaveBuffProfile(newProfile);
+
+            Trades trades = new Trades();
+            newProfile.Commands = trades.Commands;
+            newProfile.Buffs = missile.Buffs;
+            SaveBuffProfile(newProfile);
+
             TwoHand twoHand = new TwoHand();
-            newProfile.Command = twoHand.Command;
             newProfile.Commands = twoHand.Commands;
             newProfile.Buffs = twoHand.Buffs;
             SaveBuffProfile(newProfile);
 
-            XpChain xpChain = new XpChain();
-            newProfile.Command = xpChain.Command;
-            newProfile.Commands = xpChain.Commands;
-            newProfile.Buffs = xpChain.Buffs;
+            VoidBuffs voidBuffs = new VoidBuffs();
+            newProfile.Commands = voidBuffs.Commands;
+            newProfile.Buffs = voidBuffs.Buffs;
             SaveBuffProfile(newProfile);
 
-            Finesse finesse = new Finesse();
-            newProfile.Command = finesse.Command;
-            newProfile.Commands = finesse.Commands;
-            newProfile.Buffs = finesse.Buffs;
+            XpChain xpChain = new XpChain();
+            newProfile.Commands = xpChain.Commands;
+            newProfile.Buffs = xpChain.Buffs;
             SaveBuffProfile(newProfile);
         }
 
@@ -478,7 +534,7 @@ namespace ACManager.StateMachine
         {
             for (int i = 0; i < BuffProfiles.Count; i++)
             {
-                if (BuffProfiles[i].Command.Equals(command))
+                if (BuffProfiles[i].Commands.Contains(command))
                 {
                     return BuffProfiles[i];
                 }

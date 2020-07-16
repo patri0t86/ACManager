@@ -4,9 +4,9 @@ namespace ACManager.Settings.BuffDefaults
 {
     public class TwoHand
     {
-        public string Command = "2h";
         public List<string> Commands = new List<string>()
             {
+                "2h",
                 "twohand",
                 "2hand"
             };

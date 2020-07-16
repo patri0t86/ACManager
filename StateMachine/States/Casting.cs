@@ -88,6 +88,7 @@ namespace ACManager.StateMachine.States
                 TimeSpan duration = DateTime.Now - Started;
                 machine.ChatManager.SendTell(machine.CurrentRequest.RequesterName, $"Buffing is complete with {SpellCastCount} buffs, it took {duration.Minutes} minutes and {duration.Seconds} seconds.");
                 CastBanes = false;
+                LastSpell = 0;
             }
         }
 
@@ -145,7 +146,7 @@ namespace ACManager.StateMachine.States
                                             StartedTrackingTime = DateTime.Now;
                                             StartedTracking = !StartedTracking;
                                         }
-                                        else if ((DateTime.Now - StartedTrackingTime).TotalSeconds > 10)
+                                        else if ((DateTime.Now - StartedTrackingTime).TotalSeconds > 5)
                                         {
                                             StartedTracking = !StartedTracking;
                                             machine.SpellsToCast.Clear();
