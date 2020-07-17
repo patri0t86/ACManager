@@ -151,7 +151,7 @@
                   <column progid="DecalControls.TextColumn"                             fixedwidth="150" />
                 </control>
                 <control progid="DecalControls.PushButton"  name="BuffAddEquipment"     left="285"  top="290" width="110"   height="19" text="Add Selected Item" />
-                <control progid="DecalControls.StaticText"                              left="5"    top="320" width="390"   height="16" text="IMPORTANT: If you set anything, you MUST also set a wand" />
+                <control progid="DecalControls.StaticText"                              left="5"    top="312" width="390"   height="16" text="IMPORTANT: If you set anything, you MUST also set a wand" />
               </control>
             </page>
           </control>
