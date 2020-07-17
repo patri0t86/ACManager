@@ -126,8 +126,19 @@ namespace ACManager.StateMachine.States
                 }
                 else
                 {
-                    machine.CancelList.Clear();
-                    machine.CurrentRequest = new Request();
+                    // clear the cancel list
+                    if (machine.CancelList.Count > 0)
+                    {
+                        machine.CancelList.Clear();
+                    }
+
+                    // set teh current request to a new, blank instance
+                    if (!machine.CurrentRequest.RequesterName.Equals(""))
+                    {
+                        machine.CurrentRequest = new Request();
+                    }
+                    
+                    // if positioning is enabled, reset heading properly - else, set next heading to -1 or disabled
                     if (machine.EnablePositioning)
                     {
                         if (!machine.NextHeading.Equals(machine.DefaultHeading))
@@ -143,6 +154,7 @@ namespace ACManager.StateMachine.States
                         }
                     }
 
+                    // check for status of buffs on teh buffed character every 30 seconds, if currently logged into the buffing character AND keep buffs alive is enabled
                     if (machine.StayBuffed && machine.Core.CharacterFilter.Name.Equals(machine.BuffingCharacter) && (DateTime.Now - BuffCheck).TotalSeconds > 30)
                     {
                         BuffCheck = DateTime.Now;

@@ -130,7 +130,7 @@ namespace ACManager.StateMachine.States
                         machine.CastCompleted = false;
                         machine.CastStarted = false;
                     }
-                    else if (!machine.CastStarted)
+                    else if (!machine.CastStarted && !machine.CastCompleted)
                     {
                         if (machine.Core.CharacterFilter.Mana < machine.ManaThreshold * machine.Core.CharacterFilter.EffectiveVital[CharFilterVitalType.Mana] && machine.Core.Actions.SkillTrainLevel[SkillType.BaseLifeMagic] != 1)
                         {
