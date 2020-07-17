@@ -81,6 +81,15 @@ namespace ACManager.StateMachine.States
                 else if (machine.Requests.Count > 0)
                 {
                     machine.CurrentRequest = machine.Requests.Dequeue();
+                    foreach (string cancelled in machine.CancelList)
+                    {
+                        if (machine.CurrentRequest.RequesterName.Equals(cancelled))
+                        {
+                            machine.CancelList.Remove(cancelled);
+                            return;
+                        }
+                    }
+
                     if (machine.CurrentRequest.RequestType.Equals(RequestType.Portal))
                     {
                         machine.NextCharacter = machine.CurrentRequest.Character;
@@ -117,6 +126,7 @@ namespace ACManager.StateMachine.States
                 }
                 else
                 {
+                    machine.CancelList.Clear();
                     machine.CurrentRequest = new Request();
                     if (machine.EnablePositioning)
                     {

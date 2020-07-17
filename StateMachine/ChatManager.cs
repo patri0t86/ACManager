@@ -113,6 +113,10 @@ namespace ACManager.StateMachine
                 {
                     RespondWithProfiles();
                 }
+                else if (message.Equals("cancel"))
+                {
+                    CancelRequest();
+                }
                 else if (message.Equals("comps"))
                 {
                     Dictionary<string, int> components = new Dictionary<string, int>();
@@ -530,16 +534,38 @@ namespace ACManager.StateMachine
 
                 if (Machine.Requests.Count.Equals(1) && string.IsNullOrEmpty(Machine.CurrentRequest.RequesterName))
                 {
-                    SendTell(CharacterMakingRequest, "I have received your request and will help you now.");
+                    SendTell(CharacterMakingRequest, "I have received your request and will help you now. Say 'cancel' at any time to cancel this request.");
                 }
                 else if (Machine.Requests.Count.Equals(1) && !string.IsNullOrEmpty(Machine.CurrentRequest.RequesterName))
                 {
-                    SendTell(CharacterMakingRequest, $"I have received your request. There is currently 1 request in the queue ahead of you.{(!string.IsNullOrEmpty(estimatedWait) ? estimatedWait : "")}");
+                    SendTell(CharacterMakingRequest, $"I have received your request. You are next in line. Say 'cancel' at any time to cancel this request.{(!string.IsNullOrEmpty(estimatedWait) ? estimatedWait : "")}");
                 }
                 else
                 {
-                    SendTell(CharacterMakingRequest, $"I have received your request. There are currently {Machine.Requests.Count} requests in the queue ahead of you, including the person I'm currently helping.{(!string.IsNullOrEmpty(estimatedWait) ? estimatedWait : "")}");
+                    SendTell(CharacterMakingRequest, $"I have received your request. There are currently {Machine.Requests.Count} requests in the queue ahead of you, including the person I'm currently helping. Say 'cancel' at any time to cancel this request.{(!string.IsNullOrEmpty(estimatedWait) ? estimatedWait : "")}");
                 }
+            }
+        }
+
+        private void CancelRequest()
+        {
+            if (Machine.CurrentRequest.RequesterName.Equals(CharacterMakingRequest))
+            {
+                Machine.CancelList.Add(CharacterMakingRequest);
+                SendTell(CharacterMakingRequest, "I'm cancelling this request now.");
+            }
+            else
+            {
+                foreach (Request request in Machine.Requests)
+                {
+                    if (request.RequesterName.Equals(CharacterMakingRequest))
+                    {
+                        Machine.CancelList.Add(CharacterMakingRequest);
+                        SendTell(CharacterMakingRequest, "I will remove your next request from my queue. If you wish to remove all requests, say 'cancel' for each request you have put in.");
+                        return;
+                    }
+                }
+                SendTell(CharacterMakingRequest, "You don't have any requests in at this time.");
             }
         }
     }

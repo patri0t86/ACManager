@@ -17,12 +17,15 @@ namespace ACManager.StateMachine.States
         private bool StartedTracking { get; set; }
         private DateTime StartedTrackingTime { get; set; }
         private int SpellCastCount { get; set; }
+        private DateTime EnteredState { get; set; }
+        private bool Cancelled { get; set; }
 
         public void Enter(Machine machine)
         {
             machine.Fizzled = false;
             machine.CastCompleted = false;
             machine.CastStarted = false;
+            EnteredState = DateTime.Now;
 
             if (machine.Inventory.LowComponents.Count > 0)
             {
@@ -86,10 +89,14 @@ namespace ACManager.StateMachine.States
             {
                 SentInitialInfo = !SentInitialInfo;
                 TimeSpan duration = DateTime.Now - Started;
-                machine.ChatManager.SendTell(machine.CurrentRequest.RequesterName, $"Buffing is complete with {SpellCastCount} buffs, it took {duration.Minutes} minutes and {duration.Seconds} seconds.");
+                if (!Cancelled)
+                {
+                    machine.ChatManager.SendTell(machine.CurrentRequest.RequesterName, $"Buffing is complete with {SpellCastCount} buffs, it took {duration.Minutes} minutes and {duration.Seconds} seconds.");
+                }
                 CastBanes = false;
                 LastSpell = 0;
             }
+            Cancelled = false;
         }
 
         public void Process(Machine machine)
@@ -133,7 +140,7 @@ namespace ACManager.StateMachine.States
                         {
                             if (machine.Core.Actions.CombatMode != CombatState.Magic)
                             {
-                                if ((DateTime.Now - Started).TotalSeconds > 1)
+                                if ((DateTime.Now - EnteredState).TotalSeconds > 1)
                                 {
                                     Debug.ToChat("No wand setup in equipment.");
                                     machine.ChatManager.SendTell(machine.CurrentRequest.RequesterName, "I don't have a wand setup, I'm sorry. Cancelling this request.");
@@ -211,6 +218,19 @@ namespace ACManager.StateMachine.States
                             }
                         }
                     }
+
+                    // Check to see if this request was cancelled.
+                    foreach (string cancel in machine.CancelList)
+                    {
+                        if (machine.CurrentRequest.RequesterName.Equals(cancel))
+                        {
+                            Cancelled = true;
+                            machine.SpellsToCast.Clear();
+                            machine.CancelList.Remove(cancel);
+                            break;
+                        }
+                    }
+
                 }
                 else
                 {

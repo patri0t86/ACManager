@@ -233,6 +233,11 @@ namespace ACManager.StateMachine
         public bool Level7Self { get; set; }
 
         /// <summary>
+        /// List to keep track of cancelled requests as the requests are dequeued.
+        /// </summary>
+        public List<string> CancelList { get; set; } = new List<string>();
+
+        /// <summary>
         /// Create the state machine in the StoppedState and begin processing commands on intervals (every time a frame is rendered).
         /// </summary>
         public Machine(CoreManager core, string path)
