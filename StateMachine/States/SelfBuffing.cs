@@ -1,5 +1,6 @@
 ﻿using ACManager.Settings;
 using Decal.Adapter.Wrappers;
+using System;
 using System.Collections.Generic;
 
 namespace ACManager.StateMachine.States
@@ -11,8 +12,10 @@ namespace ACManager.StateMachine.States
     {
         private bool StartedBuffing { get; set; }
         private bool AddedPreBuffs { get; set; }
+        private DateTime EnteredState { get; set; }
         public void Enter(Machine machine)
         {
+            EnteredState = DateTime.Now;
             if (!StartedBuffing)
             {
                 machine.ChatManager.SendTell(machine.CurrentRequest.RequesterName, "I need to buff myself, standy.");
@@ -59,7 +62,16 @@ namespace ACManager.StateMachine.States
                         {
                             if (machine.Core.Actions.CombatMode != CombatState.Magic)
                             {
-                                machine.Core.Actions.SetCombatMode(CombatState.Magic);
+                                if ((DateTime.Now - EnteredState).TotalSeconds > 1)
+                                {
+                                    machine.ChatManager.SendTell(machine.CurrentRequest.RequesterName, "I don't have a wand setup, I'm sorry. Cancelling this request.");
+                                    machine.SpellsToCast.Clear();
+                                    machine.CurrentRequest.SpellsToCast.Clear();
+                                }
+                                else
+                                {
+                                    machine.Core.Actions.SetCombatMode(CombatState.Magic);
+                                }
                             }
                             else if (machine.Core.CharacterFilter.IsSpellKnown(machine.SpellsToCast[0]))
                             {
