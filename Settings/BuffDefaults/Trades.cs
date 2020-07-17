@@ -20,18 +20,9 @@ namespace ACManager.Settings.BuffDefaults
                 2080,
                 2066,
                 2090,
-                2214,
-                2266,
-                2248,
-                2286,
                 2194,
-                2232,
-                2262,
                 3512,
-                2300,
                 2270,
-                2288,
-                2292,
                 2190,
                 2210,
                 2236,
@@ -41,9 +32,7 @@ namespace ACManager.Settings.BuffDefaults
                 2324,
                 2184,
                 2186,
-                2182,
-                6006,
-                5989
+                2182
             };
         public Trades()
         {
