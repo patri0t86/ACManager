@@ -511,7 +511,7 @@ namespace ACManager.StateMachine
 
             Trades trades = new Trades();
             newProfile.Commands = trades.Commands;
-            newProfile.Buffs = missile.Buffs;
+            newProfile.Buffs = trades.Buffs;
             SaveBuffProfile(newProfile);
 
             TwoHand twoHand = new TwoHand();
