@@ -18,7 +18,7 @@ namespace ACManager.StateMachine.States
             EnteredState = DateTime.Now;
             if (!StartedBuffing)
             {
-                machine.ChatManager.SendTell(machine.CurrentRequest.RequesterName, "I need to buff myself, standy.");
+                machine.ChatManager.SendTell(machine.CurrentRequest.RequesterName, "I need to buff myself, standby.");
                 BuffProfile profile = machine.Level7Self ? machine.Utility.GetProfile("botbuffs7") : machine.Utility.GetProfile("botbuffs");
                 machine.SpellsToCast.Clear();
                 foreach (Buff buff in profile.Buffs)
