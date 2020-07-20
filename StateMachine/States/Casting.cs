@@ -155,7 +155,7 @@ namespace ACManager.StateMachine.States
                             {
                                 if (machine.ComponentChecker.HaveComponents(machine.SpellsToCast[0]))
                                 {
-                                    if (LastSpell.Equals(machine.SpellsToCast[0]) && !machine.CastStarted)
+                                    if (LastSpell.Equals(machine.SpellsToCast[0]) && !(machine.SpellsToCast[0].Equals(157) || machine.SpellsToCast[0].Equals(2648)))
                                     {
                                         if (!StartedTracking)
                                         {
