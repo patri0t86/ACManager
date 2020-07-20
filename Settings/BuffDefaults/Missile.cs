@@ -9,7 +9,8 @@ namespace ACManager.Settings.BuffDefaults
             "missile",
             "bow",
             "archer",
-            "xbow"
+            "xbow",
+            "mw"
         };
         public List<Buff> Buffs = new List<Buff>();
         public List<int> SpellList = new List<int>()

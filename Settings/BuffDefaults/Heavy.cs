@@ -6,7 +6,8 @@ namespace ACManager.Settings.BuffDefaults
     {
         public List<string> Commands = new List<string>()
         {
-            "heavy"
+            "heavy",
+            "hw"
         };
         public List<Buff> Buffs = new List<Buff>();
         public List<int> SpellList = new List<int>()
