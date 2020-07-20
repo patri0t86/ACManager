@@ -26,9 +26,11 @@ namespace ACManager.StateMachine
         private string GUISettingsFile { get { return "acm_gui_settings.xml"; } }
         private string GUISettingsPath { get; set; }
         private string InventoryFile { get { return "acm_inventory.xml"; } }
+        private string InventoryPath { get; set; }
         private string EquipmentSettingsFile { get { return "acm_equipment.xml"; } }
         private string EquipmentSettingsPath { get; set; }
-        private string InventoryPath { get; set; }
+        private string GiftsFile { get { return "acm_gifs.txt"; } }
+        private string GiftsPath { get; set; }
         private string BuffProfilesPath { get; set; }
         internal CharacterSettings CharacterSettings { get; set; } = new CharacterSettings();
         internal BotSettings BotSettings { get; set; } = new BotSettings();
@@ -90,6 +92,7 @@ namespace ACManager.StateMachine
                 InventoryPath = Path.Combine(AllSettingsPath, InventoryFile);
                 BuffProfilesPath = Path.Combine(root, "BuffProfiles");
                 EquipmentSettingsPath = Path.Combine(AllSettingsPath, EquipmentSettingsFile);
+                GiftsPath = Path.Combine(AllSettingsPath, GiftsFile);
             }
             catch (Exception ex) { Debug.LogException(ex); }
         }
@@ -466,6 +469,19 @@ namespace ACManager.StateMachine
             {
                 Debug.ToChat(ex.Message);
                 return null;
+            }
+        }
+
+        internal void SaveGiftToLog(string message)
+        {
+            try
+            {
+                string text = $"{DateTime.Now} --- {message}{Environment.NewLine}";
+                File.AppendAllText(GiftsPath, text);
+            }
+            catch (Exception ex)
+            {
+                Debug.ToChat(ex.Message);
             }
         }
 

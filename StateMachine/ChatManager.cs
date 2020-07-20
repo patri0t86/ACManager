@@ -5,6 +5,7 @@ using Decal.Adapter.Wrappers;
 using Decal.Filters;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -41,6 +42,7 @@ namespace ACManager.StateMachine
             if (match.Success)
             {
                 HandleChat(match);
+                return;
             }
 
             // Create a new regex match for general tells
@@ -48,7 +50,18 @@ namespace ACManager.StateMachine
             if (match.Success)
             {
                 HandleTell(match);
+                return;
             }
+
+            // Create new regex for receiving gifts
+            match = new Regex("(?<name>.+?) gives you (?<gift>.*)").Match(text);
+            if (match.Success)
+            {
+                TextInfo info = new CultureInfo("en-us", false).TextInfo;
+                SendTell(match.Groups["name"].Value, $"Thank you for the {info.ToTitleCase(match.Groups["gift"].Value)}!");
+                Machine.Utility.SaveGiftToLog(text);
+                return;
+            }            
         }
 
         /// <summary>
