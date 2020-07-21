@@ -2,6 +2,7 @@
 using ACManager.StateMachine.States;
 using ACManager.Views;
 using Decal.Adapter;
+using Decal.Adapter.Wrappers;
 using System;
 using System.Collections.Generic;
 
@@ -15,12 +16,12 @@ namespace ACManager.StateMachine
         /// <summary>
         /// Current IState of the State Machine.
         /// </summary>
-        public IState CurrentState;
+        public IState CurrentState { get; set; } = Stopped.GetInstance;
 
         /// <summary>
         /// The next state the State Machine will transition to.
         /// </summary>
-        public IState NextState;
+        public IState NextState { get; set; }
 
         /// <summary>
         /// Determines if the machine is running or not.
@@ -55,7 +56,7 @@ namespace ACManager.StateMachine
         /// <summary>
         /// An instance of the ChatManager to handle all chat commands/requests.
         /// </summary>
-        public ChatManager ChatManager;
+        public ChatManager ChatManager { get; set; }
 
         /// <summary>
         /// List of characters for the logged in account.
@@ -238,6 +239,16 @@ namespace ACManager.StateMachine
         public List<string> CancelList { get; set; } = new List<string>();
 
         /// <summary>
+        /// List of objects in the character's inventory. Includes wands, armor, clothing and jewelry.
+        /// </summary>
+        public List<WorldObject> CharacterEquipment { get; set; } = new List<WorldObject>();
+
+        /// <summary>
+        /// Only send the Finished scanning inventory once.
+        /// </summary>
+        public bool FinishedInitialScan { get; set; }
+
+        /// <summary>
         /// Create the state machine in the StoppedState and begin processing commands on intervals (every time a frame is rendered).
         /// </summary>
         public Machine(CoreManager core, string path)
@@ -249,8 +260,40 @@ namespace ACManager.StateMachine
             ComponentChecker = new ComponentChecker(Core);
             Inventory = new Inventory(this);
             RandomNumber = new Random();
-            CurrentState = Stopped.GetInstance;
-            Core.RenderFrame += Clock;
+        }
+
+        public void WorldFilter_ChangeObject(object sender, ChangeObjectEventArgs e)
+        {
+            if (e.Change.Equals(WorldChangeType.IdentReceived))
+            {
+                if (CharacterEquipment.Contains(e.Changed))
+                {
+                    for (int i = 0; i < CharacterEquipment.Count; i++)
+                    {
+                        if (CharacterEquipment[i].Id.Equals(e.Changed.Id))
+                        {
+                            CharacterEquipment[i] = e.Changed;
+                            break;
+                        }
+                    }
+
+                    bool complete = true;
+                    foreach (WorldObject item in CharacterEquipment)
+                    {
+                        if (!item.HasIdData)
+                        {
+                            complete = false;
+                            break;
+                        }
+                    }
+
+                    if (complete && !FinishedInitialScan)
+                    {
+                        FinishedInitialScan = true;
+                        Debug.ToChat($"Finished scanning your inventory. Feel free to build suits.");
+                    }
+                }
+            }
         }
 
         /// <summary>
@@ -260,7 +303,7 @@ namespace ACManager.StateMachine
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void Clock(object sender, EventArgs e)
+        public void Clock(object sender, EventArgs e)
         {
             if (LoggedIn)
             {

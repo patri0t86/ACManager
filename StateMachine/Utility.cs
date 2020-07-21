@@ -500,6 +500,11 @@ namespace ACManager.StateMachine
             newProfile.Buffs = botBuffs7.Buffs;
             SaveBuffProfile(newProfile);
 
+            Banes banes = new Banes();
+            newProfile.Commands = banes.Commands;
+            newProfile.Buffs = banes.Buffs;
+            SaveBuffProfile(newProfile);
+
             Finesse finesse = new Finesse();
             newProfile.Commands = finesse.Commands;
             newProfile.Buffs = finesse.Buffs;

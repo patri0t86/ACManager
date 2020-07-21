@@ -65,25 +65,23 @@ namespace ACManager.Views.Tabs
         {
             try
             {
-                if (!Parent.Machine.Core.Actions.CurrentSelection.Equals(0))
+                if (Parent.Machine.Core.CharacterFilter.Name.Equals(Parent.Machine.BuffingCharacter))
                 {
-                    using (WorldObjectCollection inventory = Parent.Machine.Core.WorldFilter.GetInventory())
+                    if (!Parent.Machine.Core.Actions.CurrentSelection.Equals(0) && Parent.Machine.Core.CharacterFilter.Name.Equals(Parent.Machine.BuffingCharacter))
                     {
-                        foreach (WorldObject item in inventory)
+                        foreach (WorldObject item in Parent.Machine.CharacterEquipment)
                         {
                             if (item.Id.Equals(Parent.Machine.Core.Actions.CurrentSelection))
                             {
-                                if (item.ObjectClass.Equals(ObjectClass.Armor)
-                                    || item.ObjectClass.Equals(ObjectClass.Clothing)
-                                    || item.ObjectClass.Equals(ObjectClass.Jewelry)
-                                    || item.ObjectClass.Equals(ObjectClass.WandStaffOrb))
+                                Equipment newEquipment = new Equipment
                                 {
-                                    Equipment newEquipment = new Equipment
-                                    {
-                                        Name = item.Name,
-                                        Id = item.Id
-                                    };
+                                    Id = item.Id,
+                                    Name = item.Name,
+                                    EquipMask = item.Values(LongValueKey.EquipableSlots)
+                                };
 
+                                if (!Parent.Machine.Utility.EquipmentSettings.BuffingEquipment.Contains(newEquipment))
+                                {
                                     HudList.HudListRowAccessor row = BuffEquipmentList.AddRow();
                                     using (HudStaticText control = new HudStaticText())
                                     {
@@ -93,21 +91,24 @@ namespace ACManager.Views.Tabs
 
                                     Parent.Machine.Utility.EquipmentSettings.BuffingEquipment.Add(newEquipment);
                                     Parent.Machine.Utility.SaveEquipmentSettings();
-                                    break;
                                 }
                                 else
                                 {
-                                    Debug.ToChat($"You cannot equip a {item.Name}.");
-                                    return;
+                                    Debug.ToChat("This item is already in the buffing suit.");
                                 }
+
+                                break;
                             }
                         }
+                    }
+                    else
+                    {
+                        Debug.ToChat("Make sure you have an item selected.");
                     }
                 }
                 else
                 {
-                    Debug.ToChat("Make sure you are selecting an item in your own inventory.");
-                    return;
+                    Debug.ToChat("You must set the buffing character to this character, or be logged into the buffing character to add equipment.");
                 }
             }
             catch (Exception ex) { Debug.LogException(ex); }
@@ -138,49 +139,49 @@ namespace ACManager.Views.Tabs
         {
             try
             {
-                if (!Parent.Machine.Core.Actions.CurrentSelection.Equals(0))
+                if (Parent.Machine.Core.CharacterFilter.Name.Equals(Parent.Machine.BuffingCharacter))
                 {
-                    using (WorldObjectCollection inventory = Parent.Machine.Core.WorldFilter.GetInventory())
+                    if (!Parent.Machine.Core.Actions.CurrentSelection.Equals(0))
                     {
-                        foreach (WorldObject item in inventory)
+                        foreach (WorldObject item in Parent.Machine.CharacterEquipment)
                         {
                             if (item.Id.Equals(Parent.Machine.Core.Actions.CurrentSelection))
                             {
-                                if (item.ObjectClass.Equals(ObjectClass.Armor)
-                                    || item.ObjectClass.Equals(ObjectClass.Clothing)
-                                    || item.ObjectClass.Equals(ObjectClass.Jewelry)
-                                    || item.ObjectClass.Equals(ObjectClass.WandStaffOrb))
+                                Equipment newEquipment = new Equipment
                                 {
-                                    Equipment newEquipment = new Equipment
-                                    {
-                                        Name = item.Name,
-                                        Id = item.Id
-                                    };
+                                    Id = item.Id,
+                                    Name = item.Name,
+                                    EquipMask = item.Values(LongValueKey.EquipableSlots)
+                                };
 
+                                if (!Parent.Machine.Utility.EquipmentSettings.IdleEquipment.Contains(newEquipment))
+                                {
                                     HudList.HudListRowAccessor row = IdleEquipmentList.AddRow();
                                     using (HudStaticText control = new HudStaticText())
                                     {
                                         control.Text = item.Name;
                                         row[0] = control;
                                     }
-
                                     Parent.Machine.Utility.EquipmentSettings.IdleEquipment.Add(newEquipment);
                                     Parent.Machine.Utility.SaveEquipmentSettings();
-                                    break;
                                 }
                                 else
                                 {
-                                    Debug.ToChat($"You cannot equip a {item.Name}.");
-                                    return;
+                                    Debug.ToChat("This item is already in the idle suit.");
                                 }
+
+                                break;
                             }
                         }
+                    }
+                    else
+                    {
+                        Debug.ToChat("Make sure you are selecting an item in your own inventory.");
                     }
                 }
                 else
                 {
-                    Debug.ToChat("Make sure you are selecting an item in your own inventory.");
-                    return;
+                    Debug.ToChat("You must set the buffing character to this character, or be logged into the buffing character to add equipment.");
                 }
             }
             catch (Exception ex) { Debug.LogException(ex); }
