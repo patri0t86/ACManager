@@ -149,7 +149,7 @@ namespace ACManager.StateMachine.States
                                 else
                                 {
                                     machine.Core.Actions.SetCombatMode(CombatState.Magic);
-                                }                                
+                                }
                             }
                             else if (machine.Core.CharacterFilter.IsSpellKnown(machine.SpellsToCast[0]))
                             {

@@ -61,7 +61,7 @@ namespace ACManager.StateMachine
                 SendTell(match.Groups["name"].Value, $"Thank you for the {info.ToTitleCase(match.Groups["gift"].Value)}!");
                 Machine.Utility.SaveGiftToLog(text);
                 return;
-            }            
+            }
         }
 
         /// <summary>
