@@ -2,6 +2,7 @@
 using ACManager.StateMachine.States;
 using ACManager.Views;
 using Decal.Adapter;
+using Decal.Adapter.Wrappers;
 using System;
 using System.Collections.Generic;
 using System.Windows.Forms;
@@ -42,7 +43,7 @@ namespace ACManager
             CommandLineText -= Machine.Interpreter.Command;
             ClientDispatch -= FilterCore_ClientDispatch;
             LogonTimer.Tick -= LogonTimer_Tick;
-            LogonTimer.Dispose();
+            LogonTimer?.Dispose();
             MainView?.Dispose();
             Machine.BotManagerView?.Dispose();
             ExpTracker?.Dispose();
@@ -68,6 +69,8 @@ namespace ACManager
                 ChatBoxMessage -= FellowshipControl.ChatActions;
                 ChatBoxMessage -= InventoryTracker.ParseChat;
                 CommandLineText -= Machine.Interpreter.Command;
+                Core.RenderFrame -= Machine.Clock;
+                Core.WorldFilter.ChangeObject -= Machine.WorldFilter_ChangeObject;
                 MainView?.Dispose();
                 Machine.BotManagerView?.Dispose();
                 ExpTracker?.Dispose();
@@ -161,12 +164,30 @@ namespace ACManager
                         ChatBoxMessage += FellowshipControl.ChatActions;
                         ChatBoxMessage += InventoryTracker.ParseChat;
 
+                        Machine.CharacterEquipment.Clear();
+                        Machine.FinishedInitialScan = false;
                         Machine.Enabled = Machine.Utility.BotSettings.BotEnabled;
                         Machine.LoggedIn = true;
+                        Core.RenderFrame += Machine.Clock;
+                        Core.WorldFilter.ChangeObject += Machine.WorldFilter_ChangeObject;
 
-                        Debug.ToChat("Running ACManager by Shem of Harvestgain (now Coldeve).");
-                        Debug.ToChat($"Currently running version {Machine.Utility.Version}. Check out the latest on the project at https://github.com/patri0t86/ACManager.");
-                        Debug.ToChat($"At any time, type /acm help for more information.");
+                        Debug.ToChat($"Running ACManager {Machine.Utility.Version} by Shem of Harvestgain (now Coldeve). Check out the latest on the project at https://github.com/patri0t86/ACManager.");
+                        Debug.ToChat("Scanning inventory, please wait before using the Equipment manager to build suits...");
+
+                        using (WorldObjectCollection inventory = Core.WorldFilter.GetInventory())
+                        {
+                            foreach (WorldObject item in inventory)
+                            {
+                                if (item.ObjectClass.Equals(ObjectClass.Armor)
+                                    || item.ObjectClass.Equals(ObjectClass.Jewelry)
+                                    || item.ObjectClass.Equals(ObjectClass.Clothing)
+                                    || item.ObjectClass.Equals(ObjectClass.WandStaffOrb))
+                                {
+                                    Machine.CharacterEquipment.Add(item);
+                                    Core.Actions.RequestId(item.Id);
+                                }
+                            }
+                        }
                     }
                 }
 
