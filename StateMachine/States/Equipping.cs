@@ -129,7 +129,6 @@ namespace ACManager.StateMachine.States
                                     }
                                     else
                                     {
-                                        BuffingEquipment[item.Key] = true;
                                         IdleEquipment[item.Key] = false;
                                     }
                                 }
@@ -166,7 +165,7 @@ namespace ACManager.StateMachine.States
                                 }
                                 else
                                 {
-                                    machine.Core.Actions.AutoWield(item.Key.Id, item.Key.EquipMask, 0, 1);
+                                    machine.Core.Actions.AutoWield(item.Key.Id, item.Key.EquipMask, 1, 0);
                                 }
                                 
                                 BuffingEquipment[item.Key] = true;
@@ -210,7 +209,6 @@ namespace ACManager.StateMachine.States
                                         else
                                         {
                                             BuffingEquipment[item.Key] = false;
-                                            IdleEquipment[item.Key] = true;
                                         }
                                     }
                                 }
