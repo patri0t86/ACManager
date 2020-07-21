@@ -17,17 +17,6 @@ namespace ACManager.StateMachine.States
         {
             machine.Inventory.GetComponentLevels();
             machine.Inventory.UpdateInventoryFile();
-            using (WorldObjectCollection inventory = machine.Core.WorldFilter.GetInventory())
-            {
-                inventory.SetFilter(new ByObjectClassFilter(ObjectClass.WandStaffOrb));
-                foreach (WorldObject item in inventory)
-                {
-                    if (!item.HasIdData)
-                    {
-                        machine.Core.Actions.RequestId(item.Id);
-                    }
-                }
-            }
         }
 
         public void Exit(Machine machine)
@@ -113,6 +102,7 @@ namespace ACManager.StateMachine.States
                 }
                 else if (machine.Advertise && machine.Update() && DateTime.Now - machine.LastBroadcast > TimeSpan.FromMinutes(machine.AdInterval))
                 {
+                    machine.Utility.BotSettings = machine.Utility.LoadBotSettings();
                     machine.LastBroadcast = DateTime.Now;
                     machine.Inventory.UpdateInventoryFile();
                     if (machine.Utility.BotSettings.Advertisements.Count > 0)
@@ -137,7 +127,7 @@ namespace ACManager.StateMachine.States
                     {
                         machine.CurrentRequest = new Request();
                     }
-                    
+
                     // if positioning is enabled, reset heading properly - else, set next heading to -1 or disabled
                     if (machine.EnablePositioning)
                     {
