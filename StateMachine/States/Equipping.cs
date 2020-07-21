@@ -13,19 +13,22 @@ namespace ACManager.StateMachine.States
     {
         private bool FullyEquipped { get; set; }
         private bool IdleEquipped { get; set; }
-        private readonly DateTime UnixTime = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
-        private Dictionary<int, bool> Equipment { get; set; } = new Dictionary<int, bool>();
-        private Dictionary<int, bool> IdleEquipment { get; set; } = new Dictionary<int, bool>();
+        private Dictionary<Equipment, bool> BuffingEquipment { get; set; } = new Dictionary<Equipment, bool>();
+        private Dictionary<Equipment, bool> IdleEquipment { get; set; } = new Dictionary<Equipment, bool>();
+        private bool BraceletEquipped { get; set; }
+        private bool RingEquipped { get; set; }
+        private EquipMask Ring { get; set; } = EquipMask.RightRing | EquipMask.LeftRing;
+        private EquipMask Bracelet { get; set; } = EquipMask.RightBracelet | EquipMask.LeftBracelet;
 
         public void Enter(Machine machine)
         {
             machine.Utility.EquipmentSettings = machine.Utility.LoadEquipmentSettings();
 
-            if (Equipment.Count.Equals(0) && machine.Core.CharacterFilter.Name.Equals(machine.BuffingCharacter))
+            if (BuffingEquipment.Count.Equals(0) && machine.Core.CharacterFilter.Name.Equals(machine.BuffingCharacter))
             {
                 foreach (Equipment item in machine.Utility.EquipmentSettings.BuffingEquipment)
                 {
-                    Equipment.Add(item.Id, false);
+                    BuffingEquipment.Add(item, false);
                 }
             }
 
@@ -33,7 +36,7 @@ namespace ACManager.StateMachine.States
             {
                 foreach (Equipment item in machine.Utility.EquipmentSettings.IdleEquipment)
                 {
-                    IdleEquipment.Add(item.Id, true);
+                    IdleEquipment.Add(item, true);
                 }
             }
 
@@ -51,8 +54,10 @@ namespace ACManager.StateMachine.States
         {
             if (machine.NextState == Idle.GetInstance)
             {
-                Equipment.Clear();
+                BuffingEquipment.Clear();
                 IdleEquipment.Clear();
+                RingEquipped = false;
+                BraceletEquipped = false;
             }
         }
 
@@ -73,7 +78,7 @@ namespace ACManager.StateMachine.States
                             machine.NextState = Casting.GetInstance;
                         }
                     }
-                    else if (Equipment.Count.Equals(0) || !machine.CurrentRequest.RequestType.Equals(RequestType.Buff))
+                    else if (BuffingEquipment.Count.Equals(0) || !machine.CurrentRequest.RequestType.Equals(RequestType.Buff))
                     {
                         using (WorldObjectCollection wands = machine.Core.WorldFilter.GetInventory())
                         {
@@ -111,38 +116,66 @@ namespace ACManager.StateMachine.States
                     }
                     else // equip the entire suit
                     {
-                        foreach (KeyValuePair<int, bool> item in IdleEquipment)
+                        foreach (KeyValuePair<Equipment, bool> item in IdleEquipment)
                         {
                             if (machine.Core.Actions.BusyState.Equals(0))
                             {
                                 if (IdleEquipment[item.Key].Equals(true))
                                 {
-                                    if (!Equipment.ContainsKey(item.Key))
+                                    if (!BuffingEquipment.ContainsKey(item.Key))
                                     {
                                         IdleEquipment[item.Key] = false;
-                                        machine.Core.Actions.MoveItem(item.Key, machine.Core.CharacterFilter.Id);
+                                        machine.Core.Actions.MoveItem(item.Key.Id, machine.Core.CharacterFilter.Id);
                                     }
                                     else
                                     {
-                                        Equipment[item.Key] = true;
+                                        BuffingEquipment[item.Key] = true;
                                         IdleEquipment[item.Key] = false;
                                     }
                                 }
                             }
-                        }
+                        }                        
 
-                        foreach (KeyValuePair<int, bool> item in Equipment)
+                        foreach (KeyValuePair<Equipment, bool> item in BuffingEquipment)
                         {
                             if (machine.Core.Actions.BusyState.Equals(0) && !item.Value)
-                            {
-                                machine.Core.Actions.AutoWield(item.Key);
-                                Equipment[item.Key] = true;
+                            {                         
+                                if ((item.Key.EquipMask & (int)Ring) == (int)Ring)
+                                {
+                                    if (!RingEquipped)
+                                    {
+                                        RingEquipped = true;
+                                        machine.Core.Actions.AutoWield(item.Key.Id, (int)EquipMask.RightRing, 0, 1, 1, 1);
+                                    }
+                                    else
+                                    {
+                                        machine.Core.Actions.AutoWield(item.Key.Id, (int)EquipMask.LeftRing, 0, 1, 1, 1);
+                                    }
+                                }
+                                else if ((item.Key.EquipMask & (int)Bracelet) == (int)Bracelet)
+                                {
+                                    if (!BraceletEquipped)
+                                    {
+                                        BraceletEquipped = true;
+                                        machine.Core.Actions.AutoWield(item.Key.Id, (int)EquipMask.RightBracelet, 0, 1, 1, 1);
+                                    }
+                                    else
+                                    {
+                                        machine.Core.Actions.AutoWield(item.Key.Id, (int)EquipMask.LeftBracelet, 0, 1, 1, 1);
+                                    }
+                                }
+                                else
+                                {
+                                    machine.Core.Actions.AutoWield(item.Key.Id, item.Key.EquipMask, 0, 1);
+                                }
+                                
+                                BuffingEquipment[item.Key] = true;
                             }
                         }
 
                         FullyEquipped = true;
 
-                        foreach (KeyValuePair<int, bool> item in Equipment)
+                        foreach (KeyValuePair<Equipment, bool> item in BuffingEquipment)
                         {
                             if (item.Value == false)
                             {
@@ -161,22 +194,22 @@ namespace ACManager.StateMachine.States
                 {
                     if (FullyEquipped)
                     {
-                        if (Equipment.Count > 0 && machine.CurrentRequest.RequestType.Equals(RequestType.Buff))
+                        if (BuffingEquipment.Count > 0 && machine.CurrentRequest.RequestType.Equals(RequestType.Buff))
                         {
-                            foreach (KeyValuePair<int, bool> item in Equipment)
+                            foreach (KeyValuePair<Equipment, bool> item in BuffingEquipment)
                             {
                                 if (machine.Core.Actions.BusyState.Equals(0))
                                 {
-                                    if (Equipment[item.Key].Equals(true))
+                                    if (BuffingEquipment[item.Key].Equals(true))
                                     {
                                         if (!IdleEquipment.ContainsKey(item.Key))
                                         {
-                                            Equipment[item.Key] = false;
-                                            machine.Core.Actions.MoveItem(item.Key, machine.Core.CharacterFilter.Id);
+                                            BuffingEquipment[item.Key] = false;
+                                            machine.Core.Actions.MoveItem(item.Key.Id, machine.Core.CharacterFilter.Id);
                                         }
                                         else
                                         {
-                                            Equipment[item.Key] = false;
+                                            BuffingEquipment[item.Key] = false;
                                             IdleEquipment[item.Key] = true;
                                         }
                                     }
@@ -185,7 +218,7 @@ namespace ACManager.StateMachine.States
 
                             FullyEquipped = false;
 
-                            foreach (KeyValuePair<int, bool> item in Equipment)
+                            foreach (KeyValuePair<Equipment, bool> item in BuffingEquipment)
                             {
                                 if (item.Value == true)
                                 {
@@ -221,18 +254,18 @@ namespace ACManager.StateMachine.States
                         }
                         else
                         {
-                            foreach (KeyValuePair<int, bool> item in IdleEquipment)
+                            foreach (KeyValuePair<Equipment, bool> item in IdleEquipment)
                             {
                                 if (machine.Core.Actions.BusyState.Equals(0) && !item.Value)
                                 {
                                     IdleEquipment[item.Key] = true;
-                                    machine.Core.Actions.AutoWield(item.Key);
+                                    machine.Core.Actions.AutoWield(item.Key.Id, item.Key.EquipMask, 0, 1, 1, 1);
                                 }
                             }
 
                             IdleEquipped = true;
 
-                            foreach (KeyValuePair<int, bool> item in IdleEquipment)
+                            foreach (KeyValuePair<Equipment, bool> item in IdleEquipment)
                             {
                                 if (item.Value == false)
                                 {
@@ -261,6 +294,37 @@ namespace ACManager.StateMachine.States
         {
             return nameof(Equipping);
         }
+
+        [Flags]
+        public enum EquipMask
+        {
+            Head = 0x00000001,
+            ChestUnderwear = 0x00000002,
+            AbdomenUnderwear = 0x00000004,
+            UpperArmsUnderwear = 0x00000008,
+            LowerArmsUnderwear = 0x00000010,
+            Hands = 0x00000020,
+            UpperLegsUnderwear = 0x00000040,
+            LowerLegsUnderwear = 0x00000080,
+            Feet = 0x00000100,
+            Chest = 0x00000200,
+            Abdomen = 0x00000400,
+            UpperArms = 0x00000800,
+            LowerArms = 0x00001000,
+            UpperLegs = 0x00002000,
+            LowerLegs = 0x00004000,
+            Necklace = 0x00008000,
+            RightBracelet = 0x00010000,
+            LeftBracelet = 0x00020000,
+            RightRing = 0x00040000,
+            LeftRing = 0x00080000,
+            MeleeWeapon = 0x00100000,
+            Shield = 0x00200000,
+            MissileWeapon = 0x00400000,
+            Ammunition = 0x00800000,
+            Wand = 0x01000000,
+        }
+
 
         private bool CanWield(Machine machine, WorldObject wand)
         {
