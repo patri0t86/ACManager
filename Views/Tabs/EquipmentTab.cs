@@ -65,50 +65,57 @@ namespace ACManager.Views.Tabs
         {
             try
             {
-                if (Parent.Machine.Core.CharacterFilter.Name.Equals(Parent.Machine.BuffingCharacter))
+                if (Parent.Machine.FinishedInitialScan)
                 {
-                    if (!Parent.Machine.Core.Actions.CurrentSelection.Equals(0) && Parent.Machine.Core.CharacterFilter.Name.Equals(Parent.Machine.BuffingCharacter))
+                    if (Parent.Machine.Core.CharacterFilter.Name.Equals(Parent.Machine.BuffingCharacter))
                     {
-                        foreach (WorldObject item in Parent.Machine.CharacterEquipment)
+                        if (!Parent.Machine.Core.Actions.CurrentSelection.Equals(0) && Parent.Machine.Core.CharacterFilter.Name.Equals(Parent.Machine.BuffingCharacter))
                         {
-                            if (item.Id.Equals(Parent.Machine.Core.Actions.CurrentSelection))
+                            foreach (WorldObject item in Parent.Machine.CharacterEquipment)
                             {
-                                Equipment newEquipment = new Equipment
+                                if (item.Id.Equals(Parent.Machine.Core.Actions.CurrentSelection))
                                 {
-                                    Id = item.Id,
-                                    Name = item.Name,
-                                    EquipMask = item.Values(LongValueKey.EquipableSlots)
-                                };
-
-                                if (!Parent.Machine.Utility.EquipmentSettings.BuffingEquipment.Contains(newEquipment))
-                                {
-                                    HudList.HudListRowAccessor row = BuffEquipmentList.AddRow();
-                                    using (HudStaticText control = new HudStaticText())
+                                    Equipment newEquipment = new Equipment
                                     {
-                                        control.Text = item.Name;
-                                        row[0] = control;
+                                        Id = item.Id,
+                                        Name = item.Name,
+                                        EquipMask = item.Values(LongValueKey.EquipableSlots)
+                                    };
+
+                                    if (!Parent.Machine.Utility.EquipmentSettings.BuffingEquipment.Contains(newEquipment))
+                                    {
+                                        HudList.HudListRowAccessor row = BuffEquipmentList.AddRow();
+                                        using (HudStaticText control = new HudStaticText())
+                                        {
+                                            control.Text = item.Name;
+                                            row[0] = control;
+                                        }
+
+                                        Parent.Machine.Utility.EquipmentSettings.BuffingEquipment.Add(newEquipment);
+                                        Parent.Machine.Utility.SaveEquipmentSettings();
+                                    }
+                                    else
+                                    {
+                                        Debug.ToChat("This item is already in the buffing suit.");
                                     }
 
-                                    Parent.Machine.Utility.EquipmentSettings.BuffingEquipment.Add(newEquipment);
-                                    Parent.Machine.Utility.SaveEquipmentSettings();
+                                    break;
                                 }
-                                else
-                                {
-                                    Debug.ToChat("This item is already in the buffing suit.");
-                                }
-
-                                break;
                             }
+                        }
+                        else
+                        {
+                            Debug.ToChat("Make sure you have an item selected.");
                         }
                     }
                     else
                     {
-                        Debug.ToChat("Make sure you have an item selected.");
+                        Debug.ToChat("You must set the buffing character to this character, or be logged into the buffing character to add equipment.");
                     }
                 }
                 else
                 {
-                    Debug.ToChat("You must set the buffing character to this character, or be logged into the buffing character to add equipment.");
+                    Debug.ToChat("Please wait until finished scanning your inventory.");
                 }
             }
             catch (Exception ex) { Debug.LogException(ex); }
@@ -139,49 +146,56 @@ namespace ACManager.Views.Tabs
         {
             try
             {
-                if (Parent.Machine.Core.CharacterFilter.Name.Equals(Parent.Machine.BuffingCharacter))
+                if (Parent.Machine.FinishedInitialScan) 
                 {
-                    if (!Parent.Machine.Core.Actions.CurrentSelection.Equals(0))
+                    if (Parent.Machine.Core.CharacterFilter.Name.Equals(Parent.Machine.BuffingCharacter))
                     {
-                        foreach (WorldObject item in Parent.Machine.CharacterEquipment)
+                        if (!Parent.Machine.Core.Actions.CurrentSelection.Equals(0))
                         {
-                            if (item.Id.Equals(Parent.Machine.Core.Actions.CurrentSelection))
+                            foreach (WorldObject item in Parent.Machine.CharacterEquipment)
                             {
-                                Equipment newEquipment = new Equipment
+                                if (item.Id.Equals(Parent.Machine.Core.Actions.CurrentSelection))
                                 {
-                                    Id = item.Id,
-                                    Name = item.Name,
-                                    EquipMask = item.Values(LongValueKey.EquipableSlots)
-                                };
-
-                                if (!Parent.Machine.Utility.EquipmentSettings.IdleEquipment.Contains(newEquipment))
-                                {
-                                    HudList.HudListRowAccessor row = IdleEquipmentList.AddRow();
-                                    using (HudStaticText control = new HudStaticText())
+                                    Equipment newEquipment = new Equipment
                                     {
-                                        control.Text = item.Name;
-                                        row[0] = control;
-                                    }
-                                    Parent.Machine.Utility.EquipmentSettings.IdleEquipment.Add(newEquipment);
-                                    Parent.Machine.Utility.SaveEquipmentSettings();
-                                }
-                                else
-                                {
-                                    Debug.ToChat("This item is already in the idle suit.");
-                                }
+                                        Id = item.Id,
+                                        Name = item.Name,
+                                        EquipMask = item.Values(LongValueKey.EquipableSlots)
+                                    };
 
-                                break;
+                                    if (!Parent.Machine.Utility.EquipmentSettings.IdleEquipment.Contains(newEquipment))
+                                    {
+                                        HudList.HudListRowAccessor row = IdleEquipmentList.AddRow();
+                                        using (HudStaticText control = new HudStaticText())
+                                        {
+                                            control.Text = item.Name;
+                                            row[0] = control;
+                                        }
+                                        Parent.Machine.Utility.EquipmentSettings.IdleEquipment.Add(newEquipment);
+                                        Parent.Machine.Utility.SaveEquipmentSettings();
+                                    }
+                                    else
+                                    {
+                                        Debug.ToChat("This item is already in the idle suit.");
+                                    }
+
+                                    break;
+                                }
                             }
+                        }
+                        else
+                        {
+                            Debug.ToChat("Make sure you are selecting an item in your own inventory.");
                         }
                     }
                     else
                     {
-                        Debug.ToChat("Make sure you are selecting an item in your own inventory.");
+                        Debug.ToChat("You must set the buffing character to this character, or be logged into the buffing character to add equipment.");
                     }
                 }
                 else
                 {
-                    Debug.ToChat("You must set the buffing character to this character, or be logged into the buffing character to add equipment.");
+                    Debug.ToChat("Please wait until finished scanning your inventory.");
                 }
             }
             catch (Exception ex) { Debug.LogException(ex); }
