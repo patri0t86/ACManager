@@ -247,6 +247,7 @@ namespace ACManager.StateMachine
         /// Only send the Finished scanning inventory once.
         /// </summary>
         public bool FinishedInitialScan { get; set; }
+        public bool TooBusy { get; set; }
 
         /// <summary>
         /// Create the state machine in the StoppedState and begin processing commands on intervals (every time a frame is rendered).
@@ -290,7 +291,7 @@ namespace ACManager.StateMachine
                     if (complete && !FinishedInitialScan)
                     {
                         FinishedInitialScan = true;
-                        Debug.ToChat($"Finished scanning your inventory. Feel free to build suits.");
+                        Debug.ToChat($"Finished scanning your inventory. You can now build suits.");
                     }
                 }
             }
