@@ -27,6 +27,9 @@ namespace ACManager.Settings
         [XmlAttribute]
         public int EquipMask;
 
+        [XmlAttribute]
+        public string ObjectClass;
+
         public override int GetHashCode()
         {
             return Id;

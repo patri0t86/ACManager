@@ -123,14 +123,17 @@ namespace ACManager.StateMachine.States
                                 if (IdleEquipment[item.Key].Equals(true))
                                 {
                                     if (!BuffingEquipment.ContainsKey(item.Key))
-                                    {
-                                        IdleEquipment[item.Key] = false;
+                                    {                                        
                                         machine.Core.Actions.MoveItem(item.Key.Id, machine.Core.CharacterFilter.Id);
                                     }
                                     else
                                     {
-                                        IdleEquipment[item.Key] = false;
+                                        if (item.Key.ObjectClass.Equals(ObjectClass.Clothing.ToString()))
+                                        {
+                                            BuffingEquipment[item.Key] = true;
+                                        }
                                     }
+                                    IdleEquipment[item.Key] = false;
                                 }
                             }
                         }                        
@@ -138,7 +141,7 @@ namespace ACManager.StateMachine.States
                         foreach (KeyValuePair<Equipment, bool> item in BuffingEquipment)
                         {
                             if (machine.Core.Actions.BusyState.Equals(0) && !item.Value)
-                            {                         
+                            {
                                 if ((item.Key.EquipMask & (int)Ring) == (int)Ring)
                                 {
                                     if (!RingEquipped)
@@ -163,11 +166,15 @@ namespace ACManager.StateMachine.States
                                         machine.Core.Actions.AutoWield(item.Key.Id, (int)EquipMask.LeftBracelet, 0, 1, 1, 1);
                                     }
                                 }
+                                else if (item.Key.ObjectClass.Equals(ObjectClass.Clothing.ToString()))
+                                {
+                                    machine.Core.Actions.UseItem(item.Key.Id, 0);
+                                }
                                 else
                                 {
-                                    machine.Core.Actions.AutoWield(item.Key.Id, item.Key.EquipMask, 1, 0);
+                                    machine.Core.Actions.AutoWield(item.Key.Id, item.Key.EquipMask, 0, 1, 1, 1);
                                 }
-                                
+
                                 BuffingEquipment[item.Key] = true;
                             }
                         }
@@ -203,13 +210,16 @@ namespace ACManager.StateMachine.States
                                     {
                                         if (!IdleEquipment.ContainsKey(item.Key))
                                         {
-                                            BuffingEquipment[item.Key] = false;
                                             machine.Core.Actions.MoveItem(item.Key.Id, machine.Core.CharacterFilter.Id);
                                         }
                                         else
                                         {
-                                            BuffingEquipment[item.Key] = false;
+                                            if (item.Key.ObjectClass.Equals(ObjectClass.Clothing.ToString()))
+                                            {
+                                                IdleEquipment[item.Key] = true;
+                                            }                                            
                                         }
+                                        BuffingEquipment[item.Key] = false;
                                     }
                                 }
                             }
@@ -246,7 +256,7 @@ namespace ACManager.StateMachine.States
                     }
                     else if (!IdleEquipped) // suit is unequipped
                     {
-                        if (machine.Utility.EquipmentSettings.IdleEquipment.Count.Equals(0))
+                        if (IdleEquipment.Count.Equals(0))
                         {
                             IdleEquipped = true;
                         }
@@ -255,9 +265,16 @@ namespace ACManager.StateMachine.States
                             foreach (KeyValuePair<Equipment, bool> item in IdleEquipment)
                             {
                                 if (machine.Core.Actions.BusyState.Equals(0) && !item.Value)
-                                {
+                                {                                    
+                                    if (item.Key.ObjectClass.Equals(ObjectClass.Clothing.ToString()))
+                                    {
+                                        machine.Core.Actions.UseItem(item.Key.Id, 0);
+                                    }
+                                    else
+                                    {
+                                        machine.Core.Actions.AutoWield(item.Key.Id, item.Key.EquipMask, 0, 1, 1, 1);
+                                    }
                                     IdleEquipment[item.Key] = true;
-                                    machine.Core.Actions.AutoWield(item.Key.Id, item.Key.EquipMask, 0, 1, 1, 1);
                                 }
                             }
 

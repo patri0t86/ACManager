@@ -79,7 +79,8 @@ namespace ACManager.Views.Tabs
                                     {
                                         Id = item.Id,
                                         Name = item.Name,
-                                        EquipMask = item.Values(LongValueKey.EquipableSlots)
+                                        EquipMask = item.Values(LongValueKey.EquipableSlots),
+                                        ObjectClass = item.ObjectClass.ToString()
                                     };
 
                                     if (!Parent.Machine.Utility.EquipmentSettings.BuffingEquipment.Contains(newEquipment))
@@ -160,7 +161,8 @@ namespace ACManager.Views.Tabs
                                     {
                                         Id = item.Id,
                                         Name = item.Name,
-                                        EquipMask = item.Values(LongValueKey.EquipableSlots)
+                                        EquipMask = item.Values(LongValueKey.EquipableSlots),
+                                        ObjectClass = item.ObjectClass.ToString()
                                     };
 
                                     if (!Parent.Machine.Utility.EquipmentSettings.IdleEquipment.Contains(newEquipment))
