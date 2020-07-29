@@ -20,7 +20,8 @@ namespace ACManager.Settings.BuffDefaults
                 4602,
                 4494,
                 4498,
-                4510
+                4510,
+                4418
             };
 
         public BotBuffs()

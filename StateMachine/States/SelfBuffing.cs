@@ -140,7 +140,8 @@ namespace ACManager.StateMachine.States
                 4602, // mana c self 8
                 4494, // mana renewal 8
                 4498, // rejuv 8
-                4510  // arcane enlightenment 8
+                4510, // arcane enlightenment 8
+                4418  // aura of mana c 8
             };
 
             if (selfBuffs.Contains(spellId))
@@ -184,6 +185,10 @@ namespace ACManager.StateMachine.States
                 else if (spellId.Equals(4510))
                 {
                     return 2195;
+                }
+                else if (spellId.Equals(4418))
+                {
+                    return 2117;
                 }
             }
             return 0;
