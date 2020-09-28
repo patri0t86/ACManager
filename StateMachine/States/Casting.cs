@@ -336,11 +336,11 @@ namespace ACManager.StateMachine.States
                 }
                 else if (spellId.Equals(4403))
                 {
-                    return 2014;
+                    return 2104;
                 }
                 else if (spellId.Equals(4409))
                 {
-                    return 2210;
+                    return 2110;
                 }
                 else if (spellId.Equals(4391))
                 {
