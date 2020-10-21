@@ -27,18 +27,19 @@ namespace ACManager.StateMachine.States
             machine.CastStarted = false;
             EnteredState = DateTime.Now;
 
-            if (machine.Inventory.LowComponents.Count > 0)
-            {
-                machine.ChatManager.Broadcast(machine.Inventory.LowCompsReport());
-            }
-
             if (machine.CurrentRequest.RequestType.Equals(RequestType.Buff))
             {
                 if (!SentInitialInfo)
                 {
                     Started = DateTime.Now;
-                    SentInitialInfo = !SentInitialInfo;
+                    SentInitialInfo = true;
                     SpellCastCount = 0;
+
+                    if (machine.Inventory.LowComponents.Count > 0)
+                    {
+                        machine.ChatManager.Broadcast(machine.Inventory.LowCompsReport());
+                    }
+
                     TimeSpan buffTime = TimeSpan.FromSeconds(machine.SpellsToCast.Count * 4);
                     if (machine.SpellsToCast.Contains(5989)
                         || machine.SpellsToCast.Contains(5997)
@@ -87,7 +88,7 @@ namespace ACManager.StateMachine.States
         {
             if (machine.CurrentRequest.RequestType.Equals(RequestType.Buff) && machine.SpellsToCast.Count.Equals(0))
             {
-                SentInitialInfo = !SentInitialInfo;
+                SentInitialInfo = false;
                 TimeSpan duration = DateTime.Now - Started;
                 if (!Cancelled)
                 {
@@ -105,90 +106,118 @@ namespace ACManager.StateMachine.States
             {
                 if (machine.SpellsToCast.Count > 0)
                 {
-                    if (machine.CastStarted && machine.CastCompleted && !machine.Fizzled)
+                    if (machine.Core.Actions.CombatMode != CombatState.Magic)
                     {
-                        if (machine.SpellsToCast[0].Equals(157) || machine.SpellsToCast[0].Equals(2648))
+                        machine.Core.Actions.SetCombatMode(CombatState.Magic);
+                        if ((DateTime.Now - EnteredState).TotalSeconds > 1)
                         {
-                            machine.PortalsSummonedThisSession += 1;
-                            if (!string.IsNullOrEmpty(machine.PortalDescription))
-                            {
-                                machine.ChatManager.Broadcast($"/s Portal now open to {machine.PortalDescription}. Safe journey, friend.");
-                            }
-                            else
-                            {
-                                machine.ChatManager.Broadcast($"/s Portal now open. Safe journey, friend.");
-                            }
+                            machine.SpellsToCast.Clear();
                         }
-                        SpellCastCount += 1;
-                        machine.SpellsToCast.RemoveAt(0);
-                        machine.CastCompleted = false;
-                        machine.CastStarted = false;
                     }
-                    else if (machine.CastStarted && machine.CastCompleted && machine.Fizzled)
+                    else if (machine.Core.Actions.CombatMode == CombatState.Magic)
                     {
-                        machine.Fizzled = false;
-                        machine.CastCompleted = false;
-                        machine.CastStarted = false;
-                    }
-                    else if (!machine.CastStarted)
-                    {
-                        if (machine.Core.CharacterFilter.Mana < machine.ManaThreshold * machine.Core.CharacterFilter.EffectiveVital[CharFilterVitalType.Mana] && machine.Core.Actions.SkillTrainLevel[SkillType.BaseLifeMagic] != 1)
+                        if (machine.CastStarted && machine.CastCompleted && !machine.Fizzled)
                         {
-                            machine.NextState = VitalManagement.GetInstance;
-                        }
-                        else
-                        {
-                            if (machine.Core.Actions.CombatMode != CombatState.Magic)
+                            if (machine.SpellsToCast[0].Equals(157) || machine.SpellsToCast[0].Equals(2648))
                             {
-                                if ((DateTime.Now - EnteredState).TotalSeconds > 1)
+                                machine.PortalsSummonedThisSession += 1;
+                                if (!string.IsNullOrEmpty(machine.PortalDescription))
                                 {
-                                    Debug.ToChat("No wand setup in equipment.");
-                                    machine.ChatManager.SendTell(machine.CurrentRequest.RequesterName, "I don't have a wand setup, I'm sorry. Cancelling this request.");
-                                    machine.SpellsToCast.Clear();
+                                    machine.ChatManager.Broadcast($"/s Portal now open to {machine.PortalDescription}. Safe journey, friend.");
                                 }
                                 else
                                 {
-                                    machine.Core.Actions.SetCombatMode(CombatState.Magic);
+                                    machine.ChatManager.Broadcast($"/s Portal now open. Safe journey, friend.");
                                 }
                             }
-                            else if (machine.Core.CharacterFilter.IsSpellKnown(machine.SpellsToCast[0]))
+                            else
                             {
-                                if (machine.ComponentChecker.HaveComponents(machine.SpellsToCast[0]))
+                                SpellCastCount += 1;
+                            }
+                            machine.SpellsToCast.RemoveAt(0);
+                            machine.CastCompleted = false;
+                            machine.CastStarted = false;
+
+                            // Check to see if this request was cancelled.
+                            foreach (string cancel in machine.CancelList)
+                            {
+                                if (machine.CurrentRequest.RequesterName.Equals(cancel))
                                 {
-                                    if (LastSpell.Equals(machine.SpellsToCast[0]) && !(machine.SpellsToCast[0].Equals(157) || machine.SpellsToCast[0].Equals(2648)))
+                                    Cancelled = true;
+                                    machine.SpellsToCast.Clear();
+                                    machine.CancelList.Remove(cancel);
+                                    break;
+                                }
+                            }
+                        }
+                        else if (machine.CastStarted && machine.CastCompleted && machine.Fizzled)
+                        {
+                            machine.Fizzled = false;
+                            machine.CastCompleted = false;
+                            machine.CastStarted = false;
+                        }
+                        else if (!machine.CastStarted)
+                        {
+                            if (machine.Core.CharacterFilter.Mana < machine.ManaThreshold * machine.Core.CharacterFilter.EffectiveVital[CharFilterVitalType.Mana]
+                                && machine.Core.Actions.SkillTrainLevel[SkillType.BaseLifeMagic] != 1)
+                            {
+                                machine.NextState = VitalManagement.GetInstance;
+                            }
+                            else
+                            {
+                                if (machine.Core.CharacterFilter.IsSpellKnown(machine.SpellsToCast[0]))
+                                {
+                                    if (machine.ComponentChecker.HaveComponents(machine.SpellsToCast[0]))
                                     {
-                                        if (!StartedTracking)
+                                        if (LastSpell.Equals(machine.SpellsToCast[0]) && !(machine.SpellsToCast[0].Equals(157) || machine.SpellsToCast[0].Equals(2648)))
                                         {
-                                            StartedTrackingTime = DateTime.Now;
+                                            if (!StartedTracking)
+                                            {
+                                                StartedTrackingTime = DateTime.Now;
+                                                StartedTracking = !StartedTracking;
+                                            }
+                                            else if ((DateTime.Now - StartedTrackingTime).TotalSeconds > 5)
+                                            {
+                                                StartedTracking = !StartedTracking;
+                                                machine.SpellsToCast.Clear();
+                                            }
+                                        }
+                                        else if (StartedTracking)
+                                        {
                                             StartedTracking = !StartedTracking;
                                         }
-                                        else if ((DateTime.Now - StartedTrackingTime).TotalSeconds > 5)
-                                        {
-                                            StartedTracking = !StartedTracking;
-                                            machine.SpellsToCast.Clear();
-                                        }
-                                    }
-                                    else if (StartedTracking)
-                                    {
-                                        StartedTracking = !StartedTracking;
-                                    }
 
-                                    LastSpell = machine.SpellsToCast[0];
+                                        LastSpell = machine.SpellsToCast[0];
 
-                                    if (SpellIsBane(machine.SpellsToCast[0]))
-                                    {
-                                        if (CastBanes)
+                                        if (SpellIsBane(machine.SpellsToCast[0]))
                                         {
-                                            machine.Core.Actions.CastSpell(machine.SpellsToCast[0], machine.CurrentRequest.RequesterGuid);
+                                            if (CastBanes)
+                                            {
+                                                machine.Core.Actions.CastSpell(machine.SpellsToCast[0], machine.CurrentRequest.RequesterGuid);
+                                            }
+                                            else
+                                            {
+                                                machine.SpellsToCast.RemoveAt(0);
+                                            }
                                         }
                                         else
                                         {
-                                            machine.SpellsToCast.RemoveAt(0);
+                                            machine.Core.Actions.CastSpell(machine.SpellsToCast[0], machine.CurrentRequest.RequesterGuid);
                                         }
                                     }
                                     else
                                     {
-                                        machine.Core.Actions.CastSpell(machine.SpellsToCast[0], machine.CurrentRequest.RequesterGuid);
+                                        int fallbackSpell = FallbackSpellCheck(machine.SpellsToCast[0]);
+                                        machine.SpellsToCast.RemoveAt(0);
+                                        if (fallbackSpell != 0)
+                                        {
+                                            machine.SpellsToCast.Insert(0, fallbackSpell);
+                                        }
+                                        else
+                                        {
+                                            machine.ChatManager.Broadcast($"I have run out of spell components.");
+                                            machine.SpellsToCast.Clear();
+                                        }
                                     }
                                 }
                                 else
@@ -199,54 +228,19 @@ namespace ACManager.StateMachine.States
                                     {
                                         machine.SpellsToCast.Insert(0, fallbackSpell);
                                     }
-                                    else
-                                    {
-                                        machine.ChatManager.Broadcast($"I have run out of spell components.");
-                                        machine.SpellsToCast.Clear();
-                                        machine.Requests.Clear();
-                                    }
-                                }
-                            }
-                            else
-                            {
-                                int fallbackSpell = FallbackSpellCheck(machine.SpellsToCast[0]);
-                                machine.SpellsToCast.RemoveAt(0);
-                                if (fallbackSpell != 0)
-                                {
-                                    machine.SpellsToCast.Insert(0, fallbackSpell);
                                 }
                             }
                         }
                     }
-
-                    // Check to see if this request was cancelled.
-                    foreach (string cancel in machine.CancelList)
-                    {
-                        if (machine.CurrentRequest.RequesterName.Equals(cancel))
-                        {
-                            Cancelled = true;
-                            machine.SpellsToCast.Clear();
-                            machine.CancelList.Remove(cancel);
-                            break;
-                        }
-                    }
-
                 }
                 else
                 {
-                    if (machine.Core.Actions.CombatMode != CombatState.Peace)
-                    {
-                        machine.Core.Actions.SetCombatMode(CombatState.Peace);
-                    }
-                    else if (machine.Core.Actions.CombatMode == CombatState.Peace)
-                    {
-                        machine.NextState = Equipping.GetInstance;
-                    }
+                    machine.NextState = Equipping.GetInstance;
                 }
             }
             else
             {
-                SentInitialInfo = !SentInitialInfo;
+                SentInitialInfo = false;
                 machine.NextState = Equipping.GetInstance;
             }
         }
@@ -336,11 +330,11 @@ namespace ACManager.StateMachine.States
                 }
                 else if (spellId.Equals(4403))
                 {
-                    return 2014;
+                    return 2104;
                 }
                 else if (spellId.Equals(4409))
                 {
-                    return 2210;
+                    return 2110;
                 }
                 else if (spellId.Equals(4391))
                 {

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Drawing;
 
 namespace ACManager.StateMachine.States
 {
@@ -8,13 +9,13 @@ namespace ACManager.StateMachine.States
     class Positioning : StateBase<Positioning>, IState
     {
         private double TempHeading { get; set; }
-        private bool AutoRunEnabled { get; set; }
-        private DateTime LastHeadingCheck { get; set; }
-        private bool IsTurning { get; set; }
+        private double LastHeading { get; set; }
+        private double LastLocationX { get; set; }
+        private double LastLocationY { get; set; }
 
         public void Enter(Machine machine)
         {
-            IsTurning = false;
+
         }
 
         public void Exit(Machine machine)
@@ -37,41 +38,37 @@ namespace ACManager.StateMachine.States
                     }
                     else if (!machine.InPosition())
                     {
-                        TempHeading = GetHeading(machine.Core.Actions.Landcell, machine.DesiredLandBlock, machine.Core.Actions.LocationX, machine.Core.Actions.LocationY, machine.DesiredBotLocationX, machine.DesiredBotLocationY);
+                        TempHeading = TargetHeading(machine.Core.Actions.Landcell, machine.DesiredLandBlock, machine.Core.Actions.LocationX, machine.Core.Actions.LocationY, machine.DesiredBotLocationX, machine.DesiredBotLocationY);
 
-                        if (machine.Core.Actions.Heading <= TempHeading + 1 && machine.Core.Actions.Heading >= TempHeading - 1)
+                        if (!CorrectHeading(machine.Core.Actions.Heading))
                         {
-                            if (!AutoRunEnabled)
+                            if (AutoRunning(machine))
                             {
-                                IsTurning = false;
-                                AutoRunEnabled = !AutoRunEnabled;
-                                machine.Core.Actions.SetAutorun(AutoRunEnabled);
+                                machine.Core.Actions.SetAutorun(false);
+                            }
+                            else if (!IsTurning(machine))
+                            {
+                                machine.Core.Actions.FaceHeading(TempHeading, false);
                             }
                         }
-                        else
+                        else if (!IsTurning(machine))
                         {
-                            if (AutoRunEnabled)
+                            if (!AutoRunning(machine))
                             {
-                                AutoRunEnabled = !AutoRunEnabled;
-                                machine.Core.Actions.SetAutorun(AutoRunEnabled);
-                            }
-                            else if (!IsTurning)
-                            {
-                                IsTurning = !IsTurning;
-                                machine.Core.Actions.FaceHeading(TempHeading, false);
+                                machine.Core.Actions.SetAutorun(true);
                             }
                         }
                     }
                     else
                     {
-                        if (AutoRunEnabled)
+                        if (AutoRunning(machine))
                         {
-                            AutoRunEnabled = !AutoRunEnabled;
-                            machine.Core.Actions.SetAutorun(AutoRunEnabled);
+                            machine.Core.Actions.SetAutorun(false);
                         }
-                        else if (!machine.CorrectHeading())
+
+                        if (!machine.CorrectHeading() && !IsTurning(machine))
                         {
-                            Turn(machine);
+                            machine.Core.Actions.FaceHeading(machine.NextHeading, false);
                         }
                         else
                         {
@@ -81,12 +78,19 @@ namespace ACManager.StateMachine.States
                 }
                 else if (!machine.CorrectHeading())
                 {
-                    Turn(machine);
+                    // Positioning is disabled, but still need to face the correct direction for portals
+                    if (!IsTurning(machine))
+                    {
+                        machine.Core.Actions.FaceHeading(machine.NextHeading, false);
+                    }
                 }
                 else
                 {
                     machine.NextState = Idle.GetInstance;
                 }
+                LastLocationX = machine.Core.Actions.LocationX;
+                LastLocationY = machine.Core.Actions.LocationY;
+                LastHeading = machine.Core.Actions.Heading;
             }
             else
             {
@@ -94,32 +98,24 @@ namespace ACManager.StateMachine.States
             }
         }
 
-        public override string ToString()
+        private bool AutoRunning(Machine machine)
         {
-            return nameof(Positioning);
+            return !(machine.Core.Actions.LocationX == LastLocationX && machine.Core.Actions.LocationY == LastLocationY);
         }
 
-        private void Turn(Machine machine)
+        private bool IsTurning(Machine machine)
         {
-            if (!IsTurning)
-            {
-                LastHeadingCheck = DateTime.Now;
-                IsTurning = !IsTurning;
-                machine.Core.Actions.FaceHeading(machine.NextHeading, false);
-            }
-            else if (DateTime.Now - LastHeadingCheck > TimeSpan.FromMilliseconds(1500) && !machine.Core.Actions.Heading.Equals(machine.NextHeading))
-            {
-                LastHeadingCheck = DateTime.Now;
-                machine.Core.Actions.FaceHeading(machine.NextHeading, false);
-            }
+            return !machine.Core.Actions.Heading.Equals(LastHeading);
         }
 
-        private double GetHeading(int currentLB, int targetLB, double currentX, double currentY, double targetX, double targetY)
+        private bool CorrectHeading(double currentHeading)
         {
-            int currentLBint, targetLBint, currentLB_EW, currentLB_NS, targetLB_EW, targetLB_NS, headingModifier;
+            return currentHeading <= TempHeading + 1 && currentHeading >= TempHeading - 1;
+        }
 
-            currentLBint = LandblockToInt(currentLB);
-            targetLBint = LandblockToInt(targetLB);
+        private double TargetHeading(int currentLB, int targetLB, double currentX, double currentY, double targetX, double targetY)
+        {
+            int currentLB_EW, currentLB_NS, targetLB_EW, targetLB_NS, headingModifier;
 
             currentLB_EW = EWLandblockToInt(currentLB);
             currentLB_NS = NSLandblockToInt(currentLB);
@@ -127,7 +123,7 @@ namespace ACManager.StateMachine.States
             targetLB_EW = EWLandblockToInt(targetLB);
             targetLB_NS = NSLandblockToInt(targetLB);
 
-            if (currentLBint.Equals(targetLBint))
+            if (LandblockToInt(currentLB).Equals(LandblockToInt(targetLB)))
             {
                 if (currentX < targetX)
                 {
@@ -174,5 +170,9 @@ namespace ACManager.StateMachine.States
             return currentXY + ((currentLBEW_NS - targetLBEW_NS) * 192) - targetXY;
         }
 
+        public override string ToString()
+        {
+            return nameof(Positioning);
+        }
     }
 }
