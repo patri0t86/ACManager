@@ -26,6 +26,7 @@ You have two choices: you can install automatically using the installer or manua
 2. Configure any other settings you wish in the *Config* tab of the *Bot Manager*.
 3. To setup a buff bot, simply select the character for "Buffing Character" in the dropdown list found in the *Config* tab.
 4. To start/stop the bot, simply toggle the *Start/Stop* checkbox in the *Config* tab of the *Bot Manager*.
+5. If you wish to integrate with metas for recomping itself or any other functionality, you can use `/acm start` and `/acm stop` command line arguments from within a meta to control the bot.
 
 ### Buff Bot Info
 1. The bot comes with a full complement of buff profiles out of the box. If you wish to add, or amend a profile, follow the format under the `BuffProfiles` folder where you installed ACManager. If there is a big enough ask, I may add in the ability to edit buff profiles in the GUI, or a standalone application since Decal views are very limited and clunky.
