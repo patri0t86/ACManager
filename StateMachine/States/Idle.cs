@@ -13,6 +13,7 @@ namespace ACManager.StateMachine.States
     internal class Idle : StateBase<Idle>, IState
     {
         private DateTime BuffCheck { get; set; }
+        private DateTime LastUpdate { get; set; }
         public void Enter(Machine machine)
         {
             machine.Inventory.GetComponentLevels();
@@ -100,11 +101,9 @@ namespace ACManager.StateMachine.States
                         machine.ItemToUse = machine.CurrentRequest.ItemToUse;
                     }
                 }
-                else if (machine.Advertise && machine.Update() && DateTime.Now - machine.LastBroadcast > TimeSpan.FromMinutes(machine.AdInterval))
+                else if (machine.Advertise && DateTime.Now - machine.LastBroadcast > TimeSpan.FromMinutes(machine.AdInterval))
                 {
-                    machine.Utility.BotSettings = machine.Utility.LoadBotSettings();
                     machine.LastBroadcast = DateTime.Now;
-                    machine.Inventory.UpdateInventoryFile();
                     if (machine.Utility.BotSettings.Advertisements.Count > 0)
                     {
                         machine.ChatManager.Broadcast(machine.Utility.BotSettings.Advertisements[machine.RandomNumber.Next(0, machine.Utility.BotSettings.Advertisements.Count)].Message);
@@ -116,6 +115,13 @@ namespace ACManager.StateMachine.States
                 }
                 else
                 {
+                    // Read from settings files for latest update
+                    if (DateTime.Now - LastUpdate > TimeSpan.FromSeconds(60))
+                    {
+                        LastUpdate = DateTime.Now;
+                        machine.Update();
+                    }
+
                     // clear the cancel list
                     if (machine.CancelList.Count > 0)
                     {

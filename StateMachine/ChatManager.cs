@@ -80,7 +80,7 @@ namespace ACManager.StateMachine
             {
                 CharacterMakingRequest = match.Groups["dupleName"].Value.Substring(0, match.Groups["dupleName"].Value.Length / 2);
 
-                if ((message.Equals("whereto") || message.Equals("where to")) && Machine.Update())
+                if ((message.Equals("whereto") || message.Equals("where to")))
                 {
                     RespondWithPortals();
                 }
@@ -112,7 +112,7 @@ namespace ACManager.StateMachine
             // The in-game character name sending the tell
             CharacterMakingRequest = match.Groups["dupleName"].Value.Substring(0, match.Groups["dupleName"].Value.Length / 2);
 
-            if (!string.IsNullOrEmpty(message) && Machine.Update())
+            if (!string.IsNullOrEmpty(message))
             {
                 if (message.Equals("whereto") || message.Equals("where to"))
                 {

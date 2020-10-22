@@ -325,11 +325,12 @@ namespace ACManager.StateMachine
         /// <summary>
         /// Gets the updated list of portals from settings file.
         /// </summary>
-        /// <returns>True if the file was parsed successfully and not null.</returns>
-        public bool Update()
+        public void Update()
         {
             Utility.CharacterSettings = Utility.LoadCharacterSettings();
-            return Utility.CharacterSettings != null && Utility.LoadBuffProfiles();
+            Utility.BotSettings = Utility.LoadBotSettings();
+            Inventory.UpdateInventoryFile();
+            Utility.LoadBuffProfiles();
         }
 
         /// <summary>
