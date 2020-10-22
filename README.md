@@ -32,5 +32,6 @@ You have two choices: you can install automatically using the installer or manua
 
 1. The bot comes with a full complement of buff profiles out of the box. If you wish to add, or amend a profile, follow the format under the `BuffProfiles` folder where you installed ACManager. If there is a big enough ask, I may add in the ability to edit buff profiles in the GUI, or a standalone application since Decal views are very limited and clunky.
 2. For level 8 spells that can be cast on others (per end of retail, this is only item spells; i.e. banes and weapon enchants), there is level 7 spell fallback built in if the spell is not known.
+3. **WARNING** Due to the server protocol differences between ACE and GDLE, on release, only ACE servers are supported for the buff bot. This affects the buff bot functionality *only* and nothing else.
 
 *Shoutout to Darlene of Reefcull for saving me the time and building the baseline buff profiles!*
