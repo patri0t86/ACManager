@@ -147,7 +147,7 @@ namespace ACManager.Views.Tabs
         {
             try
             {
-                if (Parent.Machine.FinishedInitialScan) 
+                if (Parent.Machine.FinishedInitialScan)
                 {
                     if (Parent.Machine.Core.CharacterFilter.Name.Equals(Parent.Machine.BuffingCharacter))
                     {

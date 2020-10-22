@@ -79,11 +79,6 @@ namespace ACManager.StateMachine
         public string PortalDescription { get; set; }
 
         /// <summary>
-        /// Name of character requesting the portal.
-        /// </summary>
-        public string CharacterMakingRequest { get; set; }
-
-        /// <summary>
         /// Time reference to control when advertisements are broadcast.
         /// </summary>
         public DateTime LastBroadcast { get; set; }
@@ -247,7 +242,6 @@ namespace ACManager.StateMachine
         /// Only send the Finished scanning inventory once.
         /// </summary>
         public bool FinishedInitialScan { get; set; }
-        public bool TooBusy { get; set; }
 
         /// <summary>
         /// Create the state machine in the StoppedState and begin processing commands on intervals (every time a frame is rendered).

@@ -4,35 +4,36 @@
     
     <page label="Config">
       <control progid="DecalControls.FixedLayout" clipped="">
-        <control progid="DecalControls.CheckBox"    name="Bot"                      left="5"   top="5"    width="125" height="16" text="Start / Stop Bot" />
-        <control progid="DecalControls.StaticText"  name="LocationSetpoint"         left="195" top="5"    width="200" height="16" text="No location set" />
-
-        <control progid="DecalControls.CheckBox"    name="AdsEnabled"               left="5"   top="24"   width="200" height="16" text="Advertising" />
-        <control progid="DecalControls.PushButton"  name="ClearLocation"            left="200" top="24"   width="95"  height="19" text="Clear Location" />
-        <control progid="DecalControls.PushButton"  name="SetLocation"              left="300" top="24"   width="95"  height="19" text="Set Location" />
-
-        <control progid="DecalControls.Edit"        name="AdInterval"               left="5"   top="43"   width="27"  height="19" text="" />
-        <control progid="DecalControls.StaticText"                                  left="40"  top="44"   width="150" height="16" text="Advertisement Interval" />
-        <control progid="DecalControls.CheckBox"    name="BotPositioning"           left="200" top="46"   width="200" height="16" text="Bot Navigation" />
-
-        <control progid="DecalControls.Edit"        name="DefaultHeading"           left="5"   top="66"   width="27"  height="19" text="" />
-        <control progid="DecalControls.StaticText"                                  left="40"  top="67"   width="110" height="16" text="Default Heading" />
-        <control progid="DecalControls.PushButton"  name="SetHeading"               left="200" top="66"   width="195" height="19" text="Use Current Heading" />
-
-        <control progid="DecalControls.StaticText"                                  left="5"  top="118"  width="150" height="16" text="Buffing Character" />
-        <control progid="DecalControls.Choice"      name="BuffingCharacterChoice"   left="5"  top="137" width="235" height="16" />
-
-        <control progid="DecalControls.StaticText"                                  left="5"  top="156"  width="235" height="16" text="Mana Threshold" />
-        <control progid="DecalControls.Slider"      name="ManaThresh"               left="5"  top="175"  width="205" height="16" minimum="0" maximum="100" />
-        <control progid="DecalControls.StaticText"  name="ManaThreshText"           left="215"  top="175"  width="27"  height="16" text="" />
-
-        <control progid="DecalControls.StaticText"                                  left="5"  top="194"  width="235" height="16" text="Stamina Threshold" />
-        <control progid="DecalControls.Slider"      name="StamThresh"               left="5"  top="213"  width="205" height="16" minimum="0" maximum="100" />
-        <control progid="DecalControls.StaticText"  name="StamThreshText"           left="215"  top="213"  width="27"  height="16" text="" />
+        <control progid="DecalControls.CheckBox"    name="Bot"                      left="5"    top="5"    width="125" height="16" text="Start / Stop Bot" />
+        <control progid="DecalControls.StaticText"  name="LocationSetpoint"         left="195"  top="5"    width="200" height="16" text="No location set" />
         
-        <control progid="DecalControls.CheckBox"    name="StayBuffed"               left="5"  top="232"  width="235" height="16" text="Keep Buffs Alive" />
-        <control progid="DecalControls.CheckBox"    name="Level7Self"               left="5"  top="251"  width="235" height="16" text="Level 7 Self Buffs" />
+        <control progid="DecalControls.CheckBox"    name="AdsEnabled"               left="5"    top="24"   width="200" height="16" text="Advertise" />
+        <control progid="DecalControls.PushButton"  name="SetLocation"              left="200"  top="24"   width="95"  height="19" text="Set Location" />
+        <control progid="DecalControls.PushButton"  name="ClearLocation"            left="300"  top="24"   width="95"  height="19" text="Clear Location" />        
+
+        <control progid="DecalControls.CheckBox"    name="BotPositioning"           left="5"    top="43"   width="200" height="16" text="Bot Navigation" />
         
+        <control progid="DecalControls.Edit"        name="AdInterval"               left="200"  top="62"   width="27"  height="19" text="" />
+        <control progid="DecalControls.StaticText"                                  left="235"  top="63"   width="150" height="16" text="Advertisement Interval" />        
+
+        <control progid="DecalControls.Edit"        name="DefaultHeading"           left="200"  top="85"   width="27"  height="19" text="" />
+        <control progid="DecalControls.StaticText"                                  left="235"  top="86"   width="110" height="16" text="Default Heading" />
+        <control progid="DecalControls.PushButton"  name="SetHeading"               left="200"  top="43"   width="195" height="19" text="Use Current Heading" />
+
+        <control progid="DecalControls.StaticText"                                  left="5"    top="118"  width="140" height="16" text="Buffing Character" />
+        <control progid="DecalControls.Choice"      name="BuffingCharacterChoice"   left="5"    top="137"  width="140" height="16" />
+
+        <control progid="DecalControls.StaticText"                                  left="5"    top="156"  width="140" height="16" text="Mana Threshold" />
+        <control progid="DecalControls.Slider"      name="ManaThresh"               left="5"    top="175"  width="113" height="16" minimum="0" maximum="100" />
+        <control progid="DecalControls.StaticText"  name="ManaThreshText"           left="123"  top="175"  width="27"  height="16" text="" />
+
+        <control progid="DecalControls.StaticText"                                  left="5"    top="194"  width="140" height="16" text="Stamina Threshold" />
+        <control progid="DecalControls.Slider"      name="StamThresh"               left="5"    top="213"  width="113" height="16" minimum="0" maximum="100" />
+        <control progid="DecalControls.StaticText"  name="StamThreshText"           left="123"  top="213"  width="27"  height="16" text="" />
+        
+        <control progid="DecalControls.CheckBox"    name="StayBuffed"               left="5"    top="232"  width="140" height="16" text="Keep Buffs Alive" />
+        <control progid="DecalControls.CheckBox"    name="Level7Self"               left="5"    top="251"  width="140" height="16" text="Level 7 Self Buffs" />
+        <control progid="DecalControls.StaticText"  name="Version"                  left="5"    top="347"  width="390" height="16" text="" />
       </control>
     </page>
   
@@ -57,14 +58,13 @@
         <control progid="DecalControls.StaticText"                              left="5"    top="184"   width="50"  height="16" text="Heading" />
         <control progid="DecalControls.Edit"        name="SecondaryHeading"     left="5"    top="201"   width="60"  height="19" text="" />
         <control progid="DecalControls.StaticText"                              left="70"   top="184"   width="50"  height="16" text="Lvl" />
-        <control progid="DecalControls.Edit"        name="SecondaryLevel"       left="70"   top="201"   width="30"  height="19" text="" />
+        <control progid="DecalControls.Edit"        name="SecondaryLevel"       left="70"   top="201"   width="30"  height="19" text="" />        
 
-        <control progid="DecalControls.CheckBox"    name="GeneralChatResponse"  left="210"  top="5"     width="150"  height="16" text="Respond to Local Chat" />
-
-        <control progid="DecalControls.StaticText"                              left="210"  top="24"   width="350" height="16" text="Portals per Response Line" />
-        <control progid="DecalControls.StaticText"                              left="210"  top="43"   width="20"  height="16" text="Min" />
-        <control progid="DecalControls.Slider"      name="Verbosity"            left="235"  top="43"   width="130" height="16" minimum="0" maximum="5" />
-        <control progid="DecalControls.StaticText"                              left="370"  top="43"   width="25"  height="16" text="Max" />
+        <control progid="DecalControls.CheckBox"    name="GeneralChatResponse"  left="5"    top="223"   width="150" height="16" text="Respond to Local Chat" />
+        <control progid="DecalControls.StaticText"                              left="5"    top="242"   width="350" height="16" text="Portals per Response Line" />
+        <control progid="DecalControls.StaticText"                              left="5"    top="261"   width="20"  height="16" text="Min" />
+        <control progid="DecalControls.Slider"      name="Verbosity"            left="30"   top="261"   width="130" height="16" minimum="0" maximum="5" />
+        <control progid="DecalControls.StaticText"                              left="165"  top="261"   width="25"  height="16" text="Max" />
 
         <control progid="DecalControls.StaticText"                              left="5"    top="347"   width="390" height="16" text="Headings: 0 is North, 90 is East, -1 to disable" />
       </control>
@@ -72,19 +72,19 @@
 
     <page label="Gems">
       <control progid="DecalControls.FixedLayout" clipped="">
-        <control progid="DecalControls.List"        name="GemList"              left="5"    top="5"   width="390" height="200">
+        <control progid="DecalControls.List"        name="GemList"              left="5"    top="5"   width="390" height="323">
           <column progid="DecalControls.TextColumn"                             fixedwidth="185" />
           <column progid="DecalControls.TextColumn"                             fixedwidth="125" />
           <column progid="DecalControls.TextColumn"                             fixedwidth="50" />
         </control>
         
-        <control progid="DecalControls.StaticText"                              left="5"    top="208" width="50"  height="16" text="Keyword:" />
-        <control progid="DecalControls.Edit"        name="GemKeyword"           left="60"   top="208" width="50"  height="19" text="" />
+        <control progid="DecalControls.StaticText"                              left="5"    top="333" width="50"  height="16" text="Keyword:" />
+        <control progid="DecalControls.Edit"        name="GemKeyword"           left="60"   top="333" width="50"  height="19" text="" />
 
-        <control progid="DecalControls.StaticText"                              left="115"  top="208" width="50"  height="16" text="Heading:" />
-        <control progid="DecalControls.Edit"        name="GemHeading"           left="170"  top="208" width="50"  height="19" text="" />
+        <control progid="DecalControls.StaticText"                              left="115"  top="333" width="50"  height="16" text="Heading:" />
+        <control progid="DecalControls.Edit"        name="GemHeading"           left="170"  top="333" width="50"  height="19" text="" />
 
-        <control progid="DecalControls.PushButton"  name="AddGem"               left="225"  top="208" width="170" height="19" text="Add Selected Gem" />
+        <control progid="DecalControls.PushButton"  name="AddGem"               left="225"  top="333" width="170" height="19" text="Add Selected Gem" />
         
       </control>
     </page>

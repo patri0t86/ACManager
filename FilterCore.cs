@@ -13,10 +13,6 @@ namespace ACManager
     public class FilterCore : FilterBase
     {
         internal Machine Machine { get; set; }
-        internal MainView MainView { get; set; }
-        internal FellowshipControl FellowshipControl { get; set; }
-        internal InventoryTracker InventoryTracker { get; set; }
-        internal ExpTracker ExpTracker { get; set; }
         private Timer LogonTimer { get; set; } = new Timer();
         public List<string> AccountCharacters { get; set; } = new List<string>();
         public int TotalSlots { get; set; }
@@ -37,18 +33,12 @@ namespace ACManager
         /// </summary>
         protected override void Shutdown()
         {
-            ChatBoxMessage -= FellowshipControl.ChatActions;
-            ChatBoxMessage -= InventoryTracker.ParseChat;
             ServerDispatch -= FilterCore_ServerDispatch;
             CommandLineText -= Machine.Interpreter.Command;
             ClientDispatch -= FilterCore_ClientDispatch;
             LogonTimer.Tick -= LogonTimer_Tick;
             LogonTimer?.Dispose();
-            MainView?.Dispose();
             Machine.BotManagerView?.Dispose();
-            ExpTracker?.Dispose();
-            InventoryTracker?.Dispose();
-            FellowshipControl?.Dispose();
             Machine = null;
         }
 
@@ -66,16 +56,10 @@ namespace ACManager
             if (e.Message.Type.Equals(0xF653))
             {
                 Machine.LoggedIn = false;
-                ChatBoxMessage -= FellowshipControl.ChatActions;
-                ChatBoxMessage -= InventoryTracker.ParseChat;
                 CommandLineText -= Machine.Interpreter.Command;
                 Core.RenderFrame -= Machine.Clock;
                 Core.WorldFilter.ChangeObject -= Machine.WorldFilter_ChangeObject;
-                MainView?.Dispose();
                 Machine.BotManagerView?.Dispose();
-                ExpTracker?.Dispose();
-                InventoryTracker?.Dispose();
-                FellowshipControl?.Dispose();
             }
 
             // Received the character list from the server
@@ -153,16 +137,7 @@ namespace ACManager
                         Machine.Core = Core;
 
                         // Instantiate views
-                        MainView = new MainView(this);
                         Machine.BotManagerView = new BotManagerView(Machine);
-
-                        // Instantiate classes to support the views
-                        ExpTracker = new ExpTracker(this, Core);
-                        InventoryTracker = new InventoryTracker(this, Core);
-                        FellowshipControl = new FellowshipControl(this, Core);
-
-                        ChatBoxMessage += FellowshipControl.ChatActions;
-                        ChatBoxMessage += InventoryTracker.ParseChat;
 
                         Machine.CharacterEquipment.Clear();
                         Machine.FinishedInitialScan = false;

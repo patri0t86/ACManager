@@ -17,7 +17,7 @@ namespace ACManager.StateMachine.States
 
         public void Exit(Machine machine)
         {
-            
+
         }
 
         public void Process(Machine machine)

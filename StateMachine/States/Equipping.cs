@@ -123,7 +123,7 @@ namespace ACManager.StateMachine.States
                                 if (IdleEquipment[item.Key].Equals(true))
                                 {
                                     if (!BuffingEquipment.ContainsKey(item.Key))
-                                    {                                        
+                                    {
                                         machine.Core.Actions.MoveItem(item.Key.Id, machine.Core.CharacterFilter.Id);
                                     }
                                     else
@@ -136,7 +136,7 @@ namespace ACManager.StateMachine.States
                                     IdleEquipment[item.Key] = false;
                                 }
                             }
-                        }                        
+                        }
 
                         foreach (KeyValuePair<Equipment, bool> item in BuffingEquipment)
                         {
@@ -217,7 +217,7 @@ namespace ACManager.StateMachine.States
                                             if (item.Key.ObjectClass.Equals(ObjectClass.Clothing.ToString()))
                                             {
                                                 IdleEquipment[item.Key] = true;
-                                            }                                            
+                                            }
                                         }
                                         BuffingEquipment[item.Key] = false;
                                     }
@@ -265,7 +265,7 @@ namespace ACManager.StateMachine.States
                             foreach (KeyValuePair<Equipment, bool> item in IdleEquipment)
                             {
                                 if (machine.Core.Actions.BusyState.Equals(0) && !item.Value)
-                                {                                    
+                                {
                                     if (item.Key.ObjectClass.Equals(ObjectClass.Clothing.ToString()))
                                     {
                                         machine.Core.Actions.UseItem(item.Key.Id, 0);

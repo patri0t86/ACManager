@@ -25,6 +25,7 @@ namespace ACManager.Views.Tabs
         private HudCombo BuffingCharacterChoice { get; set; }
         private HudCheckBox StayBuffed { get; set; }
         private HudCheckBox Level7Self { get; set; }
+        private HudStaticText Version { get; set; }
         private bool disposedValue;
 
         public ConfigTab(BotManagerView botManagerView)
@@ -81,6 +82,9 @@ namespace ACManager.Views.Tabs
 
             Level7Self = Parent.View != null ? (HudCheckBox)Parent.View["Level7Self"] : new HudCheckBox();
             Level7Self.Change += Level7Self_Change;
+
+            Version = Parent.View != null ? (HudStaticText)Parent.View["Version"] : new HudStaticText();
+            Version.Text = $"V{Parent.Machine.Utility.Version}";
 
             PopulateCharacterChoice();
             LoadSettings();
