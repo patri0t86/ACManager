@@ -40,7 +40,7 @@ namespace ACManager.StateMachine
                         {
                             Debug.ToChat("Machine is already running.");
                         }
-                    } 
+                    }
                     else if (option.Equals("stop"))
                     {
                         if (Machine.Enabled)

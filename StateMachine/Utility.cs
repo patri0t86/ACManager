@@ -23,18 +23,15 @@ namespace ACManager.StateMachine
         private string CharacterSettingsPath { get; set; }
         private string BotSettingsFile { get { return "acm_bot_settings.xml"; } }
         private string BotSettingsPath { get; set; }
-        private string GUISettingsFile { get { return "acm_gui_settings.xml"; } }
-        private string GUISettingsPath { get; set; }
         private string InventoryFile { get { return "acm_inventory.xml"; } }
         private string InventoryPath { get; set; }
         private string EquipmentSettingsFile { get { return "acm_equipment.xml"; } }
         private string EquipmentSettingsPath { get; set; }
-        private string GiftsFile { get { return "acm_gifs.txt"; } }
+        private string GiftsFile { get { return "acm_gifts.log"; } }
         private string GiftsPath { get; set; }
         private string BuffProfilesPath { get; set; }
         internal CharacterSettings CharacterSettings { get; set; } = new CharacterSettings();
         internal BotSettings BotSettings { get; set; } = new BotSettings();
-        internal GUISettings GUISettings { get; set; } = new GUISettings();
         internal InventorySettings Inventory { get; set; } = new InventorySettings();
         internal List<BuffProfile> BuffProfiles { get; set; } = new List<BuffProfile>();
         internal EquipmentSettings EquipmentSettings { get; set; } = new EquipmentSettings();
@@ -46,7 +43,6 @@ namespace ACManager.StateMachine
             Version = FileVersionInfo.GetVersionInfo(Assembly.GetExecutingAssembly().Location).ProductVersion;
             CharacterSettings = LoadCharacterSettings();
             BotSettings = LoadBotSettings();
-            GUISettings = LoadGUISettings();
             Inventory = LoadInventories();
             EquipmentSettings = LoadEquipmentSettings();
             LoadBuffProfiles();
@@ -78,8 +74,6 @@ namespace ACManager.StateMachine
         /// Creates the paths necessary to save/load settings.
         /// </summary>
         /// <param name="root">Root path of the plugin.</param>
-        /// <param name="account">Account name of the currently logged in account.</param>
-        /// <param name="server">Server name of teh currently logged in account.</param>
         private void CreatePaths(string root)
         {
             try
@@ -88,7 +82,6 @@ namespace ACManager.StateMachine
                 AllSettingsPath = Path.Combine(intermediatePath, Machine.Core.CharacterFilter.Server);
                 CharacterSettingsPath = Path.Combine(AllSettingsPath, CharacterSettingsFile);
                 BotSettingsPath = Path.Combine(AllSettingsPath, BotSettingsFile);
-                GUISettingsPath = Path.Combine(AllSettingsPath, GUISettingsFile);
                 InventoryPath = Path.Combine(AllSettingsPath, InventoryFile);
                 BuffProfilesPath = Path.Combine(root, "BuffProfiles");
                 EquipmentSettingsPath = Path.Combine(AllSettingsPath, EquipmentSettingsFile);
@@ -126,25 +119,6 @@ namespace ACManager.StateMachine
             {
                 Debug.ToChat(ex.Message);
                 return false;
-            }
-        }
-
-        internal void UpdateSettingsWithCharacter(Character character)
-        {
-            if (CharacterSettings.Characters.Contains(character))
-            {
-                for (int i = 0; i < CharacterSettings.Characters.Count; i++)
-                {
-                    if (CharacterSettings.Characters[i].Equals(character))
-                    {
-                        CharacterSettings.Characters[i] = character;
-                        break;
-                    }
-                }
-            }
-            else
-            {
-                CharacterSettings.Characters.Add(character);
             }
         }
 
@@ -245,59 +219,6 @@ namespace ACManager.StateMachine
                 else
                 {
                     return new BotSettings();
-                }
-            }
-            catch (Exception ex)
-            {
-                Debug.ToChat(ex.Message);
-                return null;
-            }
-        }
-
-        /// <summary>
-        /// Saves the GUI settings for views to be visible or not, etc.
-        /// </summary>
-        internal void SaveGUISettings()
-        {
-            try
-            {
-                if (SettingsPathCreateOrExists())
-                {
-                    using (XmlTextWriter writer = new XmlTextWriter(GUISettingsPath, Encoding.UTF8))
-                    {
-                        writer.Formatting = Formatting.Indented;
-                        writer.WriteStartDocument();
-
-                        XmlSerializer xmlSerializer = new XmlSerializer(typeof(GUISettings));
-                        xmlSerializer.Serialize(writer, GUISettings);
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                Debug.ToChat(ex.Message);
-            }
-        }
-
-        /// <summary>
-        /// Loads the GUI settings for views to be visible by default or not, etc.
-        /// </summary>
-        /// <returns></returns>
-        internal GUISettings LoadGUISettings()
-        {
-            try
-            {
-                if (File.Exists(GUISettingsPath))
-                {
-                    using (XmlTextReader reader = new XmlTextReader(GUISettingsPath))
-                    {
-                        XmlSerializer xmlSerializer = new XmlSerializer(typeof(GUISettings));
-                        return (GUISettings)xmlSerializer.Deserialize(reader);
-                    }
-                }
-                else
-                {
-                    return new GUISettings();
                 }
             }
             catch (Exception ex)

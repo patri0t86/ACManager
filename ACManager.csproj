@@ -109,7 +109,6 @@
     <Compile Include="Settings\BuffDefaults\Light.cs" />
     <Compile Include="StateMachine\ComponentChecker.cs" />
     <Compile Include="Settings\BotSettings.cs" />
-    <Compile Include="Settings\GUISettings.cs" />
     <Compile Include="Settings\InventorySettings.cs" />
     <Compile Include="StateMachine\ChatManager.cs" />
     <Compile Include="Debug.cs" />
