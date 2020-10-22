@@ -27,11 +27,6 @@ You have two choices: you can install automatically using the installer or manua
 3. To setup a buff bot, simply select the character for "Buffing Character" in the dropdown list found in the *Config* tab.
 4. To start/stop the bot, simply toggle the *Start/Stop* checkbox in the *Config* tab of the *Bot Manager*.
 
-## FAQs
-
-- What other plugins do I need to have enabled for this to work?
-  - You do not require any other plugins to be enabled/turned on at time of running the bot. This plugin is completely self-contained. The only pre-requisite is Decal and the Virindi View System.
-- Do I need to escape characters?
-  - No need to worry about character escaping. You type anything you want into descriptions, keywords, or advertisements as you want them to be displayed.
-- Do I need to fill all character slots?
-  - No, you don't need a full account for this to work. You don't even need to have portals on every character for this to work. As long as you don't map portals in the GUI to the characters that don't have portals, the bot will handle it automatically for you.
+### Buff Bot Info
+1. The bot comes with a full complement of buff profiles out of the box. If you wish to add, or amend a profile, follow the format under the `BuffProfiles` folder where you installed ACManager. If there is a big enough ask, I may add in the ability to edit buff profiles in the GUI, or a standalone application since Decal views are very limited and clunky.
+2. For level 8 spells that can be cast on others (per end of retail, this is only item spells; i.e. banes and weapon enchants), there is level 7 spell fallback built in if the spell is not known.
