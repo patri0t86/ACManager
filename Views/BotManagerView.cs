@@ -32,22 +32,8 @@ namespace ACManager.Views
                 AdvertisementsTab = new AdvertisementsTab(this);
                 InventoryTab = new InventoryTab(this);
                 EquipmentTab = new EquipmentTab(this);
-
-                LoadSettings();
             }
             catch (Exception ex) { Debug.LogException(ex); }
-        }
-
-        private void LoadSettings()
-        {
-            try
-            {
-                View.ShowInBar = Machine.Utility.GUISettings.BotConfigVisible;
-            }
-            catch (Exception ex)
-            {
-                Debug.LogException(ex);
-            }
         }
 
         #region IDisposable Support
