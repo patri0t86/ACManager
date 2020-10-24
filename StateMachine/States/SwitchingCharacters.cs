@@ -40,6 +40,11 @@ namespace ACManager.StateMachine.States
                         {
                             machine.ChatManager.Broadcast($"Be right back, switching to {machine.NextCharacter} to use {machine.PortalDescription}.");
                         }
+                        else if (machine.CurrentRequest.RequestType.Equals(RequestType.Buff))
+                        {
+                            machine.ChatManager.Broadcast($"Be right back, switching to {machine.NextCharacter} to buff someone.");
+                            machine.ChatManager.SendTell(machine.CurrentRequest.RequesterName, "I'm switching to my buffing character for you now. Please stand near me.");
+                        }
                         AttempedLogoff = DateTime.Now;
                         machine.Core.Actions.Logout();
                     }

@@ -5,6 +5,7 @@ using Decal.Adapter.Wrappers;
 using Decal.Filters;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -15,13 +16,11 @@ namespace ACManager.StateMachine
     /// </summary>
     internal class ChatManager
     {
-        /// <summary>
-        /// A reference to the state machine instance.
-        /// </summary>
         private Machine Machine { get; set; }
+        private string CharacterMakingRequest { get; set; }
 
         /// <summary>
-        /// Instantiates the ChatCommandManager and sets the internal state machine instance to this.
+        /// Instantiates the ChatManager and sets the internal state machine instance to this.
         /// </summary>
         /// <param name="machine"></param>
         public ChatManager(Machine machine)
@@ -43,6 +42,7 @@ namespace ACManager.StateMachine
             if (match.Success)
             {
                 HandleChat(match);
+                return;
             }
 
             // Create a new regex match for general tells
@@ -50,6 +50,17 @@ namespace ACManager.StateMachine
             if (match.Success)
             {
                 HandleTell(match);
+                return;
+            }
+
+            // Create new regex for receiving gifts
+            match = new Regex("(?<name>.+?) gives you (?<gift>.*)").Match(text);
+            if (match.Success)
+            {
+                TextInfo info = new CultureInfo("en-us", false).TextInfo;
+                SendTell(match.Groups["name"].Value, $"Thank you for the {info.ToTitleCase(match.Groups["gift"].Value)}!");
+                Machine.Utility.SaveGiftToLog(text);
+                return;
             }
         }
 
@@ -67,16 +78,21 @@ namespace ACManager.StateMachine
 
             if (!guid.Equals(0)) // guid = 0 is said in general/trade/etc. not in local chat
             {
-                Machine.CharacterMakingRequest = match.Groups["dupleName"].Value.Substring(0, match.Groups["dupleName"].Value.Length / 2);
+                CharacterMakingRequest = match.Groups["dupleName"].Value.Substring(0, match.Groups["dupleName"].Value.Length / 2);
 
-                if ((message.Equals("whereto") || message.Equals("where to")) && Machine.Update())
+                if ((message.Equals("whereto") || message.Equals("where to")))
                 {
                     RespondWithPortals();
                 }
 
+                if (message.Equals("profiles") && !string.IsNullOrEmpty(Machine.BuffingCharacter))
+                {
+                    RespondWithProfiles();
+                }
+
                 if (Machine.RespondToOpenChat)
                 {
-                    CheckCommands(message);
+                    CheckCommands(guid, message);
                 }
             }
         }
@@ -94,9 +110,9 @@ namespace ACManager.StateMachine
             int guid = Convert.ToInt32(match.Groups["guid"].Value);
 
             // The in-game character name sending the tell
-            Machine.CharacterMakingRequest = match.Groups["dupleName"].Value.Substring(0, match.Groups["dupleName"].Value.Length / 2);
+            CharacterMakingRequest = match.Groups["dupleName"].Value.Substring(0, match.Groups["dupleName"].Value.Length / 2);
 
-            if (!string.IsNullOrEmpty(message) && Machine.Update())
+            if (!string.IsNullOrEmpty(message))
             {
                 if (message.Equals("whereto") || message.Equals("where to"))
                 {
@@ -104,7 +120,15 @@ namespace ACManager.StateMachine
                 }
                 else if (message.Equals("help"))
                 {
-                    SendTell(Machine.CharacterMakingRequest, "My list of commands are: whereto, and comps.");
+                    SendTell(CharacterMakingRequest, "My list of commands are: profiles, whereto, and comps.");
+                }
+                else if (message.Equals("profiles"))
+                {
+                    RespondWithProfiles();
+                }
+                else if (message.Equals("cancel"))
+                {
+                    CancelRequest();
                 }
                 else if (message.Equals("comps"))
                 {
@@ -178,16 +202,16 @@ namespace ACManager.StateMachine
                                 sb.Append(".");
                             }
                         }
-                        SendTell(Machine.CharacterMakingRequest, sb.ToString());
+                        SendTell(CharacterMakingRequest, sb.ToString());
                     }
                     else
                     {
-                        SendTell(Machine.CharacterMakingRequest, "I don't have any components.");
+                        SendTell(CharacterMakingRequest, "I don't have any components.");
                     }
                 }
                 else
                 {
-                    CheckCommands(message);
+                    CheckCommands(guid, message, true);
                 }
             }
         }
@@ -202,7 +226,7 @@ namespace ACManager.StateMachine
             responeStrings.AddRange(GetGems());
             if (responeStrings.Count > 0)
             {
-                SendTell(Machine.CharacterMakingRequest, "You can /t me any keyword, and I will summon the corresponding portal.");
+                SendTell(CharacterMakingRequest, "You can /t me any keyword, and I will summon the corresponding portal.");
                 if (Machine.Verbosity > 0)
                 {
                     RespondWithVerbosity(responeStrings);
@@ -211,13 +235,13 @@ namespace ACManager.StateMachine
                 {
                     foreach (string response in responeStrings)
                     {
-                        SendTell(Machine.CharacterMakingRequest, response);
+                        SendTell(CharacterMakingRequest, response);
                     }
                 }
             }
             else
             {
-                SendTell(Machine.CharacterMakingRequest, "I don't currently have any portals configured.");
+                SendTell(CharacterMakingRequest, "I don't currently have any portals configured.");
             }
         }
 
@@ -232,7 +256,7 @@ namespace ACManager.StateMachine
                 count++;
                 if (count.Equals(Machine.Verbosity + 1))
                 {
-                    SendTell(Machine.CharacterMakingRequest, sb.ToString());
+                    SendTell(CharacterMakingRequest, sb.ToString());
                     sb.Length = 0;
                     sb.Capacity = 0;
                     sb.Capacity = 16;
@@ -245,7 +269,7 @@ namespace ACManager.StateMachine
 
                 if (i.Equals(stringList.Count - 1) && !string.IsNullOrEmpty(sb.ToString()))
                 {
-                    SendTell(Machine.CharacterMakingRequest, sb.ToString());
+                    SendTell(CharacterMakingRequest, sb.ToString());
                     sb.Length = 0;
                     sb.Capacity = 0;
                 }
@@ -285,11 +309,57 @@ namespace ACManager.StateMachine
             return gemStrings;
         }
 
+        private void RespondWithProfiles()
+        {
+            if (!string.IsNullOrEmpty(Machine.BuffingCharacter))
+            {
+                List<string> profiles = new List<string>();
+                foreach (BuffProfile profile in Machine.Utility.BuffProfiles)
+                {
+                    foreach (string command in profile.Commands)
+                    {
+                        profiles.Add(command);
+                    }
+                }
+
+                StringBuilder sb = new StringBuilder();
+                sb.Append("My profile commands are: ");
+                for (int i = 0; i < profiles.Count; i++)
+                {
+                    if (!profiles[i].Equals("botbuffs") && !profiles[i].Equals("botbuffs7"))
+                    {
+                        if (!i.Equals(profiles.Count - 1))
+                        {
+                            sb.Append($"{profiles[i]}");
+                            sb.Append(", ");
+                        }
+                        else
+                        {
+                            if (profiles.Count.Equals(1))
+                            {
+                                sb.Append($"{profiles[i]}.");
+                            }
+                            else
+                            {
+                                sb.Append($"and {profiles[i]}.");
+                            }
+                        }
+                    }
+                }
+
+                SendTell(CharacterMakingRequest, sb.ToString());
+            }
+            else
+            {
+                SendTell(CharacterMakingRequest, "I am not currently acting as a buff bot.");
+            }
+        }
+
         /// <summary>
         /// Determines the character that the portal is on and sets the appropriate variables on the machine to take action.
         /// </summary>
         /// <param name="message"></param>
-        private void CheckCommands(string message)
+        private void CheckCommands(int guid, string message, bool fromTell = false)
         {
             Machine.Inventory.UpdateInventoryFile();
 
@@ -303,7 +373,7 @@ namespace ACManager.StateMachine
                         Request newRequest = new Request
                         {
                             RequestType = RequestType.Portal,
-                            RequesterName = Machine.CharacterMakingRequest,
+                            RequesterName = CharacterMakingRequest,
                             Destination = portal.Description,
                             Heading = portal.Heading,
                             Character = Machine.Utility.CharacterSettings.Characters[i].Name
@@ -331,7 +401,7 @@ namespace ACManager.StateMachine
                                 newRequest.SpellsToCast.Add(2648);
                             }
                         }
-                        Machine.AddToQueue(newRequest);
+                        AddToQueue(newRequest);
                     }
                 }
             }
@@ -344,6 +414,7 @@ namespace ACManager.StateMachine
                     Request newRequest = new Request
                     {
                         RequestType = RequestType.Gem,
+                        RequesterName = CharacterMakingRequest,
                         Destination = gemSetting.Name,
                         Heading = gemSetting.Heading,
                         ItemToUse = gemSetting.Name
@@ -352,7 +423,7 @@ namespace ACManager.StateMachine
                     if (Machine.Inventory.GetInventoryCount(gemSetting.Name) > 0)
                     {
                         newRequest.Character = Machine.Core.CharacterFilter.Name;
-                        Machine.AddToQueue(newRequest);
+                        AddToQueue(newRequest);
                     }
                     else
                     {
@@ -363,10 +434,36 @@ namespace ACManager.StateMachine
                                 if (Machine.Utility.Inventory.CharacterInventories[i].Gems[j].Name.Equals(gemSetting.Name) && Machine.Utility.Inventory.CharacterInventories[i].Gems[j].Quantity > 0)
                                 {
                                     newRequest.Character = Machine.Utility.Inventory.CharacterInventories[i].Name;
-                                    Machine.AddToQueue(newRequest);
-                                    return; // return here so that if multiple characters have the gem by chance, they aren't all queued.
+                                    AddToQueue(newRequest);
+                                    return;
                                 }
                             }
+                        }
+                    }
+                }
+            }
+
+            if (!string.IsNullOrEmpty(Machine.BuffingCharacter) && fromTell)
+            {
+                if (!message.Equals("botbuffs") && !message.Equals("botbuffs7"))
+                {
+                    foreach (BuffProfile profile in Machine.Utility.BuffProfiles)
+                    {
+                        if (profile.Commands.Contains(message))
+                        {
+                            Request newRequest = new Request
+                            {
+                                RequestType = RequestType.Buff,
+                                Character = Machine.BuffingCharacter,
+                                RequesterName = CharacterMakingRequest,
+                                RequesterGuid = guid
+                            };
+                            foreach (Buff buff in profile.Buffs)
+                            {
+                                newRequest.SpellsToCast.Add(buff.SpellId);
+                            }
+                            AddToQueue(newRequest);
+                            break;
                         }
                     }
                 }
@@ -395,6 +492,93 @@ namespace ACManager.StateMachine
             if (!string.IsNullOrEmpty(message))
             {
                 Machine.Core.Actions.InvokeChatParser(message);
+            }
+        }
+
+        public void AddToQueue(Request newRequest)
+        {
+            if (Machine.Requests.Contains(newRequest))
+            {
+                SendTell(CharacterMakingRequest, $"You already have a {newRequest.RequestType} request in.");
+            }
+            else if (Machine.CurrentRequest.Equals(newRequest))
+            {
+                SendTell(CharacterMakingRequest, $"I'm already helping you, please be patient.");
+            }
+            else
+            {
+                Machine.Requests.Enqueue(newRequest);
+
+                // Give an estimated wait time
+                TimeSpan waitTime;
+                int seconds = 0;
+                string lastCharacter = Machine.Core.CharacterFilter.Name;
+
+                int currentRequest = Machine.SpellsToCast.Count * 4;
+
+                // add the current request time in
+                seconds += currentRequest;
+
+                foreach (Request request in Machine.Requests)
+                {
+                    seconds += request.SpellsToCast.Count * 4;
+
+                    if (!request.Character.Equals(lastCharacter))
+                    {
+                        lastCharacter = request.Character;
+                        seconds += 17;
+                    }
+                }
+
+                string estimatedWait = "";
+
+                if (Machine.Requests.Count > 1)
+                {
+                    seconds += Machine.Requests.Count * 5;
+                    waitTime = TimeSpan.FromSeconds(seconds);
+                    estimatedWait = $" I should be able to get to your request in about {waitTime.Minutes} minutes and {waitTime.Seconds} seconds.";
+                }
+                else if (!string.IsNullOrEmpty(Machine.CurrentRequest.RequesterName))
+                {
+                    seconds = currentRequest + 5;
+                    waitTime = TimeSpan.FromSeconds(seconds);
+                    estimatedWait = $" I should be able to get to your request in about {waitTime.Minutes} minutes and {waitTime.Seconds} seconds.";
+                }
+
+                if (Machine.Requests.Count.Equals(1) && string.IsNullOrEmpty(Machine.CurrentRequest.RequesterName))
+                {
+                    SendTell(CharacterMakingRequest, "I have received your request and will help you now. Say 'cancel' at any time to cancel this request.");
+                }
+                else if (Machine.Requests.Count.Equals(1) && !string.IsNullOrEmpty(Machine.CurrentRequest.RequesterName))
+                {
+                    SendTell(CharacterMakingRequest, $"I have received your request. You are next in line. Say 'cancel' at any time to cancel this request.{(!string.IsNullOrEmpty(estimatedWait) ? estimatedWait : "")}");
+                }
+                else
+                {
+                    SendTell(CharacterMakingRequest, $"I have received your request. There are currently {Machine.Requests.Count} requests in the queue ahead of you, including the person I'm currently helping. Say 'cancel' at any time to cancel this request.{(!string.IsNullOrEmpty(estimatedWait) ? estimatedWait : "")}");
+                }
+            }
+        }
+
+        private void CancelRequest()
+        {
+            if (Machine.CurrentRequest.RequesterName.Equals(CharacterMakingRequest))
+            {
+                Machine.CancelList.Add(CharacterMakingRequest);
+                SendTell(CharacterMakingRequest, "I'm cancelling this request now.");
+            }
+            else
+            {
+                foreach (Request request in Machine.Requests)
+                {
+                    if (request.RequesterName.Equals(CharacterMakingRequest))
+                    {
+                        Machine.CancelList.Add(CharacterMakingRequest);
+                        SendTell(CharacterMakingRequest, "I will remove your next request from my queue. If you wish to remove all requests, say 'cancel' for each request you have put in.");
+                        return;
+                    }
+                }
+                SendTell(CharacterMakingRequest, "You don't have any requests in at this time.");
             }
         }
     }

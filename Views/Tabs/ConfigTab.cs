@@ -22,15 +22,10 @@ namespace ACManager.Views.Tabs
         private HudHSlider StaminaThreshold { get; set; }
         private HudStaticText ManaThresholdText { get; set; }
         private HudStaticText StamThresholdText { get; set; }
-        private HudTextBox LeadScarabThreshold { get; set; }
-        private HudTextBox IronScarabThreshold { get; set; }
-        private HudTextBox CopperScarabThreshold { get; set; }
-        private HudTextBox SilverScarabThreshold { get; set; }
-        private HudTextBox GoldScarabThreshold { get; set; }
-        private HudTextBox PyrealScarabThreshold { get; set; }
-        private HudTextBox PlatinumScarabThreshold { get; set; }
-        private HudTextBox ManaScarabThreshold { get; set; }
-        private HudTextBox ComponentThreshold { get; set; }
+        private HudCombo BuffingCharacterChoice { get; set; }
+        private HudCheckBox StayBuffed { get; set; }
+        private HudCheckBox Level7Self { get; set; }
+        private HudStaticText Version { get; set; }
         private bool disposedValue;
 
         public ConfigTab(BotManagerView botManagerView)
@@ -79,33 +74,19 @@ namespace ACManager.Views.Tabs
             ManaThresholdText = Parent.View != null ? (HudStaticText)Parent.View["ManaThreshText"] : new HudStaticText();
             StamThresholdText = Parent.View != null ? (HudStaticText)Parent.View["StamThreshText"] : new HudStaticText();
 
-            LeadScarabThreshold = Parent.View != null ? (HudTextBox)Parent.View["LeadScarabThreshold"] : new HudTextBox();
-            LeadScarabThreshold.Change += LeadScarabThreshold_Change;
+            BuffingCharacterChoice = Parent.View != null ? (HudCombo)Parent.View["BuffingCharacterChoice"] : new HudCombo(new ControlGroup());
+            BuffingCharacterChoice.Change += BuffingCharacterChoice_Change;
 
-            IronScarabThreshold = Parent.View != null ? (HudTextBox)Parent.View["IronScarabThreshold"] : new HudTextBox();
-            IronScarabThreshold.Change += IronScarabThreshold_Change;
+            StayBuffed = Parent.View != null ? (HudCheckBox)Parent.View["StayBuffed"] : new HudCheckBox();
+            StayBuffed.Change += StayBuffed_Change;
 
-            CopperScarabThreshold = Parent.View != null ? (HudTextBox)Parent.View["CopperScarabThreshold"] : new HudTextBox();
-            CopperScarabThreshold.Change += CopperScarabThreshold_Change;
+            Level7Self = Parent.View != null ? (HudCheckBox)Parent.View["Level7Self"] : new HudCheckBox();
+            Level7Self.Change += Level7Self_Change;
 
-            SilverScarabThreshold = Parent.View != null ? (HudTextBox)Parent.View["SilverScarabThreshold"] : new HudTextBox();
-            SilverScarabThreshold.Change += SilverScarabThreshold_Change;
+            Version = Parent.View != null ? (HudStaticText)Parent.View["Version"] : new HudStaticText();
+            Version.Text = $"V{Parent.Machine.Utility.Version}";
 
-            GoldScarabThreshold = Parent.View != null ? (HudTextBox)Parent.View["GoldScarabThreshold"] : new HudTextBox();
-            GoldScarabThreshold.Change += GoldScarabThreshold_Change;
-
-            PyrealScarabThreshold = Parent.View != null ? (HudTextBox)Parent.View["PyrealScarabThreshold"] : new HudTextBox();
-            PyrealScarabThreshold.Change += PyrealScarabThreshold_Change;
-
-            PlatinumScarabThreshold = Parent.View != null ? (HudTextBox)Parent.View["PlatinumScarabThreshold"] : new HudTextBox();
-            PlatinumScarabThreshold.Change += PlatinumScarabThreshold_Change;
-
-            ManaScarabThreshold = Parent.View != null ? (HudTextBox)Parent.View["ManaScarabThreshold"] : new HudTextBox();
-            ManaScarabThreshold.Change += ManaScarabThreshold_Change;
-
-            ComponentThreshold = Parent.View != null ? (HudTextBox)Parent.View["ComponentThreshold"] : new HudTextBox();
-            ComponentThreshold.Change += ComponentThreshold_Change;
-
+            PopulateCharacterChoice();
             LoadSettings();
         }
 
@@ -119,21 +100,31 @@ namespace ACManager.Views.Tabs
                 AdInterval.Text = Parent.Machine.Utility.BotSettings.AdInterval >= 5 ? Parent.Machine.Utility.BotSettings.AdInterval.ToString() : 5.ToString();
                 ManaThreshold.Position = (int)(Parent.Machine.Utility.BotSettings.ManaThreshold * 100);
                 StaminaThreshold.Position = (int)(Parent.Machine.Utility.BotSettings.StaminaThreshold * 100);
-                ManaThresholdText.Text = ManaThreshold.Position.ToString();
-                StamThresholdText.Text = StaminaThreshold.Position.ToString();
+                ManaThresholdText.Text = ManaThreshold.Position.ToString() + "%";
+                StamThresholdText.Text = StaminaThreshold.Position.ToString() + "%";
                 AdsEnabled.Checked = Parent.Machine.Utility.BotSettings.AdsEnabled;
                 BotPositioning.Checked = Parent.Machine.Utility.BotSettings.BotPositioning;
                 DefaultHeading.Text = Parent.Machine.Utility.BotSettings.DefaultHeading.ToString();
                 LocationSetpoint.Text = !Parent.Machine.Utility.BotSettings.DesiredLandBlock.Equals(0) ? $"{Parent.Machine.Utility.BotSettings.DesiredLandBlock.ToString("X").Substring(0, 4)} - X: { Math.Round(Parent.Machine.Utility.BotSettings.DesiredBotLocationX, 2)} Y: {Math.Round(Parent.Machine.Utility.BotSettings.DesiredBotLocationY, 2)}" : "No location set";
-                LeadScarabThreshold.Text = Parent.Machine.Utility.BotSettings.LeadScarabThreshold.ToString();
-                IronScarabThreshold.Text = Parent.Machine.Utility.BotSettings.IronScarabThreshold.ToString();
-                CopperScarabThreshold.Text = Parent.Machine.Utility.BotSettings.CopperScarabThreshold.ToString();
-                SilverScarabThreshold.Text = Parent.Machine.Utility.BotSettings.SilverScarabThreshold.ToString();
-                GoldScarabThreshold.Text = Parent.Machine.Utility.BotSettings.GoldScarabThreshold.ToString();
-                PyrealScarabThreshold.Text = Parent.Machine.Utility.BotSettings.PyrealScarabThreshold.ToString();
-                PlatinumScarabThreshold.Text = Parent.Machine.Utility.BotSettings.PlatinumScarabThreshold.ToString();
-                ManaScarabThreshold.Text = Parent.Machine.Utility.BotSettings.ManaScarabThreshold.ToString();
-                ComponentThreshold.Text = Parent.Machine.Utility.BotSettings.ComponentThreshold.ToString();
+                StayBuffed.Checked = Parent.Machine.Utility.BotSettings.StayBuffed;
+                Level7Self.Checked = Parent.Machine.Utility.BotSettings.Level7Self;
+
+                if (string.IsNullOrEmpty(Parent.Machine.Utility.BotSettings.BuffingCharacter))
+                {
+                    BuffingCharacterChoice.Current = 0;
+                }
+                else
+                {
+                    for (int i = 0; i < Parent.Machine.AccountCharacters.Count; i++)
+                    {
+                        if (Parent.Machine.AccountCharacters[i].Equals(Parent.Machine.Utility.BotSettings.BuffingCharacter))
+                        {
+                            BuffingCharacterChoice.Current = i + 1;
+                            break;
+                        }
+                    }
+
+                }
             }
             catch (Exception ex)
             {
@@ -338,22 +329,22 @@ namespace ACManager.Views.Tabs
             }
         }
 
-        private void LeadScarabThreshold_Change(object sender, EventArgs e)
+        private void BuffingCharacterChoice_Change(object sender, EventArgs e)
         {
             try
             {
-                if (int.TryParse(LeadScarabThreshold.Text, out int result))
+                if (!BuffingCharacterChoice.Current.Equals(0))
                 {
-                    if (result < 0)
+                    using (HudStaticText selectedCharacter = (HudStaticText)BuffingCharacterChoice[BuffingCharacterChoice.Current])
                     {
-                        result = 0;
+                        Parent.Machine.BuffingCharacter = Parent.Machine.Utility.BotSettings.BuffingCharacter = selectedCharacter.Text;
+                        Debug.ToChat($"The buff bot feature is now enabled using {selectedCharacter.Text}.");
                     }
-                    Parent.Machine.Inventory.LeadScarabThreshold = Parent.Machine.Utility.BotSettings.LeadScarabThreshold = result;
                 }
                 else
                 {
-                    LeadScarabThreshold.Text = "0";
-                    Parent.Machine.Inventory.LeadScarabThreshold = Parent.Machine.Utility.BotSettings.LeadScarabThreshold = 0;
+                    Parent.Machine.BuffingCharacter = Parent.Machine.Utility.BotSettings.BuffingCharacter = "";
+                    Debug.ToChat("The buff bot feature is now disabled.");
                 }
                 Parent.Machine.Utility.SaveBotSettings();
             }
@@ -363,24 +354,13 @@ namespace ACManager.Views.Tabs
             }
         }
 
-        private void IronScarabThreshold_Change(object sender, EventArgs e)
+        private void StayBuffed_Change(object sender, EventArgs e)
         {
             try
             {
-                if (int.TryParse(IronScarabThreshold.Text, out int result))
-                {
-                    if (result < 0)
-                    {
-                        result = 0;
-                    }
-                    Parent.Machine.Inventory.IronScarabThreshold = Parent.Machine.Utility.BotSettings.IronScarabThreshold = result;
-                }
-                else
-                {
-                    IronScarabThreshold.Text = "0";
-                    Parent.Machine.Inventory.IronScarabThreshold = Parent.Machine.Utility.BotSettings.IronScarabThreshold = 0;
-                }
+                Parent.Machine.StayBuffed = Parent.Machine.Utility.BotSettings.StayBuffed = StayBuffed.Checked;
                 Parent.Machine.Utility.SaveBotSettings();
+                Debug.ToChat($"{(StayBuffed.Checked ? "The bot will now ensure self buffs will never run out, even when idle." : "The bot will now let self buffs run out, and only self buff when required.")}");
             }
             catch (Exception ex)
             {
@@ -388,24 +368,13 @@ namespace ACManager.Views.Tabs
             }
         }
 
-        private void CopperScarabThreshold_Change(object sender, EventArgs e)
+        private void Level7Self_Change(object sender, EventArgs e)
         {
             try
             {
-                if (int.TryParse(CopperScarabThreshold.Text, out int result))
-                {
-                    if (result < 0)
-                    {
-                        result = 0;
-                    }
-                    Parent.Machine.Inventory.CopperScarabThreshold = Parent.Machine.Utility.BotSettings.CopperScarabThreshold = result;
-                }
-                else
-                {
-                    CopperScarabThreshold.Text = "0";
-                    Parent.Machine.Inventory.CopperScarabThreshold = Parent.Machine.Utility.BotSettings.CopperScarabThreshold = 0;
-                }
+                Parent.Machine.Level7Self = Parent.Machine.Utility.BotSettings.Level7Self = Level7Self.Checked;
                 Parent.Machine.Utility.SaveBotSettings();
+                Debug.ToChat(Level7Self.Checked ? "The bot will now buff the buffing character with level 7 spells only, no level 8 spells are used for self spells. Use this if level 8 self spells are not known." : "The bot will now buff the buffing character with level 8 spells only, with level 7 fallback if a spell is not known. Use this if level 8 self spells are known.");
             }
             catch (Exception ex)
             {
@@ -413,153 +382,12 @@ namespace ACManager.Views.Tabs
             }
         }
 
-        private void PyrealScarabThreshold_Change(object sender, EventArgs e)
+        private void PopulateCharacterChoice()
         {
-            try
+            BuffingCharacterChoice.AddItem("None", null);
+            for (int i = 0; i < Parent.Machine.AccountCharacters.Count; i++)
             {
-                if (int.TryParse(PyrealScarabThreshold.Text, out int result))
-                {
-                    if (result < 0)
-                    {
-                        result = 0;
-                    }
-                    Parent.Machine.Inventory.PyrealScarabThreshold = Parent.Machine.Utility.BotSettings.PyrealScarabThreshold = result;
-                }
-                else
-                {
-                    PyrealScarabThreshold.Text = "0";
-                    Parent.Machine.Inventory.PyrealScarabThreshold = Parent.Machine.Utility.BotSettings.PyrealScarabThreshold = 0;
-                }
-                Parent.Machine.Utility.SaveBotSettings();
-            }
-            catch (Exception ex)
-            {
-                Debug.LogException(ex);
-            }
-        }
-
-        private void SilverScarabThreshold_Change(object sender, EventArgs e)
-        {
-            try
-            {
-                if (int.TryParse(SilverScarabThreshold.Text, out int result))
-                {
-                    if (result < 0)
-                    {
-                        result = 0;
-                    }
-                    Parent.Machine.Inventory.SilverScarabThreshold = Parent.Machine.Utility.BotSettings.SilverScarabThreshold = result;
-                }
-                else
-                {
-                    SilverScarabThreshold.Text = "0";
-                    Parent.Machine.Inventory.SilverScarabThreshold = Parent.Machine.Utility.BotSettings.SilverScarabThreshold = 0;
-                }
-                Parent.Machine.Utility.SaveBotSettings();
-            }
-            catch (Exception ex)
-            {
-                Debug.LogException(ex);
-            }
-        }
-
-        private void GoldScarabThreshold_Change(object sender, EventArgs e)
-        {
-            try
-            {
-                if (int.TryParse(GoldScarabThreshold.Text, out int result))
-                {
-                    if (result < 0)
-                    {
-                        result = 0;
-                    }
-                    Parent.Machine.Inventory.GoldScarabThreshold = Parent.Machine.Utility.BotSettings.GoldScarabThreshold = result;
-                }
-                else
-                {
-                    GoldScarabThreshold.Text = "0";
-                    Parent.Machine.Inventory.GoldScarabThreshold = Parent.Machine.Utility.BotSettings.GoldScarabThreshold = 0;
-                }
-                Parent.Machine.Utility.SaveBotSettings();
-            }
-            catch (Exception ex)
-            {
-                Debug.LogException(ex);
-            }
-        }
-
-        private void PlatinumScarabThreshold_Change(object sender, EventArgs e)
-        {
-            try
-            {
-                if (int.TryParse(PlatinumScarabThreshold.Text, out int result))
-                {
-                    if (result < 0)
-                    {
-                        result = 0;
-                    }
-                    Parent.Machine.Inventory.PlatinumScarabThreshold = Parent.Machine.Utility.BotSettings.PlatinumScarabThreshold = result;
-                }
-                else
-                {
-                    PlatinumScarabThreshold.Text = "0";
-                    Parent.Machine.Inventory.PlatinumScarabThreshold = Parent.Machine.Utility.BotSettings.PlatinumScarabThreshold = 0;
-                }
-                Parent.Machine.Utility.SaveBotSettings();
-            }
-            catch (Exception ex)
-            {
-                Debug.LogException(ex);
-            }
-        }
-
-        private void ManaScarabThreshold_Change(object sender, EventArgs e)
-        {
-            try
-            {
-                if (int.TryParse(ManaScarabThreshold.Text, out int result))
-                {
-                    if (result < 0)
-                    {
-                        result = 0;
-                    }
-                    Parent.Machine.Inventory.ManaScarabThreshold = Parent.Machine.Utility.BotSettings.ManaScarabThreshold = result;
-                }
-                else
-                {
-                    ManaScarabThreshold.Text = "0";
-                    Parent.Machine.Inventory.ManaScarabThreshold = Parent.Machine.Utility.BotSettings.ManaScarabThreshold = 0;
-                }
-                Parent.Machine.Utility.SaveBotSettings();
-            }
-            catch (Exception ex)
-            {
-                Debug.LogException(ex);
-            }
-        }
-
-        private void ComponentThreshold_Change(object sender, EventArgs e)
-        {
-            try
-            {
-                if (int.TryParse(ComponentThreshold.Text, out int result))
-                {
-                    if (result < 0)
-                    {
-                        result = 0;
-                    }
-                    Parent.Machine.Inventory.ComponentThreshold = Parent.Machine.Utility.BotSettings.ComponentThreshold = result;
-                }
-                else
-                {
-                    ComponentThreshold.Text = "0";
-                    Parent.Machine.Inventory.ComponentThreshold = Parent.Machine.Utility.BotSettings.ComponentThreshold = 0;
-                }
-                Parent.Machine.Utility.SaveBotSettings();
-            }
-            catch (Exception ex)
-            {
-                Debug.LogException(ex);
+                BuffingCharacterChoice.AddItem(Parent.Machine.AccountCharacters[i], null);
             }
         }
 
@@ -581,15 +409,9 @@ namespace ACManager.Views.Tabs
                     Verbosity.Changed -= Verbosity_Changed;
                     ManaThreshold.Changed -= ManaThreshhold_Changed;
                     StaminaThreshold.Changed -= StaminaThreshhold_Changed;
-                    LeadScarabThreshold.Change -= LeadScarabThreshold_Change;
-                    IronScarabThreshold.Change -= IronScarabThreshold_Change;
-                    CopperScarabThreshold.Change -= CopperScarabThreshold_Change;
-                    SilverScarabThreshold.Change -= SilverScarabThreshold_Change;
-                    GoldScarabThreshold.Change -= GoldScarabThreshold_Change;
-                    PyrealScarabThreshold.Change -= PyrealScarabThreshold_Change;
-                    PlatinumScarabThreshold.Change -= PlatinumScarabThreshold_Change;
-                    ManaScarabThreshold.Change -= ManaScarabThreshold_Change;
-                    ComponentThreshold.Change -= ComponentThreshold_Change;
+                    BuffingCharacterChoice.Change -= BuffingCharacterChoice_Change;
+                    StayBuffed.Change -= StayBuffed_Change;
+                    Level7Self.Change -= Level7Self_Change;
                 }
                 disposedValue = true;
             }

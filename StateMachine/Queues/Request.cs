@@ -6,12 +6,11 @@ namespace ACManager.StateMachine.Queues
     internal class Request : IEquatable<Request>
     {
         public RequestType RequestType;
-        public string RequesterName;
-        public string BuffCommand;
+        public string RequesterName = "";
         public int RequesterGuid;
         public string Character;
         public List<int> SpellsToCast = new List<int>();
-        public double Heading;
+        public double Heading = -1;
         public string Destination;
         public string ItemToUse;
 

@@ -342,6 +342,40 @@ namespace ACManager.Views.Tabs
             {
                 CharacterChoice.AddItem(Parent.Machine.AccountCharacters[i], null);
             }
+
+
+
+            for (int i = 0; i < Parent.Machine.AccountCharacters.Count; i++)
+            {
+                if (Parent.Machine.AccountCharacters[i].Equals(Parent.Machine.Core.CharacterFilter.Name))
+                {
+                    CharacterChoice.Current = i + 1;
+                    break;
+                }
+            }
+
+
+            Character character = CharacterExistsOrNew(Parent.Machine.Core.CharacterFilter.Name);
+            if (character.Portals.Count > 0)
+            {
+                foreach (Portal portal in character.Portals)
+                {
+                    if (portal.Type.Equals(PortalType.Primary))
+                    {
+                        PrimaryKeyword.Text = !string.IsNullOrEmpty(portal.Keyword) ? portal.Keyword : "";
+                        PrimaryDescription.Text = !string.IsNullOrEmpty(portal.Description) ? portal.Description : "";
+                        PrimaryHeading.Text = portal.Heading.ToString();
+                        PrimaryLevel.Text = portal.Level.ToString();
+                    }
+                    else
+                    {
+                        SecondaryKeyword.Text = !string.IsNullOrEmpty(portal.Keyword) ? portal.Keyword : "";
+                        SecondaryDescription.Text = !string.IsNullOrEmpty(portal.Description) ? portal.Description : "";
+                        SecondaryHeading.Text = portal.Heading.ToString();
+                        SecondaryLevel.Text = portal.Level.ToString();
+                    }
+                }
+            }
         }
 
         private void UpdatePortalKeyword(Character character, PortalType type, string value)

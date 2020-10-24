@@ -16,12 +16,12 @@ namespace ACManager.StateMachine
         /// <summary>
         /// Current IState of the State Machine.
         /// </summary>
-        public IState CurrentState;
+        public IState CurrentState { get; set; } = Stopped.GetInstance;
 
         /// <summary>
         /// The next state the State Machine will transition to.
         /// </summary>
-        public IState NextState;
+        public IState NextState { get; set; }
 
         /// <summary>
         /// Determines if the machine is running or not.
@@ -56,7 +56,7 @@ namespace ACManager.StateMachine
         /// <summary>
         /// An instance of the ChatManager to handle all chat commands/requests.
         /// </summary>
-        public ChatManager ChatManager;
+        public ChatManager ChatManager { get; set; }
 
         /// <summary>
         /// List of characters for the logged in account.
@@ -79,19 +79,9 @@ namespace ACManager.StateMachine
         public string PortalDescription { get; set; }
 
         /// <summary>
-        /// Name of character requesting the portal.
-        /// </summary>
-        public string CharacterMakingRequest { get; set; }
-
-        /// <summary>
         /// Time reference to control when advertisements are broadcast.
         /// </summary>
         public DateTime LastBroadcast { get; set; }
-
-        /// <summary>
-        /// Maximum vital stats for the current character.
-        /// </summary>
-        public IndexedCollection<CharFilterIndex, CharFilterVitalType, int> MaxVitals { get; set; }
 
         /// <summary>
         /// Used to selectively decline new commands as necessary.
@@ -219,6 +209,41 @@ namespace ACManager.StateMachine
         public Request CurrentRequest { get; set; } = new Request();
 
         /// <summary>
+        /// Character name on the account that is capable of being a buff bot.
+        /// </summary>
+        public string BuffingCharacter { get; set; }
+
+        /// <summary>
+        /// Determines state of the bot being buffed for buffing.
+        /// </summary>
+        public bool IsBuffed { get; set; }
+
+        /// <summary>
+        /// Determines if the bot should let buffs run out or not.
+        /// </summary>
+        public bool StayBuffed { get; set; }
+
+        /// <summary>
+        /// Setting determines whether to only buff the bot with lvl 7 self spells.
+        /// </summary>
+        public bool Level7Self { get; set; }
+
+        /// <summary>
+        /// List to keep track of cancelled requests as the requests are dequeued.
+        /// </summary>
+        public List<string> CancelList { get; set; } = new List<string>();
+
+        /// <summary>
+        /// List of objects in the character's inventory. Includes wands, armor, clothing and jewelry.
+        /// </summary>
+        public List<WorldObject> CharacterEquipment { get; set; } = new List<WorldObject>();
+
+        /// <summary>
+        /// Only send the Finished scanning inventory once.
+        /// </summary>
+        public bool FinishedInitialScan { get; set; }
+
+        /// <summary>
         /// Create the state machine in the StoppedState and begin processing commands on intervals (every time a frame is rendered).
         /// </summary>
         public Machine(CoreManager core, string path)
@@ -230,8 +255,40 @@ namespace ACManager.StateMachine
             ComponentChecker = new ComponentChecker(Core);
             Inventory = new Inventory(this);
             RandomNumber = new Random();
-            CurrentState = Stopped.GetInstance;
-            Core.RenderFrame += Clock;
+        }
+
+        public void WorldFilter_ChangeObject(object sender, ChangeObjectEventArgs e)
+        {
+            if (e.Change.Equals(WorldChangeType.IdentReceived))
+            {
+                if (CharacterEquipment.Contains(e.Changed))
+                {
+                    for (int i = 0; i < CharacterEquipment.Count; i++)
+                    {
+                        if (CharacterEquipment[i].Id.Equals(e.Changed.Id))
+                        {
+                            CharacterEquipment[i] = e.Changed;
+                            break;
+                        }
+                    }
+
+                    bool complete = true;
+                    foreach (WorldObject item in CharacterEquipment)
+                    {
+                        if (!item.HasIdData)
+                        {
+                            complete = false;
+                            break;
+                        }
+                    }
+
+                    if (complete && !FinishedInitialScan)
+                    {
+                        FinishedInitialScan = true;
+                        Debug.ToChat($"Finished scanning your inventory. You can now build suits.");
+                    }
+                }
+            }
         }
 
         /// <summary>
@@ -241,13 +298,10 @@ namespace ACManager.StateMachine
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void Clock(object sender, EventArgs e)
+        public void Clock(object sender, EventArgs e)
         {
             if (LoggedIn)
             {
-                // Gets the character's current vitals (Health/Stamina/Mana)
-                MaxVitals = Core.CharacterFilter.EffectiveVital;
-
                 if (NextState == null)
                 {
                     CurrentState.Process(this);
@@ -260,16 +314,6 @@ namespace ACManager.StateMachine
                     NextState = null;
                 }
             }
-        }
-
-        /// <summary>
-        /// Gets the updated list of portals from settings file.
-        /// </summary>
-        /// <returns>True if the file was parsed successfully and not null.</returns>
-        public bool Update()
-        {
-            Utility.CharacterSettings = Utility.LoadCharacterSettings();
-            return Utility.CharacterSettings != null;
         }
 
         /// <summary>
@@ -307,34 +351,6 @@ namespace ACManager.StateMachine
             return (Core.Actions.Heading <= NextHeading + 1
                 && Core.Actions.Heading >= NextHeading - 1)
                 || NextHeading.Equals(-1);
-        }
-
-        public void AddToQueue(Request newRequest)
-        {
-            if (Requests.Contains(newRequest))
-            {
-                ChatManager.SendTell(CharacterMakingRequest, $"You already have a {newRequest.RequestType} request in.");
-            }
-            else if (CurrentRequest.Equals(newRequest))
-            {
-                ChatManager.SendTell(CharacterMakingRequest, $"I'm already helping you, please be patient.");
-            }
-            else
-            {
-                Requests.Enqueue(newRequest);
-                if (Requests.Count.Equals(1))
-                {
-                    ChatManager.SendTell(CharacterMakingRequest, "I have received your request. I will handle your request next.");
-                }
-                else if (Requests.Count.Equals(2))
-                {
-                    ChatManager.SendTell(CharacterMakingRequest, $"I have received your request. There is currently 1 request in the queue ahead of you.");
-                }
-                else
-                {
-                    ChatManager.SendTell(CharacterMakingRequest, $"I have received your request. There are currently {Requests.Count - 1} requests in the queue ahead of you.");
-                }
-            }
         }
     }
 }

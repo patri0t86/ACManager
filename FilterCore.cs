@@ -2,6 +2,7 @@
 using ACManager.StateMachine.States;
 using ACManager.Views;
 using Decal.Adapter;
+using Decal.Adapter.Wrappers;
 using System;
 using System.Collections.Generic;
 using System.Windows.Forms;
@@ -12,10 +13,6 @@ namespace ACManager
     public class FilterCore : FilterBase
     {
         internal Machine Machine { get; set; }
-        internal MainView MainView { get; set; }
-        internal FellowshipControl FellowshipControl { get; set; }
-        internal InventoryTracker InventoryTracker { get; set; }
-        internal ExpTracker ExpTracker { get; set; }
         private Timer LogonTimer { get; set; } = new Timer();
         public List<string> AccountCharacters { get; set; } = new List<string>();
         public int TotalSlots { get; set; }
@@ -36,18 +33,12 @@ namespace ACManager
         /// </summary>
         protected override void Shutdown()
         {
-            ChatBoxMessage -= FellowshipControl.ChatActions;
-            ChatBoxMessage -= InventoryTracker.ParseChat;
             ServerDispatch -= FilterCore_ServerDispatch;
             CommandLineText -= Machine.Interpreter.Command;
             ClientDispatch -= FilterCore_ClientDispatch;
             LogonTimer.Tick -= LogonTimer_Tick;
-            LogonTimer.Dispose();
-            MainView?.Dispose();
+            LogonTimer?.Dispose();
             Machine.BotManagerView?.Dispose();
-            ExpTracker?.Dispose();
-            InventoryTracker?.Dispose();
-            FellowshipControl?.Dispose();
             Machine = null;
         }
 
@@ -65,14 +56,10 @@ namespace ACManager
             if (e.Message.Type.Equals(0xF653))
             {
                 Machine.LoggedIn = false;
-                ChatBoxMessage -= FellowshipControl.ChatActions;
-                ChatBoxMessage -= InventoryTracker.ParseChat;
                 CommandLineText -= Machine.Interpreter.Command;
-                MainView?.Dispose();
+                Core.RenderFrame -= Machine.Clock;
+                Core.WorldFilter.ChangeObject -= Machine.WorldFilter_ChangeObject;
                 Machine.BotManagerView?.Dispose();
-                ExpTracker?.Dispose();
-                InventoryTracker?.Dispose();
-                FellowshipControl?.Dispose();
             }
 
             // Received the character list from the server
@@ -150,23 +137,32 @@ namespace ACManager
                         Machine.Core = Core;
 
                         // Instantiate views
-                        MainView = new MainView(this);
                         Machine.BotManagerView = new BotManagerView(Machine);
 
-                        // Instantiate classes to support the views
-                        ExpTracker = new ExpTracker(this, Core);
-                        InventoryTracker = new InventoryTracker(this, Core);
-                        FellowshipControl = new FellowshipControl(this, Core);
-
-                        ChatBoxMessage += FellowshipControl.ChatActions;
-                        ChatBoxMessage += InventoryTracker.ParseChat;
-
+                        Machine.CharacterEquipment.Clear();
+                        Machine.FinishedInitialScan = false;
                         Machine.Enabled = Machine.Utility.BotSettings.BotEnabled;
                         Machine.LoggedIn = true;
+                        Core.RenderFrame += Machine.Clock;
+                        Core.WorldFilter.ChangeObject += Machine.WorldFilter_ChangeObject;
 
-                        Debug.ToChat("Running ACManager by Shem of Harvestgain (now Coldeve).");
-                        Debug.ToChat($"Currently running version {Machine.Utility.Version}. Check out the latest on the project at https://github.com/patri0t86/ACManager.");
-                        Debug.ToChat($"At any time, type /acm help for more information.");
+                        Debug.ToChat($"Running ACManager {Machine.Utility.Version} by Shem of Harvestgain (now Coldeve). Check out the latest on the project at https://github.com/patri0t86/ACManager.");
+                        Debug.ToChat("Scanning inventory, please wait before using the Equipment manager to build suits...");
+
+                        using (WorldObjectCollection inventory = Core.WorldFilter.GetInventory())
+                        {
+                            foreach (WorldObject item in inventory)
+                            {
+                                if (item.ObjectClass.Equals(ObjectClass.Armor)
+                                    || item.ObjectClass.Equals(ObjectClass.Jewelry)
+                                    || item.ObjectClass.Equals(ObjectClass.Clothing)
+                                    || item.ObjectClass.Equals(ObjectClass.WandStaffOrb))
+                                {
+                                    Machine.CharacterEquipment.Add(item);
+                                    Core.Actions.RequestId(item.Id);
+                                }
+                            }
+                        }
                     }
                 }
 

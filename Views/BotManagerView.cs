@@ -14,6 +14,7 @@ namespace ACManager.Views
         private PortalsTab PortalsTab { get; set; }
         private AdvertisementsTab AdvertisementsTab { get; set; }
         private InventoryTab InventoryTab { get; set; }
+        private EquipmentTab EquipmentTab { get; set; }
 
         public BotManagerView(Machine machine)
         {
@@ -30,22 +31,9 @@ namespace ACManager.Views
                 GemsTab = new GemsTab(this);
                 AdvertisementsTab = new AdvertisementsTab(this);
                 InventoryTab = new InventoryTab(this);
-
-                LoadSettings();
+                EquipmentTab = new EquipmentTab(this);
             }
             catch (Exception ex) { Debug.LogException(ex); }
-        }
-
-        private void LoadSettings()
-        {
-            try
-            {
-                View.ShowInBar = Machine.Utility.GUISettings.BotConfigVisible;
-            }
-            catch (Exception ex)
-            {
-                Debug.LogException(ex);
-            }
         }
 
         #region IDisposable Support
@@ -62,6 +50,7 @@ namespace ACManager.Views
                     PortalsTab?.Dispose();
                     AdvertisementsTab?.Dispose();
                     InventoryTab?.Dispose();
+                    EquipmentTab?.Dispose();
                     View?.Dispose();
                 }
                 disposedValue = true;

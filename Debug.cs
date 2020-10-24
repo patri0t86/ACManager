@@ -11,9 +11,9 @@ namespace ACManager
     /// </summary>
     internal static class Debug
     {
-        private static string DebugFileName { get { return "acm_debug.txt"; } }
+        private static string DebugFileName { get { return "acm_debug.log"; } }
         private static string DebugFilePath { get; set; }
-        private static string ErrorFileName { get { return "acm_errors.txt"; } }
+        private static string ErrorFileName { get { return "acm_errors.log"; } }
         private static string ErrorFilePath { get; set; }
 
         /// <summary>
