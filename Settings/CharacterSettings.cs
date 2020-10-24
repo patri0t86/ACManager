@@ -21,9 +21,6 @@ namespace ACManager.Settings
         [XmlElement(IsNullable = false)]
         public string Server;
 
-        [XmlElement(IsNullable = false)]
-        public string Password;
-
         public List<Portal> Portals = new List<Portal>();
 
         public bool Equals(Character character)

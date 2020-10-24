@@ -13,7 +13,6 @@ namespace ACManager.StateMachine.States
     internal class Idle : StateBase<Idle>, IState
     {
         private DateTime BuffCheck { get; set; }
-        private DateTime LastUpdate { get; set; }
         public void Enter(Machine machine)
         {
             machine.Inventory.GetComponentLevels();
@@ -115,13 +114,6 @@ namespace ACManager.StateMachine.States
                 }
                 else
                 {
-                    // Read from settings files for latest update
-                    if (DateTime.Now - LastUpdate > TimeSpan.FromSeconds(60))
-                    {
-                        LastUpdate = DateTime.Now;
-                        machine.Update();
-                    }
-
                     // clear the cancel list
                     if (machine.CancelList.Count > 0)
                     {

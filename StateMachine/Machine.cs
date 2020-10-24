@@ -317,17 +317,6 @@ namespace ACManager.StateMachine
         }
 
         /// <summary>
-        /// Gets the updated list of portals from settings file.
-        /// </summary>
-        public void Update()
-        {
-            Utility.CharacterSettings = Utility.LoadCharacterSettings();
-            Utility.BotSettings = Utility.LoadBotSettings();
-            Inventory.UpdateInventoryFile();
-            Utility.LoadBuffProfiles();
-        }
-
-        /// <summary>
         /// Determines the next character to log in.
         /// </summary>
         public void GetNextCharacter()
