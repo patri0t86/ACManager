@@ -5,7 +5,6 @@ using Decal.Adapter.Wrappers;
 using Decal.Filters;
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -18,6 +17,12 @@ namespace ACManager.StateMachine
     {
         private Machine Machine { get; set; }
         private string CharacterMakingRequest { get; set; }
+        private Regex LocalMatch { get; set; }
+        private readonly string localPattern = "IIDString:(?<guid>\\d+):(?<name>.+?)>.*says, \"(?<message>.*)\"";
+        private Regex TellMatch { get; set; }
+        private readonly string tellPattern = "IIDString:(?<guid>\\d+):(?<name>.+?)>.*tells you, \"(?<message>.*)\"";
+        private Regex GiftMatch { get; set; }
+        private readonly string giftPattern = "(?<name>.+?) gives you (?<gift>.*?)\\.";
 
         /// <summary>
         /// Instantiates the ChatManager and sets the internal state machine instance to this.
@@ -26,6 +31,9 @@ namespace ACManager.StateMachine
         public ChatManager(Machine machine)
         {
             Machine = machine;
+            LocalMatch = new Regex(localPattern);
+            TellMatch = new Regex(tellPattern);
+            GiftMatch = new Regex(giftPattern);
         }
 
         /// <summary>
@@ -35,9 +43,10 @@ namespace ACManager.StateMachine
         /// <param name="e"></param>
         public void Current_ChatBoxMessage(object sender, ChatTextInterceptEventArgs e)
         {
-            Match localMatch = new Regex("IIDString:(?<guid>\\d+):(?<name>.+?)>.*says, \"(?<message>.*)\"").Match(e.Text);
-            Match tellMatch = new Regex("IIDString:(?<guid>\\d+):(?<name>.+?)>.*tells you, \"(?<message>.*)\"").Match(e.Text);
-            Match giftMatch = new Regex("(?<name>.+?) gives you (?<gift>.*)\\.").Match(e.Text);
+
+            Match localMatch = LocalMatch.Match(e.Text);
+            Match tellMatch = TellMatch.Match(e.Text);
+            Match giftMatch = GiftMatch.Match(e.Text);
 
             if (localMatch.Success)
             {
@@ -49,8 +58,7 @@ namespace ACManager.StateMachine
             }
             else if (giftMatch.Success)
             {
-                TextInfo info = new CultureInfo("en-us", false).TextInfo;
-                SendTell(giftMatch.Groups["name"].Value, $"Thank you for the {info.ToTitleCase(giftMatch.Groups["gift"].Value)}!");
+                SendTell(giftMatch.Groups["name"].Value, $"Thank you for the {giftMatch.Groups["gift"].Value}!");
                 Machine.Utility.SaveGiftToLog(e.Text);
             }
         }

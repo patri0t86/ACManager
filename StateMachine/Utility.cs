@@ -397,7 +397,7 @@ namespace ACManager.StateMachine
         {
             try
             {
-                string text = $"{DateTime.Now} --- {message}{Environment.NewLine}";
+                string text = $"{DateTime.Now} --- {message}";
                 File.AppendAllText(GiftsPath, text);
             }
             catch (Exception ex)
