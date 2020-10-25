@@ -35,32 +35,23 @@ namespace ACManager.StateMachine
         /// <param name="e"></param>
         public void Current_ChatBoxMessage(object sender, ChatTextInterceptEventArgs e)
         {
-            string text = Regex.Replace(e.Text.ToLower(), @"[^\w:/ ']", string.Empty);
+            Match localMatch = new Regex("IIDString:(?<guid>\\d+):(?<name>.+?)>.*says, \"(?<message>.*)\"").Match(e.Text);
+            Match tellMatch = new Regex("IIDString:(?<guid>\\d+):(?<name>.+?)>.*tells you, \"(?<message>.*)\"").Match(e.Text);
+            Match giftMatch = new Regex("(?<name>.+?) gives you (?<gift>.*)\\.").Match(e.Text);
 
-            // Create a new regex match for regular chat
-            Match match = new Regex("(?<guid>\\d+):(?<dupleName>.+?)tell says (?<message>.*$)").Match(text);
-            if (match.Success)
+            if (localMatch.Success)
             {
-                HandleChat(match);
-                return;
+                HandleChat(localMatch);
             }
-
-            // Create a new regex match for general tells
-            match = new Regex("(?<guid>\\d+):(?<dupleName>.+?)tell tells you (?<message>.*$)").Match(text);
-            if (match.Success)
+            else if (tellMatch.Success)
             {
-                HandleTell(match);
-                return;
+                HandleTell(tellMatch);
             }
-
-            // Create new regex for receiving gifts
-            match = new Regex("(?<name>.+?) gives you (?<gift>.*)").Match(text);
-            if (match.Success)
+            else if (giftMatch.Success)
             {
                 TextInfo info = new CultureInfo("en-us", false).TextInfo;
-                SendTell(match.Groups["name"].Value, $"Thank you for the {info.ToTitleCase(match.Groups["gift"].Value)}!");
-                Machine.Utility.SaveGiftToLog(text);
-                return;
+                SendTell(giftMatch.Groups["name"].Value, $"Thank you for the {info.ToTitleCase(giftMatch.Groups["gift"].Value)}!");
+                Machine.Utility.SaveGiftToLog(e.Text);
             }
         }
 
@@ -71,14 +62,14 @@ namespace ACManager.StateMachine
         private void HandleChat(Match match)
         {
             // The actual message
-            string message = match.Groups["message"].Value;
+            string message = match.Groups["message"].Value.ToLower();
 
             // The GUID of the player sending the tell
             int guid = Convert.ToInt32(match.Groups["guid"].Value);
 
             if (!guid.Equals(0)) // guid = 0 is said in general/trade/etc. not in local chat
             {
-                CharacterMakingRequest = match.Groups["dupleName"].Value.Substring(0, match.Groups["dupleName"].Value.Length / 2);
+                CharacterMakingRequest = match.Groups["name"].Value;
 
                 if ((message.Equals("whereto") || message.Equals("where to")))
                 {
@@ -104,13 +95,13 @@ namespace ACManager.StateMachine
         private void HandleTell(Match match)
         {
             // The actual message
-            string message = match.Groups["message"].Value;
+            string message = match.Groups["message"].Value.ToLower();
 
             // The GUID of the player sending the tell
             int guid = Convert.ToInt32(match.Groups["guid"].Value);
 
             // The in-game character name sending the tell
-            CharacterMakingRequest = match.Groups["dupleName"].Value.Substring(0, match.Groups["dupleName"].Value.Length / 2);
+            CharacterMakingRequest = match.Groups["name"].Value;
 
             if (!string.IsNullOrEmpty(message))
             {
