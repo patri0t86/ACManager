@@ -45,7 +45,7 @@ namespace ACManager.StateMachine.States
                 machine.Level7Self = machine.Utility.BotSettings.Level7Self;
 
                 Debug.ToChat("Started successfully.");
-                machine.ChatManager.Broadcast($"/me is running ACManager Bot {machine.Utility.Version}. Whisper 'help' to get started.");
+                machine.ChatManager.Broadcast($"/me is running ACManager {machine.Utility.Version} found at https://github.com/patri0t86/ACManager. Whisper 'help' to get started.");
             }
         }
 
