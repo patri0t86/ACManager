@@ -59,7 +59,7 @@ namespace ACManager.Settings.BuffDefaults
             {
                 Buff buff = new Buff
                 {
-                    SpellId = spellId
+                    Id = spellId
                 };
                 Buffs.Add(buff);
             }

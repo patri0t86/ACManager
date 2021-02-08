@@ -394,22 +394,22 @@ namespace ACManager.StateMachine
                         {
                             if (portal.Type.Equals(PortalType.Primary))
                             {
-                                newRequest.SpellsToCast.Add(157);
+                                newRequest.SpellsToCast.Add(Machine.SpellTable.GetById(157));
                             }
                             else if (portal.Type.Equals(PortalType.Secondary))
                             {
-                                newRequest.SpellsToCast.Add(2648);
+                                newRequest.SpellsToCast.Add(Machine.SpellTable.GetById(2648));
                             }
                         }
                         else
                         {
                             if (portal.Type.Equals(PortalType.Primary))
                             {
-                                newRequest.SpellsToCast.Add(157);
+                                newRequest.SpellsToCast.Add(Machine.SpellTable.GetById(157));
                             }
                             else if (portal.Type.Equals(PortalType.Secondary))
                             {
-                                newRequest.SpellsToCast.Add(2648);
+                                newRequest.SpellsToCast.Add(Machine.SpellTable.GetById(2648));
                             }
                         }
                         AddToQueue(newRequest);
@@ -471,7 +471,7 @@ namespace ACManager.StateMachine
                             };
                             foreach (Buff buff in profile.Buffs)
                             {
-                                newRequest.SpellsToCast.Add(buff.SpellId);
+                                newRequest.SpellsToCast.Add(Machine.SpellTable.GetById(buff.Id));
                             }
                             AddToQueue(newRequest);
                             break;

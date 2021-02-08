@@ -1,5 +1,6 @@
 ﻿using ACManager.Settings;
 using Decal.Adapter.Wrappers;
+using Decal.Filters;
 using System;
 using System.Collections.Generic;
 
@@ -23,7 +24,7 @@ namespace ACManager.StateMachine.States
                 machine.SpellsToCast.Clear();
                 foreach (Buff buff in profile.Buffs)
                 {
-                    machine.SpellsToCast.Add(buff.SpellId);
+                    machine.SpellsToCast.Add(machine.SpellTable.GetById(buff.Id));
                 }
                 StartedBuffing = true;
             }
@@ -54,7 +55,7 @@ namespace ACManager.StateMachine.States
                     }
                     else if (!machine.CastStarted)
                     {
-                        if (machine.Core.CharacterFilter.Mana < machine.ManaThreshold * machine.Core.CharacterFilter.EffectiveVital[CharFilterVitalType.Mana] && machine.Core.Actions.SkillTrainLevel[SkillType.BaseLifeMagic] != 1)
+                        if (machine.Core.CharacterFilter.Mana < machine.ManaThreshold * machine.Core.CharacterFilter.EffectiveVital[CharFilterVitalType.Mana] && machine.Core.Actions.SkillTrainLevel[Decal.Adapter.Wrappers.SkillType.BaseLifeMagic] != 1)
                         {
                             machine.NextState = VitalManagement.GetInstance;
                         }
@@ -73,20 +74,20 @@ namespace ACManager.StateMachine.States
                                     machine.Core.Actions.SetCombatMode(CombatState.Magic);
                                 }
                             }
-                            else if (machine.Core.CharacterFilter.IsSpellKnown(machine.SpellsToCast[0]))
+                            else if (machine.Core.CharacterFilter.IsSpellKnown(machine.SpellsToCast[0].Id))
                             {
-                                if (machine.ComponentChecker.HaveComponents(machine.SpellsToCast[0]))
+                                if (machine.ComponentChecker.HaveComponents(machine.SpellsToCast[0].Id))
                                 {
                                     if (machine.Core.CharacterFilter.EffectiveSkill[CharFilterSkillType.CreatureEnchantment] < 400 && !AddedPreBuffs)
                                     {
                                         AddedPreBuffs = true;
-                                        machine.SpellsToCast.Insert(0, 2067); // focus 7
-                                        machine.SpellsToCast.Insert(0, 2091); // self 7
-                                        machine.SpellsToCast.Insert(0, 2215); // creature 7
+                                        machine.SpellsToCast.Insert(0, machine.SpellTable.GetById(2067)); // focus 7
+                                        machine.SpellsToCast.Insert(0, machine.SpellTable.GetById(2091)); // self 7
+                                        machine.SpellsToCast.Insert(0, machine.SpellTable.GetById(2215)); // creature 7
                                     }
                                     else
                                     {
-                                        machine.Core.Actions.CastSpell(machine.SpellsToCast[0], 0);
+                                        machine.Core.Actions.CastSpell(machine.SpellsToCast[0].Id, 0);
                                     }
                                 }
                                 else
@@ -98,9 +99,9 @@ namespace ACManager.StateMachine.States
                             }
                             else
                             {
-                                int fallbackSpell = FallbackBuffCheck(machine.SpellsToCast[0]);
+                                Spell fallbackSpell = FallbackBuffCheck(machine.SpellTable, machine.SpellsToCast[0]);
                                 machine.SpellsToCast.RemoveAt(0);
-                                if (fallbackSpell != 0)
+                                if (fallbackSpell != null)
                                 {
                                     machine.SpellsToCast.Insert(0, fallbackSpell);
                                 }
@@ -127,71 +128,33 @@ namespace ACManager.StateMachine.States
             return nameof(SelfBuffing);
         }
 
-        private int FallbackBuffCheck(int spellId)
+        private Spell FallbackBuffCheck(SpellTable spellTable, Spell spell)
         {
-            List<int> selfBuffs = new List<int>()
+            List<Spell> spellFamily = new List<Spell>();
+            for (int i = 1; i < spellTable.Length; i++)
             {
-                4530, // creature self 8
-                4305, // focus self 8
-                4329, // willpower self 8
-                4299, // endurance self 8
-                4564, // item self 8
-                4582, // life self 8
-                4602, // mana c self 8
-                4494, // mana renewal 8
-                4498, // rejuv 8
-                4510, // arcane enlightenment 8
-                4418  // aura of mana c 8
-            };
-
-            if (selfBuffs.Contains(spellId))
-            {
-                if (spellId.Equals(4530))
+                if (spellTable[i].Family.Equals(spell.Family) &&
+                    spellTable[i].Difficulty < spell.Difficulty &&
+                    !spellTable[i].IsUntargetted &&
+                    spellTable[i].Duration >= 1800 &&
+                    spellTable[i].Duration < spell.Duration)
                 {
-                    return 2215;
-                }
-                else if (spellId.Equals(4305))
-                {
-                    return 2067;
-                }
-                else if (spellId.Equals(4329))
-                {
-                    return 2091;
-                }
-                else if (spellId.Equals(4299))
-                {
-                    return 2061;
-                }
-                else if (spellId.Equals(4564))
-                {
-                    return 2249;
-                }
-                else if (spellId.Equals(4582))
-                {
-                    return 2267;
-                }
-                else if (spellId.Equals(4602))
-                {
-                    return 2287;
-                }
-                else if (spellId.Equals(4494))
-                {
-                    return 2183;
-                }
-                else if (spellId.Equals(4498))
-                {
-                    return 2187;
-                }
-                else if (spellId.Equals(4510))
-                {
-                    return 2195;
-                }
-                else if (spellId.Equals(4418))
-                {
-                    return 2117;
+                    spellFamily.Add(spellTable[i]);
                 }
             }
-            return 0;
+
+            int maxDiff = 0;
+            Spell fallback = null;
+
+            foreach (Spell sp in spellFamily)
+            {
+                if (sp.Difficulty > maxDiff)
+                {
+                    fallback = sp;
+                    maxDiff = sp.Difficulty;
+                }
+            }
+            return fallback;
         }
     }
 }

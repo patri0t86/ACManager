@@ -1,5 +1,6 @@
 ﻿using ACManager.StateMachine.Queues;
 using Decal.Adapter.Wrappers;
+using Decal.Filters;
 using System;
 using System.Collections.Generic;
 
@@ -41,19 +42,7 @@ namespace ACManager.StateMachine.States
                     }
 
                     TimeSpan buffTime = TimeSpan.FromSeconds(machine.SpellsToCast.Count * 4);
-                    if (machine.SpellsToCast.Contains(5989)
-                        || machine.SpellsToCast.Contains(5997)
-                        || machine.SpellsToCast.Contains(6006)
-                        || machine.SpellsToCast.Contains(6014)
-                        || machine.SpellsToCast.Contains(6023)
-                        || machine.SpellsToCast.Contains(6031))
-                    {
-                        machine.ChatManager.SendTell(machine.CurrentRequest.RequesterName, $"Casting {machine.SpellsToCast.Count} buffs on you. This should take about {buffTime.Minutes} minutes and {buffTime.Seconds} seconds. Make sure you are standing near me as Item Enchantments are short range spells.");
-                    }
-                    else
-                    {
-                        machine.ChatManager.SendTell(machine.CurrentRequest.RequesterName, $"Casting {machine.SpellsToCast.Count} buffs on you. This should take about {buffTime.Minutes} minutes and {buffTime.Seconds} seconds.");
-                    }
+                    string message = $"Casting {machine.SpellsToCast.Count} buffs on you. This should take about {buffTime.Minutes} minutes and {buffTime.Seconds} seconds.";
 
                     if (machine.CurrentRequest.RequesterGuid != 0 && !CastBanes)
                     {
@@ -70,16 +59,17 @@ namespace ACManager.StateMachine.States
                                     }
                                     else
                                     {
-                                        machine.ChatManager.SendTell(machine.CurrentRequest.RequesterName, "You are wearing a covenant shield, so I will be skipping banes.");
+                                        message += " You are wearing a covenant shield, so I will be skipping banes.";
                                     }
                                 }
                                 else
                                 {
-                                    machine.ChatManager.SendTell(machine.CurrentRequest.RequesterName, "You are not wearing a shield, so I will be skipping banes.");
+                                    message += " You are not wearing a shield, so I will be skipping banes.";
                                 }
                             }
                         }
                     }
+                    machine.ChatManager.SendTell(machine.CurrentRequest.RequesterName, message);
                 }
             }
         }
@@ -118,7 +108,7 @@ namespace ACManager.StateMachine.States
                     {
                         if (machine.CastStarted && machine.CastCompleted && !machine.Fizzled)
                         {
-                            if (machine.SpellsToCast[0].Equals(157) || machine.SpellsToCast[0].Equals(2648))
+                            if (machine.SpellsToCast[0].Id.Equals(157) || machine.SpellsToCast[0].Id.Equals(2648))
                             {
                                 machine.PortalsSummonedThisSession += 1;
                                 if (!string.IsNullOrEmpty(machine.PortalDescription))
@@ -159,15 +149,15 @@ namespace ACManager.StateMachine.States
                         else if (!machine.CastStarted)
                         {
                             if (machine.Core.CharacterFilter.Mana < machine.ManaThreshold * machine.Core.CharacterFilter.EffectiveVital[CharFilterVitalType.Mana]
-                                && machine.Core.Actions.SkillTrainLevel[SkillType.BaseLifeMagic] != 1)
+                                && machine.Core.Actions.SkillTrainLevel[Decal.Adapter.Wrappers.SkillType.BaseLifeMagic] != 1)
                             {
                                 machine.NextState = VitalManagement.GetInstance;
                             }
                             else
                             {
-                                if (machine.Core.CharacterFilter.IsSpellKnown(machine.SpellsToCast[0]))
+                                if (machine.Core.CharacterFilter.IsSpellKnown(machine.SpellsToCast[0].Id))
                                 {
-                                    if (machine.ComponentChecker.HaveComponents(machine.SpellsToCast[0]))
+                                    if (machine.ComponentChecker.HaveComponents(machine.SpellsToCast[0].Id))
                                     {
                                         if (LastSpell.Equals(machine.SpellsToCast[0]) && !(machine.SpellsToCast[0].Equals(157) || machine.SpellsToCast[0].Equals(2648)))
                                         {
@@ -187,13 +177,13 @@ namespace ACManager.StateMachine.States
                                             StartedTracking = !StartedTracking;
                                         }
 
-                                        LastSpell = machine.SpellsToCast[0];
+                                        LastSpell = machine.SpellsToCast[0].Id;
 
                                         if (SpellIsBane(machine.SpellsToCast[0]))
                                         {
                                             if (CastBanes)
                                             {
-                                                machine.Core.Actions.CastSpell(machine.SpellsToCast[0], machine.CurrentRequest.RequesterGuid);
+                                                machine.Core.Actions.CastSpell(machine.SpellsToCast[0].Id, machine.CurrentRequest.RequesterGuid);
                                             }
                                             else
                                             {
@@ -202,14 +192,14 @@ namespace ACManager.StateMachine.States
                                         }
                                         else
                                         {
-                                            machine.Core.Actions.CastSpell(machine.SpellsToCast[0], machine.CurrentRequest.RequesterGuid);
+                                            machine.Core.Actions.CastSpell(machine.SpellsToCast[0].Id, machine.CurrentRequest.RequesterGuid);
                                         }
                                     }
                                     else
                                     {
-                                        int fallbackSpell = FallbackSpellCheck(machine.SpellsToCast[0]);
+                                        Spell fallbackSpell = FallbackSpellCheck(machine.SpellTable, machine.SpellsToCast[0]);
                                         machine.SpellsToCast.RemoveAt(0);
-                                        if (fallbackSpell != 0)
+                                        if (fallbackSpell != null)
                                         {
                                             machine.SpellsToCast.Insert(0, fallbackSpell);
                                         }
@@ -222,9 +212,9 @@ namespace ACManager.StateMachine.States
                                 }
                                 else
                                 {
-                                    int fallbackSpell = FallbackSpellCheck(machine.SpellsToCast[0]);
+                                    Spell fallbackSpell = FallbackSpellCheck(machine.SpellTable, machine.SpellsToCast[0]);
                                     machine.SpellsToCast.RemoveAt(0);
-                                    if (fallbackSpell != 0)
+                                    if (fallbackSpell != null)
                                     {
                                         machine.SpellsToCast.Insert(0, fallbackSpell);
                                     }
@@ -250,35 +240,23 @@ namespace ACManager.StateMachine.States
             return nameof(Casting);
         }
 
-        private bool SpellIsBane(int spellId)
+        private bool SpellIsBane(Spell spell)
         {
-            return spellId.Equals(4391)
-                || spellId.Equals(4393)
-                || spellId.Equals(4397)
-                || spellId.Equals(4401)
-                || spellId.Equals(4403)
-                || spellId.Equals(4407)
-                || spellId.Equals(4409)
-                || spellId.Equals(4412);
+            return spell.Family.Equals(160)
+                || spell.Family.Equals(162)
+                || spell.Family.Equals(164)
+                || spell.Family.Equals(166)
+                || spell.Family.Equals(168)
+                || spell.Family.Equals(170)
+                || spell.Family.Equals(172)
+                || spell.Family.Equals(174);
         }
 
-        private bool ContainsBanes(List<int> spellList)
+        private bool ContainsBanes(List<Spell> spells)
         {
-            List<int> banes = new List<int>()
+            foreach (Spell spell in spells)
             {
-                4407,
-                4412,
-                4393,
-                4397,
-                4401,
-                4403,
-                4409,
-                4391
-            };
-
-            foreach (int bane in banes)
-            {
-                if (spellList.Contains(bane))
+                if (SpellIsBane(spell))
                 {
                     return true;
                 }
@@ -286,86 +264,33 @@ namespace ACManager.StateMachine.States
             return false;
         }
 
-        private int FallbackSpellCheck(int spellId)
+        private Spell FallbackSpellCheck(SpellTable spellTable, Spell spell)
         {
-            List<int> spellList = new List<int>()
+            List<Spell> spellFamily = new List<Spell>();
+            for (int i = 1; i < spellTable.Length; i++)
             {
-                4407,
-                4412,
-                4393,
-                4397,
-                4401,
-                4403,
-                4409,
-                4391,
-                5989,
-                5998,
-                6006,
-                6014,
-                6023,
-                6031
-            };
-
-            if (spellList.Contains(spellId))
-            {
-                if (spellId.Equals(4407))
+                if (spellTable[i].Family.Equals(spell.Family) &&
+                    spellTable[i].Difficulty < spell.Difficulty &&
+                    !spellTable[i].IsUntargetted &&
+                    spellTable[i].Duration >= 1800 &&
+                    spellTable[i].Duration < spell.Duration)
                 {
-                    return 2108;
-                }
-                else if (spellId.Equals(4412))
-                {
-                    return 2113;
-                }
-                else if (spellId.Equals(4393))
-                {
-                    return 2094;
-                }
-                else if (spellId.Equals(4397))
-                {
-                    return 2098;
-                }
-                else if (spellId.Equals(4401))
-                {
-                    return 2102;
-                }
-                else if (spellId.Equals(4403))
-                {
-                    return 2104;
-                }
-                else if (spellId.Equals(4409))
-                {
-                    return 2110;
-                }
-                else if (spellId.Equals(4391))
-                {
-                    return 2092;
-                }
-                else if (spellId.Equals(5989))
-                {
-                    return 5988;
-                }
-                else if (spellId.Equals(5998))
-                {
-                    return 5996;
-                }
-                else if (spellId.Equals(6006))
-                {
-                    return 6005;
-                }
-                else if (spellId.Equals(6014))
-                {
-                    return 6013;
-                }
-                else if (spellId.Equals(6023))
-                {
-                    return 6021;
-                }
-                else if (spellId.Equals(6031))
-                {
-                    return 6030;
+                    spellFamily.Add(spellTable[i]);
                 }
             }
-            return 0;
+
+            int maxDiff = 0;
+            Spell fallback = null;
+
+            foreach (Spell sp in spellFamily)
+            {
+                if (sp.Difficulty > maxDiff)
+                {
+                    fallback = sp;
+                    maxDiff = sp.Difficulty;
+                }
+            }
+            return fallback;
         }
     }
 }

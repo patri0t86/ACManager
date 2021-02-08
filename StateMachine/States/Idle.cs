@@ -174,7 +174,7 @@ namespace ACManager.StateMachine.States
                 List<int> requiredBuffs = new List<int>();
                 foreach (Buff buff in profile.Buffs)
                 {
-                    requiredBuffs.Add(buff.SpellId);
+                    requiredBuffs.Add(buff.Id);
                 }
 
                 Dictionary<int, int> enchantments = new Dictionary<int, int>();

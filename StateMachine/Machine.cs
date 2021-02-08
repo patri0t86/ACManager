@@ -3,6 +3,7 @@ using ACManager.StateMachine.States;
 using ACManager.Views;
 using Decal.Adapter;
 using Decal.Adapter.Wrappers;
+using Decal.Filters;
 using System;
 using System.Collections.Generic;
 
@@ -51,7 +52,7 @@ namespace ACManager.StateMachine
         /// <summary>
         /// List of spells to cast.
         /// </summary>
-        public List<int> SpellsToCast { get; set; } = new List<int>();
+        public List<Spell> SpellsToCast { get; set; } = new List<Spell>();
 
         /// <summary>
         /// An instance of the ChatManager to handle all chat commands/requests.
@@ -149,7 +150,7 @@ namespace ACManager.StateMachine
         public bool RespondToAllegiance { get; set; } = false;
 
         /// <summary>
-        /// Determines the output style of the 
+        /// Determines the output style of the list of portals.
         /// </summary>
         public int Verbosity { get; set; } = 0;
 
@@ -249,6 +250,11 @@ namespace ACManager.StateMachine
         public bool FinishedInitialScan { get; set; }
 
         /// <summary>
+        /// Entire spell table read from the used .dat file.
+        /// </summary>
+        public SpellTable SpellTable { get; set; }
+
+        /// <summary>
         /// Create the state machine in the StoppedState and begin processing commands on intervals (every time a frame is rendered).
         /// </summary>
         public Machine(CoreManager core, string path)
@@ -260,6 +266,7 @@ namespace ACManager.StateMachine
             ComponentChecker = new ComponentChecker(Core);
             Inventory = new Inventory(this);
             RandomNumber = new Random();
+            SpellTable = Core.Filter<FileService>().SpellTable;
         }
 
         public void WorldFilter_ChangeObject(object sender, ChangeObjectEventArgs e)
