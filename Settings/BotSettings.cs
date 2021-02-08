@@ -17,6 +17,9 @@ namespace ACManager.Settings
         public bool RespondToGeneralChat = true;
 
         [XmlElement(IsNullable = false)]
+        public bool RespondToAllegiance = false;
+
+        [XmlElement(IsNullable = false)]
         public int Verbosity = 0;
 
         [XmlElement(IsNullable = false)]

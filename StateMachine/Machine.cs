@@ -144,6 +144,11 @@ namespace ACManager.StateMachine
         public bool RespondToOpenChat { get; set; } = true;
 
         /// <summary>
+        /// Determines whether or not the machine listens to requests from the allegiance channel.
+        /// </summary>
+        public bool RespondToAllegiance { get; set; } = false;
+
+        /// <summary>
         /// Determines the output style of the 
         /// </summary>
         public int Verbosity { get; set; } = 0;

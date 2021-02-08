@@ -32,6 +32,7 @@ namespace ACManager.StateMachine.States
                 machine.AdInterval = machine.Utility.BotSettings.AdInterval >= 5 ? machine.Utility.BotSettings.AdInterval : 5;
                 machine.Advertise = machine.Utility.BotSettings.AdsEnabled;
                 machine.RespondToOpenChat = machine.Utility.BotSettings.RespondToGeneralChat;
+                machine.RespondToAllegiance = machine.Utility.BotSettings.RespondToAllegiance;
                 machine.Verbosity = machine.Utility.BotSettings.Verbosity;
                 machine.ManaThreshold = machine.Utility.BotSettings.ManaThreshold;
                 machine.StaminaThreshold = machine.Utility.BotSettings.StaminaThreshold;

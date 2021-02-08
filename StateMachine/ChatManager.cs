@@ -23,6 +23,8 @@ namespace ACManager.StateMachine
         private readonly string tellPattern = "IIDString:(?<guid>\\d+):(?<name>.+?)>.*tells you, \"(?<message>.*)\"";
         private Regex GiftMatch { get; set; }
         private readonly string giftPattern = "(?<name>.+?) gives you (?<gift>.*?)\\.";
+        private Regex AllegianceMatch { get; set; }
+        private readonly string allegiancePattern = ".*Allegiance.*IIDString:(?<guid>\\d+):(?<name>.+?)>.*says, \"(?<message>.*)\"";
 
         /// <summary>
         /// Instantiates the ChatManager and sets the internal state machine instance to this.
@@ -32,6 +34,7 @@ namespace ACManager.StateMachine
         {
             Machine = machine;
             LocalMatch = new Regex(localPattern);
+            AllegianceMatch = new Regex(allegiancePattern);
             TellMatch = new Regex(tellPattern);
             GiftMatch = new Regex(giftPattern);
         }
@@ -43,14 +46,18 @@ namespace ACManager.StateMachine
         /// <param name="e"></param>
         public void Current_ChatBoxMessage(object sender, ChatTextInterceptEventArgs e)
         {
-
             Match localMatch = LocalMatch.Match(e.Text);
+            Match allegianceMatch = AllegianceMatch.Match(e.Text);
             Match tellMatch = TellMatch.Match(e.Text);
             Match giftMatch = GiftMatch.Match(e.Text);
 
             if (localMatch.Success)
             {
                 HandleChat(localMatch);
+            }
+            else if (allegianceMatch.Success)
+            {
+                HandleChat(allegianceMatch);
             }
             else if (tellMatch.Success)
             {
@@ -75,10 +82,10 @@ namespace ACManager.StateMachine
             // The GUID of the player sending the tell
             int guid = Convert.ToInt32(match.Groups["guid"].Value);
 
+            CharacterMakingRequest = match.Groups["name"].Value;
+
             if (!guid.Equals(0)) // guid = 0 is said in general/trade/etc. not in local chat
             {
-                CharacterMakingRequest = match.Groups["name"].Value;
-
                 if ((message.Equals("whereto") || message.Equals("where to")))
                 {
                     RespondWithPortals();
@@ -93,6 +100,11 @@ namespace ACManager.StateMachine
                 {
                     CheckCommands(guid, message);
                 }
+            }
+
+            if (Machine.RespondToAllegiance)
+            {
+                CheckCommands(guid, message);
             }
         }
 

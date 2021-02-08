@@ -12,6 +12,7 @@ namespace ACManager.Views.Tabs
         private HudButton SetLocation { get; set; }
         private HudStaticText LocationSetpoint { get; set; }
         private HudCheckBox RespondToGeneralChat { get; set; }
+        private HudCheckBox RespondToAllegianceChat { get; set; }
         private HudCheckBox AdsEnabled { get; set; }
         private HudCheckBox BotPositioning { get; set; }
         private HudTextBox AdInterval { get; set; }
@@ -46,6 +47,9 @@ namespace ACManager.Views.Tabs
 
             RespondToGeneralChat = Parent.View != null ? (HudCheckBox)Parent.View["GeneralChatResponse"] : new HudCheckBox();
             RespondToGeneralChat.Change += RespondToGeneralChat_Change;
+
+            RespondToAllegianceChat = Parent.View != null ? (HudCheckBox)Parent.View["AllegianceResponse"] : new HudCheckBox();
+            RespondToAllegianceChat.Change += RespondToAllegianceChat_Change;
 
             AdsEnabled = Parent.View != null ? (HudCheckBox)Parent.View["AdsEnabled"] : new HudCheckBox();
             AdsEnabled.Change += AdsEnabled_Change;
@@ -96,6 +100,7 @@ namespace ACManager.Views.Tabs
             {
                 BotEnabled.Checked = Parent.Machine.Utility.BotSettings.BotEnabled;
                 RespondToGeneralChat.Checked = Parent.Machine.Utility.BotSettings.RespondToGeneralChat;
+                RespondToAllegianceChat.Checked = Parent.Machine.Utility.BotSettings.RespondToAllegiance;
                 Verbosity.Position = Parent.Machine.Utility.BotSettings.Verbosity;
                 AdInterval.Text = Parent.Machine.Utility.BotSettings.AdInterval >= 5 ? Parent.Machine.Utility.BotSettings.AdInterval.ToString() : 5.ToString();
                 ManaThreshold.Position = (int)(Parent.Machine.Utility.BotSettings.ManaThreshold * 100);
@@ -178,6 +183,20 @@ namespace ACManager.Views.Tabs
                 Parent.Machine.RespondToOpenChat = Parent.Machine.Utility.BotSettings.RespondToGeneralChat = RespondToGeneralChat.Checked;
                 Parent.Machine.Utility.SaveBotSettings();
                 Debug.ToChat($"The bot will {(Parent.Machine.Utility.BotSettings.RespondToGeneralChat ? "now" : "no longer")} summon portals based on keyword requests said in local chat.");
+            }
+            catch (Exception ex)
+            {
+                Debug.LogException(ex);
+            }
+        }
+
+        private void RespondToAllegianceChat_Change(object sender, EventArgs e)
+        {
+            try
+            {
+                Parent.Machine.RespondToAllegiance = Parent.Machine.Utility.BotSettings.RespondToAllegiance = RespondToAllegianceChat.Checked;
+                Parent.Machine.Utility.SaveBotSettings();
+                Debug.ToChat($"The bot will {(Parent.Machine.Utility.BotSettings.RespondToAllegiance ? "now" : "no longer")} summon portals based on keyword requests said in allegiance chat.");
             }
             catch (Exception ex)
             {
@@ -401,6 +420,7 @@ namespace ACManager.Views.Tabs
                     ClearLocation.Hit -= ClearLocation_Hit;
                     SetLocation.Hit -= SetHeading_Hit;
                     RespondToGeneralChat.Change -= RespondToGeneralChat_Change;
+                    RespondToAllegianceChat.Change -= RespondToAllegianceChat_Change;
                     AdsEnabled.Change -= AdsEnabled_Change;
                     BotPositioning.Change -= BotPositioning_Change;
                     AdInterval.Change -= AdInterval_Change;
