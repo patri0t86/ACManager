@@ -272,6 +272,7 @@ namespace ACManager.StateMachine.States
                 if (spellTable[i].Family.Equals(spell.Family) &&
                     spellTable[i].Difficulty < spell.Difficulty &&
                     !spellTable[i].IsUntargetted &&
+                    !spellTable[i].IsFellowship &&
                     spellTable[i].Duration >= 1800 &&
                     spellTable[i].Duration < spell.Duration)
                 {

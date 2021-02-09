@@ -20,7 +20,7 @@ namespace ACManager.StateMachine.States
             if (!StartedBuffing)
             {
                 machine.ChatManager.SendTell(machine.CurrentRequest.RequesterName, "I need to buff myself, standby.");
-                BuffProfile profile = machine.Level7Self ? machine.Utility.GetProfile("botbuffs7") : machine.Utility.GetProfile("botbuffs");
+                BuffProfile profile = machine.Utility.GetProfile("botbuffs");
                 machine.SpellsToCast.Clear();
                 foreach (Buff buff in profile.Buffs)
                 {
@@ -78,17 +78,29 @@ namespace ACManager.StateMachine.States
                             {
                                 if (machine.ComponentChecker.HaveComponents(machine.SpellsToCast[0].Id))
                                 {
-                                    if (machine.Core.CharacterFilter.EffectiveSkill[CharFilterSkillType.CreatureEnchantment] < 400 && !AddedPreBuffs)
-                                    {
-                                        AddedPreBuffs = true;
-                                        machine.SpellsToCast.Insert(0, machine.SpellTable.GetById(2067)); // focus 7
-                                        machine.SpellsToCast.Insert(0, machine.SpellTable.GetById(2091)); // self 7
-                                        machine.SpellsToCast.Insert(0, machine.SpellTable.GetById(2215)); // creature 7
-                                    }
-                                    else
-                                    {
-                                        machine.Core.Actions.CastSpell(machine.SpellsToCast[0].Id, 0);
-                                    }
+                                    //if (machine.Core.CharacterFilter.EffectiveSkill[CharFilterSkillType.CreatureEnchantment] < 400 && !AddedPreBuffs && !machine.Level7Self)
+                                    //{
+                                    //    AddedPreBuffs = true;
+                                    //    machine.SpellsToCast.Insert(0, machine.SpellTable.GetById(2067)); // focus 7
+                                    //    machine.SpellsToCast.Insert(0, machine.SpellTable.GetById(2091)); // self 7
+                                    //    machine.SpellsToCast.Insert(0, machine.SpellTable.GetById(2215)); // creature 7
+                                    //}
+                                    //else
+                                    //{
+                                        if (machine.Level7Self && machine.SpellsToCast[0].Difficulty > 300)
+                                        {
+                                            Spell fallbackSpell = FallbackBuffCheck(machine.SpellTable, machine.SpellsToCast[0]);
+                                            machine.SpellsToCast.RemoveAt(0);
+                                            if (fallbackSpell != null)
+                                            {
+                                                machine.SpellsToCast.Insert(0, fallbackSpell);
+                                            }
+                                        }
+                                        else
+                                        {
+                                            machine.Core.Actions.CastSpell(machine.SpellsToCast[0].Id, 0);
+                                        }                                        
+                                    //}
                                 }
                                 else
                                 {
@@ -135,7 +147,8 @@ namespace ACManager.StateMachine.States
             {
                 if (spellTable[i].Family.Equals(spell.Family) &&
                     spellTable[i].Difficulty < spell.Difficulty &&
-                    !spellTable[i].IsUntargetted &&
+                    spellTable[i].IsUntargetted &&
+                    !spellTable[i].IsFellowship &&
                     spellTable[i].Duration >= 1800 &&
                     spellTable[i].Duration < spell.Duration)
                 {

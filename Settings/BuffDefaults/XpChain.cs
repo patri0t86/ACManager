@@ -20,12 +20,11 @@ namespace ACManager.Settings.BuffDefaults
         {
             foreach (int spellId in SpellList)
             {
-                Buff buff = new Buff
+                Buffs.Add(new Buff
                 {
                     Id = spellId,
                     Name = CoreManager.Current.Filter<FileService>().SpellTable.GetById(spellId).Name
-                };
-                Buffs.Add(buff);
+                });
             }
         }
     }

@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using Decal.Adapter;
+using Decal.Filters;
+using System.Collections.Generic;
 
 namespace ACManager.Settings.BuffDefaults
 {
@@ -12,42 +14,42 @@ namespace ACManager.Settings.BuffDefaults
         public List<Buff> Buffs = new List<Buff>();
         public List<int> SpellList = new List<int>()
             {
-                2086,
-                2060,
-                2058,
-                2080,
-                2066,
-                2090,
-                2214,
-                2266,
-                2248,
-                2286,
-                2194,
-                2232,
-                2262,
+                4324,
+                4298,
+                4296,
+                4318,
+                4304,
+                4328,
+                4529,
+                4581,
+                4563,
+                4601,
+                4509,
+                4547,
+                4577,
                 3512,
-                2242,
-                2244,
-                2280,
-                2256,
-                2300,
-                2270,
-                2288,
-                2292,
-                2226,
-                6114,
-                2322,
-                2052,
-                2148,
-                2150,
-                2152,
-                2154,
-                2156,
-                2158,
-                2160,
-                2182,
-                2184,
-                2186,
+                4557,
+                4559,
+                4595,
+                4571,
+                4615,
+                4585,
+                4603,
+                4607,
+                4541,
+                6115,
+                4637,
+                4290,
+                4459,
+                4461,
+                4463,
+                4465,
+                4467,
+                4469,
+                4471,
+                4493,
+                4495,
+                4497,
                 5989,
                 6006,
                 6023
@@ -57,11 +59,11 @@ namespace ACManager.Settings.BuffDefaults
         {
             foreach (int spellId in SpellList)
             {
-                Buff buff = new Buff
+                Buffs.Add(new Buff
                 {
-                    Id = spellId
-                };
-                Buffs.Add(buff);
+                    Id = spellId,
+                    Name = CoreManager.Current.Filter<FileService>().SpellTable.GetById(spellId).Name
+                });
             }
         }
     }

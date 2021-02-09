@@ -337,7 +337,7 @@ namespace ACManager.StateMachine
                 sb.Append("My profile commands are: ");
                 for (int i = 0; i < profiles.Count; i++)
                 {
-                    if (!profiles[i].Equals("botbuffs") && !profiles[i].Equals("botbuffs7"))
+                    if (!profiles[i].Equals("botbuffs"))
                     {
                         if (!i.Equals(profiles.Count - 1))
                         {

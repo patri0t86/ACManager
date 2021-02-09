@@ -85,11 +85,6 @@ namespace ACManager.StateMachine
         public DateTime LastBroadcast { get; set; }
 
         /// <summary>
-        /// Used to selectively decline new commands as necessary.
-        /// </summary>
-        public bool DecliningCommands { get; set; }
-
-        /// <summary>
         /// Time the machine was turned on.
         /// </summary>
         public DateTime MachineStarted { get; set; }
