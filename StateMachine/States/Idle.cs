@@ -207,7 +207,6 @@ namespace ACManager.StateMachine.States
                     {
                         return false;
                     }
-                    Debug.ToChat($"{machine.SpellTable.GetById(requiredBuff.Id).Name} - OK");
                 }
                 return true;
             }
