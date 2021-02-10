@@ -250,6 +250,11 @@ namespace ACManager.StateMachine
         public SpellTable SpellTable { get; set; }
 
         /// <summary>
+        /// Manual override of magic skills for determining skill checks.
+        /// </summary>
+        public int SkillOverride { get; set; } = 0;
+
+        /// <summary>
         /// Create the state machine in the StoppedState and begin processing commands on intervals (every time a frame is rendered).
         /// </summary>
         public Machine(CoreManager core, string path)

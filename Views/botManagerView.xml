@@ -13,10 +13,10 @@
 
         <control progid="DecalControls.CheckBox"    name="BotPositioning"           left="5"    top="43"   width="200" height="16" text="Bot Navigation" />
         
-        <control progid="DecalControls.Edit"        name="AdInterval"               left="200"  top="62"   width="27"  height="19" text="" />
+        <control progid="DecalControls.Edit"        name="AdInterval"               left="200"  top="62"   width="30"  height="19" text="" />
         <control progid="DecalControls.StaticText"                                  left="235"  top="63"   width="150" height="16" text="Advertisement Interval" />        
 
-        <control progid="DecalControls.Edit"        name="DefaultHeading"           left="200"  top="85"   width="27"  height="19" text="" />
+        <control progid="DecalControls.Edit"        name="DefaultHeading"           left="200"  top="85"   width="30"  height="19" text="" />
         <control progid="DecalControls.StaticText"                                  left="235"  top="86"   width="110" height="16" text="Default Heading" />
         <control progid="DecalControls.PushButton"  name="SetHeading"               left="200"  top="43"   width="195" height="19" text="Use Current Heading" />
 
@@ -33,6 +33,10 @@
         
         <control progid="DecalControls.CheckBox"    name="StayBuffed"               left="5"    top="232"  width="140" height="16" text="Keep Buffs Alive" />
         <control progid="DecalControls.CheckBox"    name="Level7Self"               left="5"    top="251"  width="140" height="16" text="Level 7 Self Buffs" />
+
+        <control progid="DecalControls.StaticText"                                  left="5"    top="270"  width="150" height="16" text="Magic Skill Override" />
+        <control progid="DecalControls.Edit"        name="SkillOverride"            left="5"    top="289"  width="40"  height="19" text="0" />
+        
         <control progid="DecalControls.StaticText"  name="Version"                  left="5"    top="347"  width="390" height="16" text="" />
       </control>
     </page>

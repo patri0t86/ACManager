@@ -44,6 +44,7 @@ namespace ACManager.StateMachine.States
                 machine.BuffingCharacter = machine.Utility.BotSettings.BuffingCharacter;
                 machine.StayBuffed = machine.Utility.BotSettings.StayBuffed;
                 machine.Level7Self = machine.Utility.BotSettings.Level7Self;
+                machine.SkillOverride = machine.Utility.BotSettings.SkillOverride;
 
                 Debug.ToChat("Started successfully.");
                 machine.ChatManager.Broadcast($"/me is running ACManager {machine.Utility.Version} found at https://github.com/patri0t86/ACManager. Whisper 'help' to get started.");

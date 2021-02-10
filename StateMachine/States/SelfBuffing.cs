@@ -78,15 +78,15 @@ namespace ACManager.StateMachine.States
                             {
                                 if (machine.ComponentChecker.HaveComponents(machine.SpellsToCast[0].Id))
                                 {
-                                    //if (machine.Core.CharacterFilter.EffectiveSkill[CharFilterSkillType.CreatureEnchantment] < 400 && !AddedPreBuffs && !machine.Level7Self)
-                                    //{
-                                    //    AddedPreBuffs = true;
-                                    //    machine.SpellsToCast.Insert(0, machine.SpellTable.GetById(2067)); // focus 7
-                                    //    machine.SpellsToCast.Insert(0, machine.SpellTable.GetById(2091)); // self 7
-                                    //    machine.SpellsToCast.Insert(0, machine.SpellTable.GetById(2215)); // creature 7
-                                    //}
-                                    //else
-                                    //{
+                                    if (machine.Core.CharacterFilter.EffectiveSkill[CharFilterSkillType.CreatureEnchantment] < 400 && !AddedPreBuffs && !machine.Level7Self)
+                                    {
+                                        AddedPreBuffs = true;
+                                        machine.SpellsToCast.Insert(0, machine.SpellTable.GetById(2067)); // focus 7
+                                        machine.SpellsToCast.Insert(0, machine.SpellTable.GetById(2091)); // self 7
+                                        machine.SpellsToCast.Insert(0, machine.SpellTable.GetById(2215)); // creature 7
+                                    }
+                                    else
+                                    {
                                         if (machine.Level7Self && machine.SpellsToCast[0].Difficulty > 300)
                                         {
                                             Spell fallbackSpell = FallbackBuffCheck(machine.SpellTable, machine.SpellsToCast[0]);
@@ -99,8 +99,8 @@ namespace ACManager.StateMachine.States
                                         else
                                         {
                                             machine.Core.Actions.CastSpell(machine.SpellsToCast[0].Id, 0);
-                                        }                                        
-                                    //}
+                                        }
+                                    }
                                 }
                                 else
                                 {

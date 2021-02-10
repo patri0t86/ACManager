@@ -183,7 +183,19 @@ namespace ACManager.StateMachine.States
                                         {
                                             if (CastBanes)
                                             {
-                                                machine.Core.Actions.CastSpell(machine.SpellsToCast[0].Id, machine.CurrentRequest.RequesterGuid);
+                                                if (SkillCheck(machine, machine.SpellsToCast[0]))
+                                                {
+                                                    machine.Core.Actions.CastSpell(machine.SpellsToCast[0].Id, machine.CurrentRequest.RequesterGuid);
+                                                }
+                                                else
+                                                {
+                                                    Spell fallbackSpell = GetFallbackSpell(machine.SpellTable, machine.SpellsToCast[0]);
+                                                    machine.SpellsToCast.RemoveAt(0);
+                                                    if (fallbackSpell != null)
+                                                    {
+                                                        machine.SpellsToCast.Insert(0, fallbackSpell);
+                                                    }
+                                                }
                                             }
                                             else
                                             {
@@ -192,12 +204,24 @@ namespace ACManager.StateMachine.States
                                         }
                                         else
                                         {
-                                            machine.Core.Actions.CastSpell(machine.SpellsToCast[0].Id, machine.CurrentRequest.RequesterGuid);
+                                            if (SkillCheck(machine, machine.SpellsToCast[0]))
+                                            {
+                                                machine.Core.Actions.CastSpell(machine.SpellsToCast[0].Id, machine.CurrentRequest.RequesterGuid);
+                                            }
+                                            else
+                                            {
+                                                Spell fallbackSpell = GetFallbackSpell(machine.SpellTable, machine.SpellsToCast[0]);
+                                                machine.SpellsToCast.RemoveAt(0);
+                                                if (fallbackSpell != null)
+                                                {
+                                                    machine.SpellsToCast.Insert(0, fallbackSpell);
+                                                }
+                                            }
                                         }
                                     }
                                     else
                                     {
-                                        Spell fallbackSpell = FallbackSpellCheck(machine.SpellTable, machine.SpellsToCast[0]);
+                                        Spell fallbackSpell = GetFallbackSpell(machine.SpellTable, machine.SpellsToCast[0]);
                                         machine.SpellsToCast.RemoveAt(0);
                                         if (fallbackSpell != null)
                                         {
@@ -212,7 +236,7 @@ namespace ACManager.StateMachine.States
                                 }
                                 else
                                 {
-                                    Spell fallbackSpell = FallbackSpellCheck(machine.SpellTable, machine.SpellsToCast[0]);
+                                    Spell fallbackSpell = GetFallbackSpell(machine.SpellTable, machine.SpellsToCast[0]);
                                     machine.SpellsToCast.RemoveAt(0);
                                     if (fallbackSpell != null)
                                     {
@@ -264,7 +288,7 @@ namespace ACManager.StateMachine.States
             return false;
         }
 
-        private Spell FallbackSpellCheck(SpellTable spellTable, Spell spell)
+        private Spell GetFallbackSpell(SpellTable spellTable, Spell spell)
         {
             List<Spell> spellFamily = new List<Spell>();
             for (int i = 1; i < spellTable.Length; i++)
@@ -292,6 +316,23 @@ namespace ACManager.StateMachine.States
                 }
             }
             return fallback;
+        }
+
+        private bool SkillCheck(Machine machine, Spell spell)
+        {
+            switch (spell.School.Id)
+            {
+                case 2:
+                    return machine.Core.CharacterFilter.EffectiveSkill[CharFilterSkillType.LifeMagic] + machine.SkillOverride >= spell.Difficulty + 20;
+                case 3:
+                    return machine.Core.CharacterFilter.EffectiveSkill[CharFilterSkillType.ItemEnchantment] + machine.SkillOverride >= spell.Difficulty + 20;
+                case 4:
+                    return machine.Core.CharacterFilter.EffectiveSkill[CharFilterSkillType.CreatureEnchantment] + machine.SkillOverride >= spell.Difficulty + 20;
+                default:
+                    // Void or War
+                    return false;
+            }
+
         }
     }
 }
