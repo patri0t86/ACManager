@@ -43,7 +43,7 @@ namespace ACManager.Settings.BuffDefaults
                 5826,
                 5874,
                 5097,
-                4290,
+                2052,
                 4471,
                 4461,
                 4463,
