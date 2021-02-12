@@ -104,7 +104,14 @@ namespace ACManager.StateMachine
 
             if (Machine.RespondToAllegiance)
             {
-                CheckCommands(guid, message);
+                if ((message.Equals("whereto") || message.Equals("where to")))
+                {
+                    RespondWithPortals();
+                }
+                else
+                {
+                    CheckCommands(guid, message);
+                }
             }
         }
 
