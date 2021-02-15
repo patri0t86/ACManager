@@ -2,7 +2,6 @@
 using Decal.Adapter.Wrappers;
 using Decal.Filters;
 using System;
-using System.Collections.Generic;
 
 namespace ACManager.StateMachine.States
 {
@@ -89,7 +88,7 @@ namespace ACManager.StateMachine.States
                                     {
                                         if (machine.Level7Self && machine.SpellsToCast[0].Difficulty > 300)
                                         {
-                                            Spell fallbackSpell = FallbackBuffCheck(machine.SpellTable, machine.SpellsToCast[0]);
+                                            Spell fallbackSpell = machine.GetFallbackSpell(machine.SpellsToCast[0], true);
                                             machine.SpellsToCast.RemoveAt(0);
                                             if (fallbackSpell != null)
                                             {
@@ -111,7 +110,7 @@ namespace ACManager.StateMachine.States
                             }
                             else
                             {
-                                Spell fallbackSpell = FallbackBuffCheck(machine.SpellTable, machine.SpellsToCast[0]);
+                                Spell fallbackSpell = machine.GetFallbackSpell(machine.SpellsToCast[0], true);
                                 machine.SpellsToCast.RemoveAt(0);
                                 if (fallbackSpell != null)
                                 {
@@ -138,36 +137,6 @@ namespace ACManager.StateMachine.States
         public override string ToString()
         {
             return nameof(SelfBuffing);
-        }
-
-        private Spell FallbackBuffCheck(SpellTable spellTable, Spell spell)
-        {
-            List<Spell> spellFamily = new List<Spell>();
-            for (int i = 1; i < spellTable.Length; i++)
-            {
-                if (spellTable[i].Family.Equals(spell.Family) &&
-                    spellTable[i].Difficulty < spell.Difficulty &&
-                    spellTable[i].IsUntargetted &&
-                    !spellTable[i].IsFellowship &&
-                    spellTable[i].Duration >= 1800 &&
-                    spellTable[i].Duration < spell.Duration)
-                {
-                    spellFamily.Add(spellTable[i]);
-                }
-            }
-
-            int maxDiff = 0;
-            Spell fallback = null;
-
-            foreach (Spell sp in spellFamily)
-            {
-                if (sp.Difficulty > maxDiff)
-                {
-                    fallback = sp;
-                    maxDiff = sp.Difficulty;
-                }
-            }
-            return fallback;
         }
     }
 }

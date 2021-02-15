@@ -155,7 +155,7 @@ namespace ACManager.StateMachine.States
                             }
                             else
                             {
-                                if (machine.Core.CharacterFilter.IsSpellKnown(machine.SpellsToCast[0].Id))
+                                if (machine.Core.CharacterFilter.IsSpellKnown(machine.SpellsToCast[0].Id) && machine.SpellSkillCheck(machine.SpellsToCast[0]))
                                 {
                                     if (machine.ComponentChecker.HaveComponents(machine.SpellsToCast[0].Id))
                                     {
@@ -179,64 +179,28 @@ namespace ACManager.StateMachine.States
 
                                         LastSpell = machine.SpellsToCast[0].Id;
 
-                                        if (SpellIsBane(machine.SpellsToCast[0]))
+                                        if (IsBane(machine.SpellsToCast[0]) && CastBanes)
                                         {
-                                            if (CastBanes)
-                                            {
-                                                if (SkillCheck(machine, machine.SpellsToCast[0]))
-                                                {
-                                                    machine.Core.Actions.CastSpell(machine.SpellsToCast[0].Id, machine.CurrentRequest.RequesterGuid);
-                                                }
-                                                else
-                                                {
-                                                    Spell fallbackSpell = GetFallbackSpell(machine.SpellTable, machine.SpellsToCast[0]);
-                                                    machine.SpellsToCast.RemoveAt(0);
-                                                    if (fallbackSpell != null)
-                                                    {
-                                                        machine.SpellsToCast.Insert(0, fallbackSpell);
-                                                    }
-                                                }
-                                            }
-                                            else
-                                            {
-                                                machine.SpellsToCast.RemoveAt(0);
-                                            }
+                                            machine.Core.Actions.CastSpell(machine.SpellsToCast[0].Id, machine.CurrentRequest.RequesterGuid);
+                                        }
+                                        else if (IsBane(machine.SpellsToCast[0]) && !CastBanes)
+                                        {
+                                            machine.SpellsToCast.RemoveAt(0);
                                         }
                                         else
                                         {
-                                            if (SkillCheck(machine, machine.SpellsToCast[0]))
-                                            {
-                                                machine.Core.Actions.CastSpell(machine.SpellsToCast[0].Id, machine.CurrentRequest.RequesterGuid);
-                                            }
-                                            else
-                                            {
-                                                Spell fallbackSpell = GetFallbackSpell(machine.SpellTable, machine.SpellsToCast[0]);
-                                                machine.SpellsToCast.RemoveAt(0);
-                                                if (fallbackSpell != null)
-                                                {
-                                                    machine.SpellsToCast.Insert(0, fallbackSpell);
-                                                }
-                                            }
+                                            machine.Core.Actions.CastSpell(machine.SpellsToCast[0].Id, machine.CurrentRequest.RequesterGuid);
                                         }
                                     }
                                     else
                                     {
-                                        Spell fallbackSpell = GetFallbackSpell(machine.SpellTable, machine.SpellsToCast[0]);
-                                        machine.SpellsToCast.RemoveAt(0);
-                                        if (fallbackSpell != null)
-                                        {
-                                            machine.SpellsToCast.Insert(0, fallbackSpell);
-                                        }
-                                        else
-                                        {
-                                            machine.ChatManager.Broadcast($"I have run out of spell components.");
-                                            machine.SpellsToCast.Clear();
-                                        }
+                                        machine.ChatManager.Broadcast($"I have run out of spell components.");
+                                        machine.SpellsToCast.Clear();
                                     }
                                 }
                                 else
                                 {
-                                    Spell fallbackSpell = GetFallbackSpell(machine.SpellTable, machine.SpellsToCast[0]);
+                                    Spell fallbackSpell = machine.GetFallbackSpell(machine.SpellsToCast[0]);
                                     machine.SpellsToCast.RemoveAt(0);
                                     if (fallbackSpell != null)
                                     {
@@ -264,7 +228,7 @@ namespace ACManager.StateMachine.States
             return nameof(Casting);
         }
 
-        private bool SpellIsBane(Spell spell)
+        private bool IsBane(Spell spell)
         {
             return spell.Family.Equals(160)
                 || spell.Family.Equals(162)
@@ -280,59 +244,12 @@ namespace ACManager.StateMachine.States
         {
             foreach (Spell spell in spells)
             {
-                if (SpellIsBane(spell))
+                if (IsBane(spell))
                 {
                     return true;
                 }
             }
             return false;
-        }
-
-        private Spell GetFallbackSpell(SpellTable spellTable, Spell spell)
-        {
-            List<Spell> spellFamily = new List<Spell>();
-            for (int i = 1; i < spellTable.Length; i++)
-            {
-                if (spellTable[i].Family.Equals(spell.Family) &&
-                    spellTable[i].Difficulty < spell.Difficulty &&
-                    !spellTable[i].IsUntargetted &&
-                    !spellTable[i].IsFellowship &&
-                    spellTable[i].Duration >= 1800 &&
-                    spellTable[i].Duration < spell.Duration)
-                {
-                    spellFamily.Add(spellTable[i]);
-                }
-            }
-
-            int maxDiff = 0;
-            Spell fallback = null;
-
-            foreach (Spell sp in spellFamily)
-            {
-                if (sp.Difficulty > maxDiff)
-                {
-                    fallback = sp;
-                    maxDiff = sp.Difficulty;
-                }
-            }
-            return fallback;
-        }
-
-        private bool SkillCheck(Machine machine, Spell spell)
-        {
-            switch (spell.School.Id)
-            {
-                case 2:
-                    return machine.Core.CharacterFilter.EffectiveSkill[CharFilterSkillType.LifeMagic] + machine.SkillOverride >= spell.Difficulty + 20;
-                case 3:
-                    return machine.Core.CharacterFilter.EffectiveSkill[CharFilterSkillType.ItemEnchantment] + machine.SkillOverride >= spell.Difficulty + 20;
-                case 4:
-                    return machine.Core.CharacterFilter.EffectiveSkill[CharFilterSkillType.CreatureEnchantment] + machine.SkillOverride >= spell.Difficulty + 20;
-                default:
-                    // Void or War
-                    return false;
-            }
-
         }
     }
 }

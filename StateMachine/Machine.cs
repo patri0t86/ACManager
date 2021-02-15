@@ -364,5 +364,42 @@ namespace ACManager.StateMachine
                 && Core.Actions.Heading >= NextHeading - 1)
                 || NextHeading.Equals(-1);
         }
+
+        public bool SpellSkillCheck(Spell spell)
+        {
+            switch (spell.School.Id)
+            {
+                case 2:
+                    return Core.CharacterFilter.EffectiveSkill[CharFilterSkillType.LifeMagic] + SkillOverride >= spell.Difficulty + 20;
+                case 3:
+                    return Core.CharacterFilter.EffectiveSkill[CharFilterSkillType.ItemEnchantment] + SkillOverride >= spell.Difficulty + 20;
+                case 4:
+                    return Core.CharacterFilter.EffectiveSkill[CharFilterSkillType.CreatureEnchantment] + SkillOverride >= spell.Difficulty + 20;
+                default:
+                    // Void or War
+                    return false;
+            }
+        }
+
+        public Spell GetFallbackSpell(Spell spell, bool IsUntargetted = false)
+        {
+            Spell fallback = null;
+            for (int i = 1; i < SpellTable.Length; i++)
+            {
+                if (SpellTable[i].Family.Equals(spell.Family) &&
+                    SpellTable[i].Difficulty < spell.Difficulty &&
+                    SpellTable[i].IsUntargetted.Equals(IsUntargetted) &&
+                    !SpellTable[i].IsFellowship &&
+                    (SpellTable[i].Duration >= 1800 && SpellTable[i].Duration < spell.Duration || SpellTable[i].Duration == -1))
+                {
+                    if (fallback == null || SpellTable[i].Difficulty > fallback.Difficulty)
+                    {
+                        fallback = SpellTable[i];
+                    }
+                }
+            }
+
+            return fallback;
+        }
     }
 }

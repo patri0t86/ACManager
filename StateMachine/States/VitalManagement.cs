@@ -1,6 +1,5 @@
 ﻿using Decal.Adapter.Wrappers;
 using Decal.Filters;
-using System.Collections.Generic;
 
 namespace ACManager.StateMachine.States
 {
@@ -57,13 +56,13 @@ namespace ACManager.StateMachine.States
                     {
                         if (machine.Core.CharacterFilter.Stamina < machine.StaminaThreshold * machine.Core.CharacterFilter.EffectiveVital[CharFilterVitalType.Stamina])
                         {
-                            if (machine.Core.CharacterFilter.IsSpellKnown(RevitalizeSelf.Id) && SkillCheck(machine, RevitalizeSelf))
+                            if (machine.Core.CharacterFilter.IsSpellKnown(RevitalizeSelf.Id) && machine.SpellSkillCheck(RevitalizeSelf) && machine.ComponentChecker.HaveComponents(RevitalizeSelf.Id))
                             {
                                 machine.Core.Actions.CastSpell(RevitalizeSelf.Id, 0);
                             }
                             else
                             {
-                                FallbackCheck(machine.SpellTable, RevitalizeSelf);
+                                RevitalizeSelf = machine.GetFallbackSpell(RevitalizeSelf, true);
                             }
                         }
                         else
@@ -81,31 +80,31 @@ namespace ACManager.StateMachine.States
 
         private void RegainMana(Machine machine)
         {
-            if (machine.Core.CharacterFilter.IsSpellKnown(2345) && SkillCheck(machine, machine.SpellTable.GetById(2345)))
+            if (machine.Core.CharacterFilter.IsSpellKnown(2345) && machine.SpellSkillCheck(machine.SpellTable.GetById(2345)) && machine.ComponentChecker.HaveComponents(2345))
             {
                 machine.Core.Actions.CastSpell(2345, 0);
             }
-            else if (machine.Core.CharacterFilter.IsSpellKnown(1681) && SkillCheck(machine, machine.SpellTable.GetById(1681)))
+            else if (machine.Core.CharacterFilter.IsSpellKnown(1681) && machine.SpellSkillCheck(machine.SpellTable.GetById(1681)) && machine.ComponentChecker.HaveComponents(1681))
             {
                 machine.Core.Actions.CastSpell(1681, 0);
             }
-            else if (machine.Core.CharacterFilter.IsSpellKnown(1680) && SkillCheck(machine, machine.SpellTable.GetById(1680)))
+            else if (machine.Core.CharacterFilter.IsSpellKnown(1680) && machine.SpellSkillCheck(machine.SpellTable.GetById(1680)) && machine.ComponentChecker.HaveComponents(1680))
             {
                 machine.Core.Actions.CastSpell(1680, 0);
             }
-            else if (machine.Core.CharacterFilter.IsSpellKnown(1679) && SkillCheck(machine, machine.SpellTable.GetById(1679)))
+            else if (machine.Core.CharacterFilter.IsSpellKnown(1679) && machine.SpellSkillCheck(machine.SpellTable.GetById(1679)) && machine.ComponentChecker.HaveComponents(1679))
             {
                 machine.Core.Actions.CastSpell(1679, 0);
             }
-            else if (machine.Core.CharacterFilter.IsSpellKnown(1678) && SkillCheck(machine, machine.SpellTable.GetById(1678)))
+            else if (machine.Core.CharacterFilter.IsSpellKnown(1678) && machine.SpellSkillCheck(machine.SpellTable.GetById(1678)) && machine.ComponentChecker.HaveComponents(1678))
             {
                 machine.Core.Actions.CastSpell(1678, 0);
             }
-            else if (machine.Core.CharacterFilter.IsSpellKnown(1677) && SkillCheck(machine, machine.SpellTable.GetById(1677)))
+            else if (machine.Core.CharacterFilter.IsSpellKnown(1677) && machine.SpellSkillCheck(machine.SpellTable.GetById(1677)) && machine.ComponentChecker.HaveComponents(1677))
             {
                 machine.Core.Actions.CastSpell(1677, 0);
             }
-            else if (machine.Core.CharacterFilter.IsSpellKnown(1676) && SkillCheck(machine, machine.SpellTable.GetById(1676)))
+            else if (machine.Core.CharacterFilter.IsSpellKnown(1676) && machine.SpellSkillCheck(machine.SpellTable.GetById(1676)) && machine.ComponentChecker.HaveComponents(1676))
             {
                 machine.Core.Actions.CastSpell(1676, 0);
             }
@@ -114,44 +113,6 @@ namespace ACManager.StateMachine.States
         public override string ToString()
         {
             return nameof(VitalManagement);
-        }
-
-        private void FallbackCheck(SpellTable spellTable, Spell spell)
-        {
-            List<Spell> spellFamily = new List<Spell>();
-            for (int i = 1; i < spellTable.Length; i++)
-            {
-                if (spellTable[i].Family.Equals(spell.Family) &&
-                    spellTable[i].Difficulty < spell.Difficulty &&
-                    spellTable[i].IsUntargetted &&
-                    !spellTable[i].IsFellowship &&
-                    spellTable[i].Duration == -1)
-                {
-                    spellFamily.Add(spellTable[i]);
-                }
-            }
-
-            int maxDiff = 0;
-            Spell fallback = null;
-
-            foreach (Spell sp in spellFamily)
-            {
-                if (sp.Difficulty > maxDiff)
-                {
-                    fallback = sp;
-                    maxDiff = sp.Difficulty;
-                }
-            }
-
-            if (fallback.Family.Equals(RevitalizeSelf.Family))
-            {
-                RevitalizeSelf = fallback;
-            }
-        }
-
-        private bool SkillCheck(Machine machine, Spell spell)
-        {
-            return machine.Core.CharacterFilter.EffectiveSkill[CharFilterSkillType.LifeMagic] + machine.SkillOverride >= spell.Difficulty + 20;
         }
     }
 }
