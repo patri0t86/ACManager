@@ -115,18 +115,6 @@ namespace ACManager.StateMachine
                     CheckCommands(guid, message);
                 }
             }
-
-            //if (Machine.RespondToAllegiance)
-            //{
-            //    if (message.Equals("whereto") || message.Equals("where to"))
-            //    {
-            //        RespondWithPortals();
-            //    }
-            //    else
-            //    {
-            //        CheckCommands(guid, message);
-            //    }
-            //}
         }
 
         /// <summary>
