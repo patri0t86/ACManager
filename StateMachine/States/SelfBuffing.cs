@@ -11,7 +11,6 @@ namespace ACManager.StateMachine.States
     class SelfBuffing : StateBase<SelfBuffing>, IState
     {
         private bool StartedBuffing { get; set; }
-        private bool AddedPreBuffs { get; set; }
         private DateTime EnteredState { get; set; }
         public void Enter(Machine machine)
         {
@@ -21,17 +20,33 @@ namespace ACManager.StateMachine.States
                 machine.ChatManager.SendTell(machine.CurrentRequest.RequesterName, "I need to buff myself, standby.");
                 BuffProfile profile = machine.Utility.GetProfile("botbuffs");
                 machine.SpellsToCast.Clear();
+
                 foreach (Buff buff in profile.Buffs)
                 {
-                    machine.SpellsToCast.Add(machine.SpellTable.GetById(buff.Id));
+                    if (machine.Level7Self && machine.SpellTable.GetById(buff.Id).Difficulty > 300)
+                    {
+                        machine.SpellsToCast.Add(machine.GetFallbackSpell(machine.SpellTable.GetById(buff.Id), true));
+                    }
+                    else
+                    {
+                        machine.SpellsToCast.Add(machine.SpellTable.GetById(buff.Id));
+                    }
                 }
+
+                if (machine.Core.CharacterFilter.EffectiveSkill[CharFilterSkillType.CreatureEnchantment] < 400 && !machine.Level7Self)
+                {
+                    machine.SpellsToCast.Insert(0, machine.SpellTable.GetById(2215)); // creature 7
+                    machine.SpellsToCast.Insert(0, machine.SpellTable.GetById(2067)); // focus 7
+                    machine.SpellsToCast.Insert(0, machine.SpellTable.GetById(2091)); // self 7
+                }
+
                 StartedBuffing = true;
             }
         }
 
         public void Exit(Machine machine)
         {
-            AddedPreBuffs = false;
+
         }
 
         public void Process(Machine machine)
@@ -73,33 +88,11 @@ namespace ACManager.StateMachine.States
                                     machine.Core.Actions.SetCombatMode(CombatState.Magic);
                                 }
                             }
-                            else if (machine.Core.CharacterFilter.IsSpellKnown(machine.SpellsToCast[0].Id))
+                            else if (machine.Core.CharacterFilter.IsSpellKnown(machine.SpellsToCast[0].Id) && machine.SpellSkillCheck(machine.SpellsToCast[0]))
                             {
                                 if (machine.ComponentChecker.HaveComponents(machine.SpellsToCast[0].Id))
                                 {
-                                    if (machine.Core.CharacterFilter.EffectiveSkill[CharFilterSkillType.CreatureEnchantment] < 400 && !AddedPreBuffs && !machine.Level7Self)
-                                    {
-                                        AddedPreBuffs = true;
-                                        machine.SpellsToCast.Insert(0, machine.SpellTable.GetById(2067)); // focus 7
-                                        machine.SpellsToCast.Insert(0, machine.SpellTable.GetById(2091)); // self 7
-                                        machine.SpellsToCast.Insert(0, machine.SpellTable.GetById(2215)); // creature 7
-                                    }
-                                    else
-                                    {
-                                        if (machine.Level7Self && machine.SpellsToCast[0].Difficulty > 300)
-                                        {
-                                            Spell fallbackSpell = machine.GetFallbackSpell(machine.SpellsToCast[0], true);
-                                            machine.SpellsToCast.RemoveAt(0);
-                                            if (fallbackSpell != null)
-                                            {
-                                                machine.SpellsToCast.Insert(0, fallbackSpell);
-                                            }
-                                        }
-                                        else
-                                        {
-                                            machine.Core.Actions.CastSpell(machine.SpellsToCast[0].Id, 0);
-                                        }
-                                    }
+                                    machine.Core.Actions.CastSpell(machine.SpellsToCast[0].Id, 0);
                                 }
                                 else
                                 {

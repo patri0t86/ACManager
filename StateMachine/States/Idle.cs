@@ -179,7 +179,7 @@ namespace ACManager.StateMachine.States
 
                     if (machine.Level7Self && spell.Difficulty > 300)
                     {                        
-                        requiredBuffs.Add(FallbackBuffCheck(machine.SpellTable, spell));
+                        requiredBuffs.Add(machine.GetFallbackSpell(spell));
                     }
                     else
                     {
@@ -215,36 +215,6 @@ namespace ACManager.StateMachine.States
                 Debug.ToChat(ex.Message);
                 return false;
             }
-        }
-
-        private Spell FallbackBuffCheck(SpellTable spellTable, Spell spell)
-        {
-            List<Spell> spellFamily = new List<Spell>();
-            for (int i = 1; i < spellTable.Length; i++)
-            {
-                if (spellTable[i].Family.Equals(spell.Family) &&
-                    spellTable[i].Difficulty < spell.Difficulty &&
-                    spellTable[i].IsUntargetted &&
-                    !spellTable[i].IsFellowship &&
-                    spellTable[i].Duration >= 1800 &&
-                    spellTable[i].Duration < spell.Duration)
-                {
-                    spellFamily.Add(spellTable[i]);
-                }
-            }
-
-            int maxDiff = 0;
-            Spell fallback = null;
-
-            foreach (Spell sp in spellFamily)
-            {
-                if (sp.Difficulty > maxDiff)
-                {
-                    fallback = sp;
-                    maxDiff = sp.Difficulty;
-                }
-            }
-            return fallback;
         }
     }
 }
