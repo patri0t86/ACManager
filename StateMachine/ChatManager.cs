@@ -18,13 +18,16 @@ namespace ACManager.StateMachine
         private Machine Machine { get; set; }
         private string CharacterMakingRequest { get; set; }
         private Regex LocalMatch { get; set; }
-        private readonly string localPattern = "IIDString:(?<guid>\\d+):(?<name>.+?)>.*says, \"(?<message>.*)\"";
+        // <Tell:IIDString:####:Name>Name<\Tell> says, "message"
+        private readonly string localPattern = "^<Tell:IIDString:(?<guid>\\d+):(?<name>.+?)>.*says, \"(?<message>.*)\"";
         private Regex TellMatch { get; set; }
-        private readonly string tellPattern = "IIDString:(?<guid>\\d+):(?<name>.+?)>.*tells you, \"(?<message>.*)\"";
+        // <Tell:IIDString:####:Name>Name<\Tell> tells you, "message"
+        private readonly string tellPattern = "^<Tell:IIDString:(?<guid>\\d+):(?<name>.+?)>.*tells you, \"(?<message>.*)\"";
         private Regex GiftMatch { get; set; }
         private readonly string giftPattern = "(?<name>.+?) gives you (?<gift>.*?)\\.";
         private Regex AllegianceMatch { get; set; }
-        private readonly string allegiancePattern = ".*Allegiance.*IIDString:(?<guid>\\d+):(?<name>.+?)>.*says, \"(?<message>.*)\"";
+        // [Allegiance] <Tell:IIDString:0:Name>Name<\Tell> says, "message"
+        private readonly string allegiancePattern = "^\\[Allegiance] <Tell:IIDString:(?<guid>0):(?<name>.+?)>.*says, \"(?<message>.*)\"";
 
         /// <summary>
         /// Instantiates the ChatManager and sets the internal state machine instance to this.
@@ -86,7 +89,7 @@ namespace ACManager.StateMachine
 
             if (!guid.Equals(0)) // guid = 0 is said in general/trade/etc. not in local chat
             {
-                if ((message.Equals("whereto") || message.Equals("where to")))
+                if (message.Equals("whereto") || message.Equals("where to"))
                 {
                     RespondWithPortals();
                 }
@@ -101,10 +104,9 @@ namespace ACManager.StateMachine
                     CheckCommands(guid, message);
                 }
             }
-
-            if (Machine.RespondToAllegiance)
+            else if (guid.Equals(0) && Machine.RespondToAllegiance)
             {
-                if ((message.Equals("whereto") || message.Equals("where to")))
+                if (message.Equals("whereto") || message.Equals("where to"))
                 {
                     RespondWithPortals();
                 }
@@ -113,6 +115,18 @@ namespace ACManager.StateMachine
                     CheckCommands(guid, message);
                 }
             }
+
+            //if (Machine.RespondToAllegiance)
+            //{
+            //    if (message.Equals("whereto") || message.Equals("where to"))
+            //    {
+            //        RespondWithPortals();
+            //    }
+            //    else
+            //    {
+            //        CheckCommands(guid, message);
+            //    }
+            //}
         }
 
         /// <summary>
