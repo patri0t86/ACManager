@@ -82,6 +82,9 @@ namespace ACManager.Settings
         [XmlElement(IsNullable = false)]
         public bool Level7Self;
 
+        [XmlElement(IsNullable = false)]
+        public int SkillOverride;
+
         public List<GemSetting> GemSettings = new List<GemSetting>();
 
         public List<Advertisement> Advertisements = new List<Advertisement>();

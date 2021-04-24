@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using Decal.Adapter;
+using Decal.Filters;
+using System.Collections.Generic;
 
 namespace ACManager.Settings.BuffDefaults
 {
@@ -6,27 +8,23 @@ namespace ACManager.Settings.BuffDefaults
     {
         public List<string> Commands = new List<string>()
             {
-                "xpchain",
                 "xp"
             };
         public List<Buff> Buffs = new List<Buff>();
         public List<int> SpellList = new List<int>()
             {
-                2086,
-                2080,
-                2300,
-                2232,
-                2262
+                4547,
+                4577
             };
         public XpChain()
         {
             foreach (int spellId in SpellList)
             {
-                Buff buff = new Buff
+                Buffs.Add(new Buff
                 {
-                    SpellId = spellId
-                };
-                Buffs.Add(buff);
+                    Id = spellId,
+                    Name = CoreManager.Current.Filter<FileService>().SpellTable.GetById(spellId).Name
+                });
             }
         }
     }

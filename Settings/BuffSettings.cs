@@ -15,6 +15,9 @@ namespace ACManager.Settings
     public class Buff
     {
         [XmlAttribute]
-        public int SpellId;
+        public int Id;
+
+        [XmlAttribute]
+        public string Name;
     }
 }

@@ -3,6 +3,7 @@ using ACManager.StateMachine.States;
 using ACManager.Views;
 using Decal.Adapter;
 using Decal.Adapter.Wrappers;
+using Decal.Filters;
 using System;
 using System.Collections.Generic;
 
@@ -51,7 +52,7 @@ namespace ACManager.StateMachine
         /// <summary>
         /// List of spells to cast.
         /// </summary>
-        public List<int> SpellsToCast { get; set; } = new List<int>();
+        public List<Spell> SpellsToCast { get; set; } = new List<Spell>();
 
         /// <summary>
         /// An instance of the ChatManager to handle all chat commands/requests.
@@ -82,11 +83,6 @@ namespace ACManager.StateMachine
         /// Time reference to control when advertisements are broadcast.
         /// </summary>
         public DateTime LastBroadcast { get; set; }
-
-        /// <summary>
-        /// Used to selectively decline new commands as necessary.
-        /// </summary>
-        public bool DecliningCommands { get; set; }
 
         /// <summary>
         /// Time the machine was turned on.
@@ -149,7 +145,7 @@ namespace ACManager.StateMachine
         public bool RespondToAllegiance { get; set; } = false;
 
         /// <summary>
-        /// Determines the output style of the 
+        /// Determines the output style of the list of portals.
         /// </summary>
         public int Verbosity { get; set; } = 0;
 
@@ -249,6 +245,16 @@ namespace ACManager.StateMachine
         public bool FinishedInitialScan { get; set; }
 
         /// <summary>
+        /// Entire spell table read from the used .dat file.
+        /// </summary>
+        public SpellTable SpellTable { get; set; }
+
+        /// <summary>
+        /// Manual override of magic skills for determining skill checks.
+        /// </summary>
+        public int SkillOverride { get; set; } = 0;
+
+        /// <summary>
         /// Create the state machine in the StoppedState and begin processing commands on intervals (every time a frame is rendered).
         /// </summary>
         public Machine(CoreManager core, string path)
@@ -260,6 +266,7 @@ namespace ACManager.StateMachine
             ComponentChecker = new ComponentChecker(Core);
             Inventory = new Inventory(this);
             RandomNumber = new Random();
+            SpellTable = Core.Filter<FileService>().SpellTable;
         }
 
         public void WorldFilter_ChangeObject(object sender, ChangeObjectEventArgs e)
@@ -356,6 +363,43 @@ namespace ACManager.StateMachine
             return (Core.Actions.Heading <= NextHeading + 1
                 && Core.Actions.Heading >= NextHeading - 1)
                 || NextHeading.Equals(-1);
+        }
+
+        public bool SpellSkillCheck(Spell spell)
+        {
+            switch (spell.School.Id)
+            {
+                case 2:
+                    return Core.CharacterFilter.EffectiveSkill[CharFilterSkillType.LifeMagic] + SkillOverride >= spell.Difficulty + 20;
+                case 3:
+                    return Core.CharacterFilter.EffectiveSkill[CharFilterSkillType.ItemEnchantment] + SkillOverride >= spell.Difficulty + 20;
+                case 4:
+                    return Core.CharacterFilter.EffectiveSkill[CharFilterSkillType.CreatureEnchantment] + SkillOverride >= spell.Difficulty + 20;
+                default:
+                    // Void or War
+                    return false;
+            }
+        }
+
+        public Spell GetFallbackSpell(Spell spell, bool IsUntargetted = false)
+        {
+            Spell fallback = null;
+            for (int i = 1; i < SpellTable.Length; i++)
+            {
+                if (SpellTable[i].Family.Equals(spell.Family) &&
+                    SpellTable[i].Difficulty < spell.Difficulty &&
+                    SpellTable[i].IsUntargetted.Equals(IsUntargetted) &&
+                    !SpellTable[i].IsFellowship &&
+                    (SpellTable[i].Duration >= 1800 && SpellTable[i].Duration < spell.Duration || SpellTable[i].Duration == -1))
+                {
+                    if (fallback == null || SpellTable[i].Difficulty > fallback.Difficulty)
+                    {
+                        fallback = SpellTable[i];
+                    }
+                }
+            }
+
+            return fallback;
         }
     }
 }

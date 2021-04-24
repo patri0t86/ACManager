@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using Decal.Adapter;
+using Decal.Filters;
+using System.Collections.Generic;
 
 namespace ACManager.Settings.BuffDefaults
 {
@@ -14,35 +16,35 @@ namespace ACManager.Settings.BuffDefaults
         public List<Buff> Buffs = new List<Buff>();
         public List<int> SpellList = new List<int>()
             {
-                2086,
-                2060,
-                2058,
-                2080,
-                2066,
-                2090,
-                2194,
+                4324,
+                4298,
+                4296,
+                4318,
+                4304,
+                4328,
+                4509,
                 3512,
-                2270,
-                2190,
-                2210,
-                2236,
-                2196,
-                2250,
-                2276,
-                2324,
-                2184,
-                2186,
-                2182
+                4585,
+                4505,
+                4525,
+                4551,
+                4511,
+                4565,
+                4591,
+                4639,
+                4495,
+                4497,
+                4493
             };
         public Trades()
         {
             foreach (int spellId in SpellList)
             {
-                Buff buff = new Buff
+                Buffs.Add(new Buff
                 {
-                    SpellId = spellId
-                };
-                Buffs.Add(buff);
+                    Id = spellId,
+                    Name = CoreManager.Current.Filter<FileService>().SpellTable.GetById(spellId).Name
+                });
             }
         }
     }

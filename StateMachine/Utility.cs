@@ -409,16 +409,11 @@ namespace ACManager.StateMachine
 
         internal void GenerateDefaultProfiles()
         {
-            BuffProfile newProfile = new BuffProfile();
+            BuffProfile newProfile = new BuffProfile();          
 
             BotBuffs botBuffs = new BotBuffs();
             newProfile.Commands = botBuffs.Commands;
             newProfile.Buffs = botBuffs.Buffs;
-            SaveBuffProfile(newProfile);
-
-            BotBuffs7 botBuffs7 = new BotBuffs7();
-            newProfile.Commands = botBuffs7.Commands;
-            newProfile.Buffs = botBuffs7.Buffs;
             SaveBuffProfile(newProfile);
 
             Banes banes = new Banes();

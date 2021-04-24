@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Decal.Filters;
+using System;
 using System.Collections.Generic;
 
 namespace ACManager.StateMachine.Queues
@@ -9,7 +10,7 @@ namespace ACManager.StateMachine.Queues
         public string RequesterName = "";
         public int RequesterGuid;
         public string Character;
-        public List<int> SpellsToCast = new List<int>();
+        public List<Spell> SpellsToCast = new List<Spell>();
         public double Heading = -1;
         public string Destination;
         public string ItemToUse;

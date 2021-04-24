@@ -75,8 +75,8 @@ namespace ACManager
                     AccountCharacters.Add(characterStruct.Struct(i)["name"].ToString());
                 }
 
-                // Must sort the characters alphabetically to be in the same order as displayed
-                AccountCharacters.Sort();
+                // Must sort the characters ordinally to be in the same order as displayed
+                AccountCharacters.Sort((a, b) => String.Compare(a, b, StringComparison.Ordinal));
             }
 
             // Login Character

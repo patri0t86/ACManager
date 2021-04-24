@@ -1,6 +1,7 @@
 ﻿using ACManager.Settings;
 using ACManager.StateMachine.Queues;
 using Decal.Adapter.Wrappers;
+using Decal.Filters;
 using System;
 using System.Collections.Generic;
 
@@ -169,31 +170,40 @@ namespace ACManager.StateMachine.States
         {
             try
             {
-                BuffProfile profile = machine.Level7Self ? machine.Utility.GetProfile("botbuffs7") : machine.Utility.GetProfile("botbuffs");
+                BuffProfile profile = machine.Utility.GetProfile("botbuffs");
 
-                List<int> requiredBuffs = new List<int>();
+                List<Spell> requiredBuffs = new List<Spell>();
                 foreach (Buff buff in profile.Buffs)
                 {
-                    requiredBuffs.Add(buff.SpellId);
+                    Spell spell = machine.SpellTable.GetById(buff.Id);
+
+                    if (machine.Level7Self && spell.Difficulty > 300)
+                    {
+                        requiredBuffs.Add(machine.GetFallbackSpell(spell, true));
+                    }
+                    else
+                    {
+                        requiredBuffs.Add(spell);
+                    }
                 }
 
                 Dictionary<int, int> enchantments = new Dictionary<int, int>();
                 foreach (EnchantmentWrapper enchantment in machine.Core.CharacterFilter.Enchantments)
                 {
-                    if (requiredBuffs.Contains(enchantment.SpellId) && !enchantments.ContainsKey(enchantment.SpellId))
+                    if (requiredBuffs.Contains(machine.SpellTable.GetById(enchantment.SpellId)) && !enchantments.ContainsKey(enchantment.SpellId))
                     {
                         enchantments.Add(enchantment.SpellId, enchantment.TimeRemaining);
                     }
                 }
 
-                foreach (int requiredBuff in requiredBuffs)
+                foreach (Spell requiredBuff in requiredBuffs)
                 {
-                    if (!enchantments.ContainsKey(requiredBuff))
+                    if (!enchantments.ContainsKey(requiredBuff.Id))
                     {
                         return false;
                     }
 
-                    else if (enchantments[requiredBuff] < 300 && !enchantments[requiredBuff].Equals(-1))
+                    else if (enchantments[requiredBuff.Id] < 300 && !enchantments[requiredBuff.Id].Equals(-1))
                     {
                         return false;
                     }

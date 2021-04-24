@@ -26,6 +26,7 @@ namespace ACManager.Views.Tabs
         private HudCombo BuffingCharacterChoice { get; set; }
         private HudCheckBox StayBuffed { get; set; }
         private HudCheckBox Level7Self { get; set; }
+        private HudTextBox SkillOverride { get; set; }
         private HudStaticText Version { get; set; }
         private bool disposedValue;
 
@@ -87,6 +88,9 @@ namespace ACManager.Views.Tabs
             Level7Self = Parent.View != null ? (HudCheckBox)Parent.View["Level7Self"] : new HudCheckBox();
             Level7Self.Change += Level7Self_Change;
 
+            SkillOverride = Parent.View != null ? (HudTextBox)Parent.View["SkillOverride"] : new HudTextBox();
+            SkillOverride.Change += SkillOverride_Change;
+
             Version = Parent.View != null ? (HudStaticText)Parent.View["Version"] : new HudStaticText();
             Version.Text = $"V{Parent.Machine.Utility.Version}";
 
@@ -113,6 +117,7 @@ namespace ACManager.Views.Tabs
                 LocationSetpoint.Text = !Parent.Machine.Utility.BotSettings.DesiredLandBlock.Equals(0) ? $"{Parent.Machine.Utility.BotSettings.DesiredLandBlock.ToString("X").Substring(0, 4)} - X: { Math.Round(Parent.Machine.Utility.BotSettings.DesiredBotLocationX, 2)} Y: {Math.Round(Parent.Machine.Utility.BotSettings.DesiredBotLocationY, 2)}" : "No location set";
                 StayBuffed.Checked = Parent.Machine.Utility.BotSettings.StayBuffed;
                 Level7Self.Checked = Parent.Machine.Utility.BotSettings.Level7Self;
+                SkillOverride.Text = Parent.Machine.Utility.BotSettings.SkillOverride.ToString();
 
                 if (string.IsNullOrEmpty(Parent.Machine.Utility.BotSettings.BuffingCharacter))
                 {
@@ -401,6 +406,28 @@ namespace ACManager.Views.Tabs
             }
         }
 
+        private void SkillOverride_Change(object sender, EventArgs e)
+        {
+            try
+            {
+                if (int.TryParse(SkillOverride.Text, out int result))
+                {
+                    Parent.Machine.SkillOverride = Parent.Machine.Utility.BotSettings.SkillOverride = result;
+                }
+                else
+                {
+                    Parent.Machine.SkillOverride = Parent.Machine.Utility.BotSettings.SkillOverride = 0;
+                    SkillOverride.Text = 0.ToString();
+                }
+                Parent.Machine.Utility.SaveBotSettings();
+                Debug.ToChat($"Your magic casting abilities are now modified by {Parent.Machine.Utility.BotSettings.SkillOverride} when calculating skill.");
+            }
+            catch (Exception ex)
+            {
+                Debug.LogException(ex);
+            }
+        }
+
         private void PopulateCharacterChoice()
         {
             BuffingCharacterChoice.AddItem("None", null);
@@ -432,6 +459,7 @@ namespace ACManager.Views.Tabs
                     BuffingCharacterChoice.Change -= BuffingCharacterChoice_Change;
                     StayBuffed.Change -= StayBuffed_Change;
                     Level7Self.Change -= Level7Self_Change;
+                    SkillOverride.Change -= SkillOverride_Change;
                 }
                 disposedValue = true;
             }
