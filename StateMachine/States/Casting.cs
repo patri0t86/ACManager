@@ -159,7 +159,7 @@ namespace ACManager.StateMachine.States
                                 {
                                     if (machine.ComponentChecker.HaveComponents(machine.SpellsToCast[0].Id))
                                     {
-                                        if (LastSpell.Equals(machine.SpellsToCast[0]) && !(machine.SpellsToCast[0].Equals(157) || machine.SpellsToCast[0].Equals(2648)))
+                                        if (LastSpell.Equals(machine.SpellsToCast[0].Id) && !(machine.SpellsToCast[0].Id.Equals(157) || machine.SpellsToCast[0].Id.Equals(2648)))
                                         {
                                             if (!StartedTracking)
                                             {
@@ -178,7 +178,6 @@ namespace ACManager.StateMachine.States
                                         }
 
                                         LastSpell = machine.SpellsToCast[0].Id;
-
                                         if (IsBane(machine.SpellsToCast[0]) && CastBanes)
                                         {
                                             machine.Core.Actions.CastSpell(machine.SpellsToCast[0].Id, machine.CurrentRequest.RequesterGuid);

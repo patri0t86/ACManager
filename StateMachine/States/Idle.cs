@@ -178,8 +178,8 @@ namespace ACManager.StateMachine.States
                     Spell spell = machine.SpellTable.GetById(buff.Id);
 
                     if (machine.Level7Self && spell.Difficulty > 300)
-                    {                        
-                        requiredBuffs.Add(machine.GetFallbackSpell(spell));
+                    {
+                        requiredBuffs.Add(machine.GetFallbackSpell(spell, true));
                     }
                     else
                     {
