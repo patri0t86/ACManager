@@ -1,4 +1,5 @@
 ﻿using ACManager.Settings;
+using Decal.Adapter;
 using Decal.Adapter.Wrappers;
 using Decal.Filters;
 using System;
@@ -17,27 +18,27 @@ namespace ACManager.StateMachine.States
             EnteredState = DateTime.Now;
             if (!StartedBuffing)
             {
-                machine.ChatManager.SendTell(machine.CurrentRequest.RequesterName, "I need to buff myself, standby.");
-                BuffProfile profile = machine.Utility.GetProfile("botbuffs");
+                ChatManager.SendTell(machine.CurrentRequest.RequesterName, "I need to buff myself, standby.");
+                BuffProfile profile = Utility.GetProfile("botbuffs");
                 machine.SpellsToCast.Clear();
 
                 foreach (Buff buff in profile.Buffs)
                 {
-                    if (machine.Level7Self && machine.SpellTable.GetById(buff.Id).Difficulty > 300)
+                    if (machine.Level7Self && CoreManager.Current.Filter<FileService>().SpellTable.GetById(buff.Id).Difficulty > 300)
                     {
-                        machine.SpellsToCast.Add(machine.GetFallbackSpell(machine.SpellTable.GetById(buff.Id), true));
+                        machine.SpellsToCast.Add(machine.GetFallbackSpell(CoreManager.Current.Filter<FileService>().SpellTable.GetById(buff.Id), true));
                     }
                     else
                     {
-                        machine.SpellsToCast.Add(machine.SpellTable.GetById(buff.Id));
+                        machine.SpellsToCast.Add(CoreManager.Current.Filter<FileService>().SpellTable.GetById(buff.Id));
                     }
                 }
 
-                if (machine.Core.CharacterFilter.EffectiveSkill[CharFilterSkillType.CreatureEnchantment] < 400 && !machine.Level7Self)
+                if (CoreManager.Current.CharacterFilter.EffectiveSkill[CharFilterSkillType.CreatureEnchantment] < 400 && !machine.Level7Self)
                 {
-                    machine.SpellsToCast.Insert(0, machine.SpellTable.GetById(2215)); // creature 7
-                    machine.SpellsToCast.Insert(0, machine.SpellTable.GetById(2067)); // focus 7
-                    machine.SpellsToCast.Insert(0, machine.SpellTable.GetById(2091)); // self 7
+                    machine.SpellsToCast.Insert(0, CoreManager.Current.Filter<FileService>().SpellTable.GetById(2215)); // creature 7
+                    machine.SpellsToCast.Insert(0, CoreManager.Current.Filter<FileService>().SpellTable.GetById(2067)); // focus 7
+                    machine.SpellsToCast.Insert(0, CoreManager.Current.Filter<FileService>().SpellTable.GetById(2091)); // self 7
                 }
 
                 StartedBuffing = true;
@@ -69,34 +70,34 @@ namespace ACManager.StateMachine.States
                     }
                     else if (!machine.CastStarted)
                     {
-                        if (machine.Core.CharacterFilter.Mana < machine.ManaThreshold * machine.Core.CharacterFilter.EffectiveVital[CharFilterVitalType.Mana] && machine.Core.Actions.SkillTrainLevel[Decal.Adapter.Wrappers.SkillType.BaseLifeMagic] != 1)
+                        if (CoreManager.Current.CharacterFilter.Mana < machine.ManaThreshold * CoreManager.Current.CharacterFilter.EffectiveVital[CharFilterVitalType.Mana] && CoreManager.Current.Actions.SkillTrainLevel[Decal.Adapter.Wrappers.SkillType.BaseLifeMagic] != 1)
                         {
                             machine.NextState = VitalManagement.GetInstance;
                         }
                         else
                         {
-                            if (machine.Core.Actions.CombatMode != CombatState.Magic)
+                            if (CoreManager.Current.Actions.CombatMode != CombatState.Magic)
                             {
                                 if ((DateTime.Now - EnteredState).TotalSeconds > 1)
                                 {
-                                    machine.ChatManager.SendTell(machine.CurrentRequest.RequesterName, "I don't have a wand setup, I'm sorry. Cancelling this request.");
+                                    ChatManager.SendTell(machine.CurrentRequest.RequesterName, "I don't have a wand setup, I'm sorry. Cancelling this request.");
                                     machine.SpellsToCast.Clear();
                                     machine.CurrentRequest.SpellsToCast.Clear();
                                 }
                                 else
                                 {
-                                    machine.Core.Actions.SetCombatMode(CombatState.Magic);
+                                    CoreManager.Current.Actions.SetCombatMode(CombatState.Magic);
                                 }
                             }
-                            else if (machine.Core.CharacterFilter.IsSpellKnown(machine.SpellsToCast[0].Id) && machine.SpellSkillCheck(machine.SpellsToCast[0]))
+                            else if (CoreManager.Current.CharacterFilter.IsSpellKnown(machine.SpellsToCast[0].Id) && machine.SpellSkillCheck(machine.SpellsToCast[0]))
                             {
-                                if (machine.ComponentChecker.HaveComponents(machine.SpellsToCast[0].Id))
+                                if (Inventory.HaveComponents(machine.SpellsToCast[0]))
                                 {
-                                    machine.Core.Actions.CastSpell(machine.SpellsToCast[0].Id, 0);
+                                    CoreManager.Current.Actions.CastSpell(machine.SpellsToCast[0].Id, 0);
                                 }
                                 else
                                 {
-                                    machine.ChatManager.Broadcast($"I have run out of spell components.");
+                                    ChatManager.Broadcast($"I have run out of spell components.");
                                     machine.SpellsToCast.Clear();
                                     machine.Requests.Clear();
                                 }

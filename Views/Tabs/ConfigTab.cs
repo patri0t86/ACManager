@@ -1,13 +1,14 @@
-﻿using System;
+﻿using Decal.Adapter;
+using System;
 using VirindiViewService;
 using VirindiViewService.Controls;
 
 namespace ACManager.Views.Tabs
 {
-    internal class ConfigTab : IDisposable
+    public class ConfigTab : IDisposable
     {
         private BotManagerView Parent { get; set; }
-        private HudCheckBox BotEnabled { get; set; }
+        public HudCheckBox BotEnabled { get; set; }
         private HudButton ClearLocation { get; set; }
         private HudButton SetLocation { get; set; }
         private HudStaticText LocationSetpoint { get; set; }
@@ -92,7 +93,7 @@ namespace ACManager.Views.Tabs
             SkillOverride.Change += SkillOverride_Change;
 
             Version = Parent.View != null ? (HudStaticText)Parent.View["Version"] : new HudStaticText();
-            Version.Text = $"V{Parent.Machine.Utility.Version}";
+            Version.Text = $"V{Utility.Version}";
 
             PopulateCharacterChoice();
             LoadSettings();
@@ -102,32 +103,32 @@ namespace ACManager.Views.Tabs
         {
             try
             {
-                BotEnabled.Checked = Parent.Machine.Utility.BotSettings.BotEnabled;
-                RespondToGeneralChat.Checked = Parent.Machine.Utility.BotSettings.RespondToGeneralChat;
-                RespondToAllegianceChat.Checked = Parent.Machine.Utility.BotSettings.RespondToAllegiance;
-                Verbosity.Position = Parent.Machine.Utility.BotSettings.Verbosity;
-                AdInterval.Text = Parent.Machine.Utility.BotSettings.AdInterval >= 5 ? Parent.Machine.Utility.BotSettings.AdInterval.ToString() : 5.ToString();
-                ManaThreshold.Position = (int)(Parent.Machine.Utility.BotSettings.ManaThreshold * 100);
-                StaminaThreshold.Position = (int)(Parent.Machine.Utility.BotSettings.StaminaThreshold * 100);
+                BotEnabled.Checked = Utility.BotSettings.BotEnabled;
+                RespondToGeneralChat.Checked = Utility.BotSettings.RespondToGeneralChat;
+                RespondToAllegianceChat.Checked = Utility.BotSettings.RespondToAllegiance;
+                Verbosity.Position = Utility.BotSettings.Verbosity;
+                AdInterval.Text = Utility.BotSettings.AdInterval >= 5 ? Utility.BotSettings.AdInterval.ToString() : 5.ToString();
+                ManaThreshold.Position = (int)(Utility.BotSettings.ManaThreshold * 100);
+                StaminaThreshold.Position = (int)(Utility.BotSettings.StaminaThreshold * 100);
                 ManaThresholdText.Text = ManaThreshold.Position.ToString() + "%";
                 StamThresholdText.Text = StaminaThreshold.Position.ToString() + "%";
-                AdsEnabled.Checked = Parent.Machine.Utility.BotSettings.AdsEnabled;
-                BotPositioning.Checked = Parent.Machine.Utility.BotSettings.BotPositioning;
-                DefaultHeading.Text = Parent.Machine.Utility.BotSettings.DefaultHeading.ToString();
-                LocationSetpoint.Text = !Parent.Machine.Utility.BotSettings.DesiredLandBlock.Equals(0) ? $"{Parent.Machine.Utility.BotSettings.DesiredLandBlock.ToString("X").Substring(0, 4)} - X: { Math.Round(Parent.Machine.Utility.BotSettings.DesiredBotLocationX, 2)} Y: {Math.Round(Parent.Machine.Utility.BotSettings.DesiredBotLocationY, 2)}" : "No location set";
-                StayBuffed.Checked = Parent.Machine.Utility.BotSettings.StayBuffed;
-                Level7Self.Checked = Parent.Machine.Utility.BotSettings.Level7Self;
-                SkillOverride.Text = Parent.Machine.Utility.BotSettings.SkillOverride.ToString();
+                AdsEnabled.Checked = Utility.BotSettings.AdsEnabled;
+                BotPositioning.Checked = Utility.BotSettings.BotPositioning;
+                DefaultHeading.Text = Utility.BotSettings.DefaultHeading.ToString();
+                LocationSetpoint.Text = !Utility.BotSettings.DesiredLandBlock.Equals(0) ? $"{Utility.BotSettings.DesiredLandBlock.ToString("X").Substring(0, 4)} - X: { Math.Round(Utility.BotSettings.DesiredBotLocationX, 2)} Y: {Math.Round(Utility.BotSettings.DesiredBotLocationY, 2)}" : "No location set";
+                StayBuffed.Checked = Utility.BotSettings.StayBuffed;
+                Level7Self.Checked = Utility.BotSettings.Level7Self;
+                SkillOverride.Text = Utility.BotSettings.SkillOverride.ToString();
 
-                if (string.IsNullOrEmpty(Parent.Machine.Utility.BotSettings.BuffingCharacter))
+                if (string.IsNullOrEmpty(Utility.BotSettings.BuffingCharacter))
                 {
                     BuffingCharacterChoice.Current = 0;
                 }
                 else
                 {
-                    for (int i = 0; i < Parent.Machine.AccountCharacters.Count; i++)
+                    for (int i = 0; i < FilterCore.AccountCharacters.Count; i++)
                     {
-                        if (Parent.Machine.AccountCharacters[i].Equals(Parent.Machine.Utility.BotSettings.BuffingCharacter))
+                        if (FilterCore.AccountCharacters[i].Equals(Utility.BotSettings.BuffingCharacter))
                         {
                             BuffingCharacterChoice.Current = i + 1;
                             break;
@@ -146,8 +147,8 @@ namespace ACManager.Views.Tabs
         {
             try
             {
-                Parent.Machine.Enabled = Parent.Machine.Utility.BotSettings.BotEnabled = BotEnabled.Checked;
-                Parent.Machine.Utility.SaveBotSettings();
+                Parent.Machine.Enabled = Utility.BotSettings.BotEnabled = BotEnabled.Checked;
+                Utility.SaveBotSettings();
             }
             catch (Exception ex)
             {
@@ -159,11 +160,11 @@ namespace ACManager.Views.Tabs
         {
             try
             {
-                Parent.Machine.DesiredLandBlock = Parent.Machine.Utility.BotSettings.DesiredLandBlock = 0;
-                Parent.Machine.DesiredBotLocationX = Parent.Machine.Utility.BotSettings.DesiredBotLocationX = 0;
-                Parent.Machine.DesiredBotLocationY = Parent.Machine.Utility.BotSettings.DesiredBotLocationY = 0;
+                Parent.Machine.DesiredLandBlock = Utility.BotSettings.DesiredLandBlock = 0;
+                Parent.Machine.DesiredBotLocationX = Utility.BotSettings.DesiredBotLocationX = 0;
+                Parent.Machine.DesiredBotLocationY = Utility.BotSettings.DesiredBotLocationY = 0;
                 LocationSetpoint.Text = "No location set";
-                Parent.Machine.Utility.SaveBotSettings();
+                Utility.SaveBotSettings();
             }
             catch (Exception ex) { Debug.LogException(ex); }
         }
@@ -172,11 +173,11 @@ namespace ACManager.Views.Tabs
         {
             try
             {
-                Parent.Machine.DesiredLandBlock = Parent.Machine.Utility.BotSettings.DesiredLandBlock = Parent.Machine.Core.Actions.Landcell;
-                Parent.Machine.DesiredBotLocationX = Parent.Machine.Utility.BotSettings.DesiredBotLocationX = Parent.Machine.Core.Actions.LocationX;
-                Parent.Machine.DesiredBotLocationY = Parent.Machine.Utility.BotSettings.DesiredBotLocationY = Parent.Machine.Core.Actions.LocationY;
+                Parent.Machine.DesiredLandBlock = Utility.BotSettings.DesiredLandBlock = CoreManager.Current.Actions.Landcell;
+                Parent.Machine.DesiredBotLocationX = Utility.BotSettings.DesiredBotLocationX = CoreManager.Current.Actions.LocationX;
+                Parent.Machine.DesiredBotLocationY = Utility.BotSettings.DesiredBotLocationY = CoreManager.Current.Actions.LocationY;
                 LocationSetpoint.Text = $"{Parent.Machine.DesiredLandBlock.ToString("X").Substring(0, 4)} - X: { Math.Round(Parent.Machine.DesiredBotLocationX, 2)} Y: {Math.Round(Parent.Machine.DesiredBotLocationY, 2)}";
-                Parent.Machine.Utility.SaveBotSettings();
+                Utility.SaveBotSettings();
             }
             catch (Exception ex) { Debug.LogException(ex); }
         }
@@ -185,9 +186,9 @@ namespace ACManager.Views.Tabs
         {
             try
             {
-                Parent.Machine.RespondToOpenChat = Parent.Machine.Utility.BotSettings.RespondToGeneralChat = RespondToGeneralChat.Checked;
-                Parent.Machine.Utility.SaveBotSettings();
-                Debug.ToChat($"The bot will {(Parent.Machine.Utility.BotSettings.RespondToGeneralChat ? "now" : "no longer")} summon portals based on keyword requests said in local chat.");
+                Parent.Machine.RespondToOpenChat = Utility.BotSettings.RespondToGeneralChat = RespondToGeneralChat.Checked;
+                Utility.SaveBotSettings();
+                Debug.ToChat($"The bot will {(Utility.BotSettings.RespondToGeneralChat ? "now" : "no longer")} summon portals based on keyword requests said in local chat.");
             }
             catch (Exception ex)
             {
@@ -199,9 +200,9 @@ namespace ACManager.Views.Tabs
         {
             try
             {
-                Parent.Machine.RespondToAllegiance = Parent.Machine.Utility.BotSettings.RespondToAllegiance = RespondToAllegianceChat.Checked;
-                Parent.Machine.Utility.SaveBotSettings();
-                Debug.ToChat($"The bot will {(Parent.Machine.Utility.BotSettings.RespondToAllegiance ? "now" : "no longer")} summon portals based on keyword requests said in allegiance chat.");
+                Parent.Machine.RespondToAllegiance = Utility.BotSettings.RespondToAllegiance = RespondToAllegianceChat.Checked;
+                Utility.SaveBotSettings();
+                Debug.ToChat($"The bot will {(Utility.BotSettings.RespondToAllegiance ? "now" : "no longer")} summon portals based on keyword requests said in allegiance chat.");
             }
             catch (Exception ex)
             {
@@ -213,9 +214,9 @@ namespace ACManager.Views.Tabs
         {
             try
             {
-                Parent.Machine.Advertise = Parent.Machine.Utility.BotSettings.AdsEnabled = AdsEnabled.Checked;
-                Parent.Machine.Utility.SaveBotSettings();
-                Debug.ToChat($"The bot will {(Parent.Machine.Utility.BotSettings.AdsEnabled ? "now" : "no longer")} broadcast advertisements.");
+                Parent.Machine.Advertise = Utility.BotSettings.AdsEnabled = AdsEnabled.Checked;
+                Utility.SaveBotSettings();
+                Debug.ToChat($"The bot will {(Utility.BotSettings.AdsEnabled ? "now" : "no longer")} broadcast advertisements.");
             }
             catch (Exception ex)
             {
@@ -227,8 +228,8 @@ namespace ACManager.Views.Tabs
         {
             try
             {
-                Parent.Machine.EnablePositioning = Parent.Machine.Utility.BotSettings.BotPositioning = BotPositioning.Checked;
-                Parent.Machine.Utility.SaveBotSettings();
+                Parent.Machine.EnablePositioning = Utility.BotSettings.BotPositioning = BotPositioning.Checked;
+                Utility.SaveBotSettings();
                 Debug.ToChat($"The bot will {(Parent.Machine.EnablePositioning ? "now" : "no longer")} try to automatically position itself to the set navigation point.");
             }
             catch (Exception ex) { Debug.LogException(ex); }
@@ -242,21 +243,21 @@ namespace ACManager.Views.Tabs
                 {
                     if (result <= 5)
                     {
-                        Parent.Machine.AdInterval = Parent.Machine.Utility.BotSettings.AdInterval = 5;
+                        Parent.Machine.AdInterval = Utility.BotSettings.AdInterval = 5;
                         AdInterval.Text = 5.ToString();
                     }
                     else
                     {
-                        Parent.Machine.AdInterval = Parent.Machine.Utility.BotSettings.AdInterval = result;
+                        Parent.Machine.AdInterval = Utility.BotSettings.AdInterval = result;
                     }
                 }
                 else
                 {
-                    Parent.Machine.AdInterval = Parent.Machine.Utility.BotSettings.AdInterval = 10;
+                    Parent.Machine.AdInterval = Utility.BotSettings.AdInterval = 10;
                     AdInterval.Text = 10.ToString();
                 }
-                Parent.Machine.Utility.SaveBotSettings();
-                Debug.ToChat($"The bot will now broadcast an advertisement every {Parent.Machine.Utility.BotSettings.AdInterval} minutes.");
+                Utility.SaveBotSettings();
+                Debug.ToChat($"The bot will now broadcast an advertisement every {Utility.BotSettings.AdInterval} minutes.");
             }
             catch (Exception ex)
             {
@@ -268,9 +269,9 @@ namespace ACManager.Views.Tabs
         {
             try
             {
-                Parent.Machine.DefaultHeading = Parent.Machine.Utility.BotSettings.DefaultHeading = Math.Round(Parent.Machine.Core.Actions.Heading, 0);
-                DefaultHeading.Text = Math.Round(Parent.Machine.Core.Actions.Heading, 0).ToString();
-                Parent.Machine.Utility.SaveBotSettings();
+                Parent.Machine.DefaultHeading = Utility.BotSettings.DefaultHeading = Math.Round(CoreManager.Current.Actions.Heading, 0);
+                DefaultHeading.Text = Math.Round(CoreManager.Current.Actions.Heading, 0).ToString();
+                Utility.SaveBotSettings();
             }
             catch (Exception ex)
             {
@@ -293,14 +294,14 @@ namespace ACManager.Views.Tabs
                     {
                         result = 0;
                     }
-                    Parent.Machine.DefaultHeading = Parent.Machine.Utility.BotSettings.DefaultHeading = result;
+                    Parent.Machine.DefaultHeading = Utility.BotSettings.DefaultHeading = result;
                 }
                 else
                 {
                     DefaultHeading.Text = "0";
-                    Parent.Machine.DefaultHeading = Parent.Machine.Utility.BotSettings.DefaultHeading = 0;
+                    Parent.Machine.DefaultHeading = Utility.BotSettings.DefaultHeading = 0;
                 }
-                Parent.Machine.Utility.SaveBotSettings();
+                Utility.SaveBotSettings();
             }
             catch (Exception ex)
             {
@@ -312,9 +313,9 @@ namespace ACManager.Views.Tabs
         {
             try
             {
-                Parent.Machine.Verbosity = Parent.Machine.Utility.BotSettings.Verbosity = Verbosity.Position;
-                Parent.Machine.Utility.SaveBotSettings();
-                Debug.ToChat($"The bot will now respond with {Parent.Machine.Utility.BotSettings.Verbosity + 1} portals per response line to 'whereto' commands. Adjust this lower if portals are being truncated due to max character limits. " +
+                Parent.Machine.Verbosity = Utility.BotSettings.Verbosity = Verbosity.Position;
+                Utility.SaveBotSettings();
+                Debug.ToChat($"The bot will now respond with {Utility.BotSettings.Verbosity + 1} portals per response line to 'whereto' commands. Adjust this lower if portals are being truncated due to max character limits. " +
                     $"Adjust higher if bot is being server muted.");
             }
             catch (Exception ex)
@@ -327,9 +328,9 @@ namespace ACManager.Views.Tabs
         {
             try
             {
-                Parent.Machine.ManaThreshold = Parent.Machine.Utility.BotSettings.ManaThreshold = (double)ManaThreshold.Position / 100;
+                Parent.Machine.ManaThreshold = Utility.BotSettings.ManaThreshold = (double)ManaThreshold.Position / 100;
                 ManaThresholdText.Text = $"{ManaThreshold.Position}%";
-                Parent.Machine.Utility.SaveBotSettings();
+                Utility.SaveBotSettings();
                 Debug.ToChat($"The bot will now recover mana at {ManaThreshold.Position}%.");
             }
             catch (Exception ex)
@@ -342,9 +343,9 @@ namespace ACManager.Views.Tabs
         {
             try
             {
-                Parent.Machine.StaminaThreshold = Parent.Machine.Utility.BotSettings.StaminaThreshold = (double)StaminaThreshold.Position / 100;
+                Parent.Machine.StaminaThreshold = Utility.BotSettings.StaminaThreshold = (double)StaminaThreshold.Position / 100;
                 StamThresholdText.Text = $"{StaminaThreshold.Position}%";
-                Parent.Machine.Utility.SaveBotSettings();
+                Utility.SaveBotSettings();
                 Debug.ToChat($"The bot will now recover stamina at {StaminaThreshold.Position}%.");
             }
             catch (Exception ex)
@@ -361,16 +362,16 @@ namespace ACManager.Views.Tabs
                 {
                     using (HudStaticText selectedCharacter = (HudStaticText)BuffingCharacterChoice[BuffingCharacterChoice.Current])
                     {
-                        Parent.Machine.BuffingCharacter = Parent.Machine.Utility.BotSettings.BuffingCharacter = selectedCharacter.Text;
+                        Parent.Machine.BuffingCharacter = Utility.BotSettings.BuffingCharacter = selectedCharacter.Text;
                         Debug.ToChat($"The buff bot feature is now enabled using {selectedCharacter.Text}.");
                     }
                 }
                 else
                 {
-                    Parent.Machine.BuffingCharacter = Parent.Machine.Utility.BotSettings.BuffingCharacter = "";
+                    Parent.Machine.BuffingCharacter = Utility.BotSettings.BuffingCharacter = "";
                     Debug.ToChat("The buff bot feature is now disabled.");
                 }
-                Parent.Machine.Utility.SaveBotSettings();
+                Utility.SaveBotSettings();
             }
             catch (Exception ex)
             {
@@ -382,8 +383,8 @@ namespace ACManager.Views.Tabs
         {
             try
             {
-                Parent.Machine.StayBuffed = Parent.Machine.Utility.BotSettings.StayBuffed = StayBuffed.Checked;
-                Parent.Machine.Utility.SaveBotSettings();
+                Parent.Machine.StayBuffed = Utility.BotSettings.StayBuffed = StayBuffed.Checked;
+                Utility.SaveBotSettings();
                 Debug.ToChat($"{(StayBuffed.Checked ? "The bot will now ensure self buffs will never run out, even when idle." : "The bot will now let self buffs run out, and only self buff when required.")}");
             }
             catch (Exception ex)
@@ -396,8 +397,8 @@ namespace ACManager.Views.Tabs
         {
             try
             {
-                Parent.Machine.Level7Self = Parent.Machine.Utility.BotSettings.Level7Self = Level7Self.Checked;
-                Parent.Machine.Utility.SaveBotSettings();
+                Parent.Machine.Level7Self = Utility.BotSettings.Level7Self = Level7Self.Checked;
+                Utility.SaveBotSettings();
                 Debug.ToChat(Level7Self.Checked ? "The bot will now buff the buffing character with level 7 spells only, no level 8 spells are used for self spells. Use this if level 8 self spells are not known." : "The bot will now buff the buffing character with level 8 spells only, with level 7 fallback if a spell is not known. Use this if level 8 self spells are known.");
             }
             catch (Exception ex)
@@ -412,15 +413,15 @@ namespace ACManager.Views.Tabs
             {
                 if (int.TryParse(SkillOverride.Text, out int result))
                 {
-                    Parent.Machine.SkillOverride = Parent.Machine.Utility.BotSettings.SkillOverride = result;
+                    Parent.Machine.SkillOverride = Utility.BotSettings.SkillOverride = result;
                 }
                 else
                 {
-                    Parent.Machine.SkillOverride = Parent.Machine.Utility.BotSettings.SkillOverride = 0;
+                    Parent.Machine.SkillOverride = Utility.BotSettings.SkillOverride = 0;
                     SkillOverride.Text = 0.ToString();
                 }
-                Parent.Machine.Utility.SaveBotSettings();
-                Debug.ToChat($"Your magic casting abilities are now modified by {Parent.Machine.Utility.BotSettings.SkillOverride} when calculating skill.");
+                Utility.SaveBotSettings();
+                Debug.ToChat($"Your magic casting abilities are now modified by {Utility.BotSettings.SkillOverride} when calculating skill.");
             }
             catch (Exception ex)
             {
@@ -431,9 +432,9 @@ namespace ACManager.Views.Tabs
         private void PopulateCharacterChoice()
         {
             BuffingCharacterChoice.AddItem("None", null);
-            for (int i = 0; i < Parent.Machine.AccountCharacters.Count; i++)
+            for (int i = 0; i < FilterCore.AccountCharacters.Count; i++)
             {
-                BuffingCharacterChoice.AddItem(Parent.Machine.AccountCharacters[i], null);
+                BuffingCharacterChoice.AddItem(FilterCore.AccountCharacters[i], null);
             }
         }
 

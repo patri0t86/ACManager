@@ -1,11 +1,12 @@
 ﻿using ACManager.Settings;
+using Decal.Adapter;
 using System;
 using VirindiViewService;
 using VirindiViewService.Controls;
 
 namespace ACManager.Views.Tabs
 {
-    internal class PortalsTab : IDisposable
+    public class PortalsTab : IDisposable
     {
         private BotManagerView Parent { get; set; }
         private HudCombo CharacterChoice { get; set; }
@@ -277,13 +278,13 @@ namespace ACManager.Views.Tabs
             Character newCharacter = new Character
             {
                 Name = name,
-                Account = Parent.Machine.Core.CharacterFilter.AccountName,
-                Server = Parent.Machine.Core.CharacterFilter.Server
+                Account = CoreManager.Current.CharacterFilter.AccountName,
+                Server = CoreManager.Current.CharacterFilter.Server
             };
 
-            if (Parent.Machine.Utility.CharacterSettings.Characters.Contains(newCharacter))
+            if (Utility.CharacterSettings.Characters.Contains(newCharacter))
             {
-                foreach (Character character in Parent.Machine.Utility.CharacterSettings.Characters)
+                foreach (Character character in Utility.CharacterSettings.Characters)
                 {
                     if (newCharacter.Equals(character))
                     {
@@ -338,16 +339,16 @@ namespace ACManager.Views.Tabs
         private void PopulateCharacterChoice()
         {
             CharacterChoice.AddItem("Select character...", null);
-            for (int i = 0; i < Parent.Machine.AccountCharacters.Count; i++)
+            for (int i = 0; i < FilterCore.AccountCharacters.Count; i++)
             {
-                CharacterChoice.AddItem(Parent.Machine.AccountCharacters[i], null);
+                CharacterChoice.AddItem(FilterCore.AccountCharacters[i], null);
             }
 
 
 
-            for (int i = 0; i < Parent.Machine.AccountCharacters.Count; i++)
+            for (int i = 0; i < FilterCore.AccountCharacters.Count; i++)
             {
-                if (Parent.Machine.AccountCharacters[i].Equals(Parent.Machine.Core.CharacterFilter.Name))
+                if (FilterCore.AccountCharacters[i].Equals(CoreManager.Current.CharacterFilter.Name))
                 {
                     CharacterChoice.Current = i + 1;
                     break;
@@ -355,7 +356,7 @@ namespace ACManager.Views.Tabs
             }
 
 
-            Character character = CharacterExistsOrNew(Parent.Machine.Core.CharacterFilter.Name);
+            Character character = CharacterExistsOrNew(CoreManager.Current.CharacterFilter.Name);
             if (character.Portals.Count > 0)
             {
                 foreach (Portal portal in character.Portals)
@@ -405,23 +406,23 @@ namespace ACManager.Views.Tabs
             }
             character.Portals.Add(portal);
 
-            if (Parent.Machine.Utility.CharacterSettings.Characters.Contains(character))
+            if (Utility.CharacterSettings.Characters.Contains(character))
             {
-                for (int i = 0; i < Parent.Machine.Utility.CharacterSettings.Characters.Count; i++)
+                for (int i = 0; i < Utility.CharacterSettings.Characters.Count; i++)
                 {
-                    if (Parent.Machine.Utility.CharacterSettings.Characters[i].Equals(character))
+                    if (Utility.CharacterSettings.Characters[i].Equals(character))
                     {
-                        Parent.Machine.Utility.CharacterSettings.Characters[i] = character;
+                        Utility.CharacterSettings.Characters[i] = character;
                         break;
                     }
                 }
             }
             else
             {
-                Parent.Machine.Utility.CharacterSettings.Characters.Add(character);
+                Utility.CharacterSettings.Characters.Add(character);
             }
 
-            Parent.Machine.Utility.SaveCharacterSettings();
+            Utility.SaveCharacterSettings();
         }
 
         private void UpdatePortalDescription(Character character, PortalType type, string value)
@@ -451,23 +452,23 @@ namespace ACManager.Views.Tabs
             }
             character.Portals.Add(portal);
 
-            if (Parent.Machine.Utility.CharacterSettings.Characters.Contains(character))
+            if (Utility.CharacterSettings.Characters.Contains(character))
             {
-                for (int i = 0; i < Parent.Machine.Utility.CharacterSettings.Characters.Count; i++)
+                for (int i = 0; i < Utility.CharacterSettings.Characters.Count; i++)
                 {
-                    if (Parent.Machine.Utility.CharacterSettings.Characters[i].Equals(character))
+                    if (Utility.CharacterSettings.Characters[i].Equals(character))
                     {
-                        Parent.Machine.Utility.CharacterSettings.Characters[i] = character;
+                        Utility.CharacterSettings.Characters[i] = character;
                         break;
                     }
                 }
             }
             else
             {
-                Parent.Machine.Utility.CharacterSettings.Characters.Add(character);
+                Utility.CharacterSettings.Characters.Add(character);
             }
 
-            Parent.Machine.Utility.SaveCharacterSettings();
+            Utility.SaveCharacterSettings();
         }
 
         private void UpdatePortalHeading(Character character, PortalType type, double value)
@@ -497,23 +498,23 @@ namespace ACManager.Views.Tabs
             }
             character.Portals.Add(portal);
 
-            if (Parent.Machine.Utility.CharacterSettings.Characters.Contains(character))
+            if (Utility.CharacterSettings.Characters.Contains(character))
             {
-                for (int i = 0; i < Parent.Machine.Utility.CharacterSettings.Characters.Count; i++)
+                for (int i = 0; i < Utility.CharacterSettings.Characters.Count; i++)
                 {
-                    if (Parent.Machine.Utility.CharacterSettings.Characters[i].Equals(character))
+                    if (Utility.CharacterSettings.Characters[i].Equals(character))
                     {
-                        Parent.Machine.Utility.CharacterSettings.Characters[i] = character;
+                        Utility.CharacterSettings.Characters[i] = character;
                         break;
                     }
                 }
             }
             else
             {
-                Parent.Machine.Utility.CharacterSettings.Characters.Add(character);
+                Utility.CharacterSettings.Characters.Add(character);
             }
 
-            Parent.Machine.Utility.SaveCharacterSettings();
+            Utility.SaveCharacterSettings();
         }
 
         private void UpdatePortalLevel(Character character, PortalType type, int value)
@@ -543,22 +544,22 @@ namespace ACManager.Views.Tabs
             }
             character.Portals.Add(portal);
 
-            if (Parent.Machine.Utility.CharacterSettings.Characters.Contains(character))
+            if (Utility.CharacterSettings.Characters.Contains(character))
             {
-                for (int i = 0; i < Parent.Machine.Utility.CharacterSettings.Characters.Count; i++)
+                for (int i = 0; i < Utility.CharacterSettings.Characters.Count; i++)
                 {
-                    if (Parent.Machine.Utility.CharacterSettings.Characters[i].Equals(character))
+                    if (Utility.CharacterSettings.Characters[i].Equals(character))
                     {
-                        Parent.Machine.Utility.CharacterSettings.Characters[i] = character;
+                        Utility.CharacterSettings.Characters[i] = character;
                         break;
                     }
                 }
             }
             else
             {
-                Parent.Machine.Utility.CharacterSettings.Characters.Add(character);
+                Utility.CharacterSettings.Characters.Add(character);
             }
-            Parent.Machine.Utility.SaveCharacterSettings();
+            Utility.SaveCharacterSettings();
         }
 
         public void ClearUI()

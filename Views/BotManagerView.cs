@@ -5,16 +5,16 @@ using VirindiViewService;
 
 namespace ACManager.Views
 {
-    internal class BotManagerView : IDisposable
+    public class BotManagerView : IDisposable
     {
-        internal Machine Machine { get; set; }
-        internal HudView View { get; set; }
-        private ConfigTab ConfigTab { get; set; }
-        private GemsTab GemsTab { get; set; }
-        private PortalsTab PortalsTab { get; set; }
-        private AdvertisementsTab AdvertisementsTab { get; set; }
-        private InventoryTab InventoryTab { get; set; }
-        private EquipmentTab EquipmentTab { get; set; }
+        public Machine Machine { get; set; }
+        public HudView View { get; set; }
+        public ConfigTab ConfigTab { get; set; }
+        public GemsTab GemsTab { get; set; }
+        public PortalsTab PortalsTab { get; set; }
+        public AdvertisementsTab AdvertisementsTab { get; set; }
+        public InventoryTab InventoryTab { get; set; }
+        public EquipmentTab EquipmentTab { get; set; }
 
         public BotManagerView(Machine machine)
         {

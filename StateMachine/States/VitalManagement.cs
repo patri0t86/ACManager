@@ -1,4 +1,5 @@
-﻿using Decal.Adapter.Wrappers;
+﻿using Decal.Adapter;
+using Decal.Adapter.Wrappers;
 using Decal.Filters;
 
 namespace ACManager.StateMachine.States
@@ -17,7 +18,7 @@ namespace ACManager.StateMachine.States
 
             if (RevitalizeSelf == null)
             {
-                RevitalizeSelf = machine.SpellTable.GetById(4321);
+                RevitalizeSelf = CoreManager.Current.Filter<FileService>().SpellTable.GetById(4321);
             }
         }
 
@@ -30,15 +31,15 @@ namespace ACManager.StateMachine.States
         {
             if (machine.Enabled)
             {
-                if (machine.Core.Actions.CombatMode != CombatState.Magic)
+                if (CoreManager.Current.Actions.CombatMode != CombatState.Magic)
                 {
-                    machine.Core.Actions.SetCombatMode(CombatState.Magic);
+                    CoreManager.Current.Actions.SetCombatMode(CombatState.Magic);
                 }
-                else if (machine.Core.Actions.CombatMode == CombatState.Magic)
+                else if (CoreManager.Current.Actions.CombatMode == CombatState.Magic)
                 {
                     if (machine.CastStarted && machine.CastCompleted)
                     {
-                        if (machine.Core.CharacterFilter.Mana >= machine.ManaThreshold * machine.Core.CharacterFilter.EffectiveVital[CharFilterVitalType.Mana])
+                        if (CoreManager.Current.CharacterFilter.Mana >= machine.ManaThreshold * CoreManager.Current.CharacterFilter.EffectiveVital[CharFilterVitalType.Mana])
                         {
                             if (machine.IsBuffed)
                             {
@@ -54,11 +55,11 @@ namespace ACManager.StateMachine.States
                     }
                     else if (!machine.CastStarted)
                     {
-                        if (machine.Core.CharacterFilter.Stamina < machine.StaminaThreshold * machine.Core.CharacterFilter.EffectiveVital[CharFilterVitalType.Stamina])
+                        if (CoreManager.Current.CharacterFilter.Stamina < machine.StaminaThreshold * CoreManager.Current.CharacterFilter.EffectiveVital[CharFilterVitalType.Stamina])
                         {
-                            if (machine.Core.CharacterFilter.IsSpellKnown(RevitalizeSelf.Id) && machine.SpellSkillCheck(RevitalizeSelf) && machine.ComponentChecker.HaveComponents(RevitalizeSelf.Id))
+                            if (CoreManager.Current.CharacterFilter.IsSpellKnown(RevitalizeSelf.Id) && machine.SpellSkillCheck(RevitalizeSelf) && Inventory.HaveComponents(RevitalizeSelf))
                             {
-                                machine.Core.Actions.CastSpell(RevitalizeSelf.Id, 0);
+                                CoreManager.Current.Actions.CastSpell(RevitalizeSelf.Id, 0);
                             }
                             else
                             {
@@ -80,33 +81,33 @@ namespace ACManager.StateMachine.States
 
         private void RegainMana(Machine machine)
         {
-            if (machine.Core.CharacterFilter.IsSpellKnown(2345) && machine.SpellSkillCheck(machine.SpellTable.GetById(2345)) && machine.ComponentChecker.HaveComponents(2345))
+            if (CoreManager.Current.CharacterFilter.IsSpellKnown(2345) && machine.SpellSkillCheck(CoreManager.Current.Filter<FileService>().SpellTable.GetById(2345)) && Inventory.HaveComponents(CoreManager.Current.Filter<FileService>().SpellTable.GetById(2345)))
             {
-                machine.Core.Actions.CastSpell(2345, 0);
+                CoreManager.Current.Actions.CastSpell(2345, 0);
             }
-            else if (machine.Core.CharacterFilter.IsSpellKnown(1681) && machine.SpellSkillCheck(machine.SpellTable.GetById(1681)) && machine.ComponentChecker.HaveComponents(1681))
+            else if (CoreManager.Current.CharacterFilter.IsSpellKnown(1681) && machine.SpellSkillCheck(CoreManager.Current.Filter<FileService>().SpellTable.GetById(1681)) && Inventory.HaveComponents(CoreManager.Current.Filter<FileService>().SpellTable.GetById(1681)))
             {
-                machine.Core.Actions.CastSpell(1681, 0);
+                CoreManager.Current.Actions.CastSpell(1681, 0);
             }
-            else if (machine.Core.CharacterFilter.IsSpellKnown(1680) && machine.SpellSkillCheck(machine.SpellTable.GetById(1680)) && machine.ComponentChecker.HaveComponents(1680))
+            else if (CoreManager.Current.CharacterFilter.IsSpellKnown(1680) && machine.SpellSkillCheck(CoreManager.Current.Filter<FileService>().SpellTable.GetById(1680)) && Inventory.HaveComponents(CoreManager.Current.Filter<FileService>().SpellTable.GetById(1680)))
             {
-                machine.Core.Actions.CastSpell(1680, 0);
+                CoreManager.Current.Actions.CastSpell(1680, 0);
             }
-            else if (machine.Core.CharacterFilter.IsSpellKnown(1679) && machine.SpellSkillCheck(machine.SpellTable.GetById(1679)) && machine.ComponentChecker.HaveComponents(1679))
+            else if (CoreManager.Current.CharacterFilter.IsSpellKnown(1679) && machine.SpellSkillCheck(CoreManager.Current.Filter<FileService>().SpellTable.GetById(1679)) && Inventory.HaveComponents(CoreManager.Current.Filter<FileService>().SpellTable.GetById(1679)))
             {
-                machine.Core.Actions.CastSpell(1679, 0);
+                CoreManager.Current.Actions.CastSpell(1679, 0);
             }
-            else if (machine.Core.CharacterFilter.IsSpellKnown(1678) && machine.SpellSkillCheck(machine.SpellTable.GetById(1678)) && machine.ComponentChecker.HaveComponents(1678))
+            else if (CoreManager.Current.CharacterFilter.IsSpellKnown(1678) && machine.SpellSkillCheck(CoreManager.Current.Filter<FileService>().SpellTable.GetById(1678)) && Inventory.HaveComponents(CoreManager.Current.Filter<FileService>().SpellTable.GetById(1678)))
             {
-                machine.Core.Actions.CastSpell(1678, 0);
+                CoreManager.Current.Actions.CastSpell(1678, 0);
             }
-            else if (machine.Core.CharacterFilter.IsSpellKnown(1677) && machine.SpellSkillCheck(machine.SpellTable.GetById(1677)) && machine.ComponentChecker.HaveComponents(1677))
+            else if (CoreManager.Current.CharacterFilter.IsSpellKnown(1677) && machine.SpellSkillCheck(CoreManager.Current.Filter<FileService>().SpellTable.GetById(1677)) && Inventory.HaveComponents(CoreManager.Current.Filter<FileService>().SpellTable.GetById(1677)))
             {
-                machine.Core.Actions.CastSpell(1677, 0);
+                CoreManager.Current.Actions.CastSpell(1677, 0);
             }
-            else if (machine.Core.CharacterFilter.IsSpellKnown(1676) && machine.SpellSkillCheck(machine.SpellTable.GetById(1676)) && machine.ComponentChecker.HaveComponents(1676))
+            else if (CoreManager.Current.CharacterFilter.IsSpellKnown(1676) && machine.SpellSkillCheck(CoreManager.Current.Filter<FileService>().SpellTable.GetById(1676)) && Inventory.HaveComponents(CoreManager.Current.Filter<FileService>().SpellTable.GetById(1676)))
             {
-                machine.Core.Actions.CastSpell(1676, 0);
+                CoreManager.Current.Actions.CastSpell(1676, 0);
             }
         }
 

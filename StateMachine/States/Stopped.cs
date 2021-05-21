@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Decal.Adapter;
+using System;
 
 namespace ACManager.StateMachine.States
 {
@@ -10,12 +11,12 @@ namespace ACManager.StateMachine.States
     {
         public void Enter(Machine machine)
         {
-            machine.NextCharacter = null;
+            //machine.NextCharacter = null;
             machine.SpellsToCast.Clear();
             machine.Requests.Clear();
-            machine.ItemToUse = null;
-            machine.Core.ChatBoxMessage -= machine.ChatManager.Current_ChatBoxMessage;
-            machine.Core.Actions.SetIdleTime(1200);
+            //machine.ItemToUse = null;
+            CoreManager.Current.ChatBoxMessage -= machine.ChatManager.Current_ChatBoxMessage;
+            CoreManager.Current.Actions.SetIdleTime(1200);
 
             Debug.ToChat("Stopped gracefully.");
         }
@@ -26,28 +27,28 @@ namespace ACManager.StateMachine.States
             {
                 machine.MachineStarted = DateTime.Now;
                 machine.LastBroadcast = DateTime.Now;
-                machine.Core.Actions.SetIdleTime(Double.MaxValue);
-                machine.Core.ChatBoxMessage += machine.ChatManager.Current_ChatBoxMessage;
+                CoreManager.Current.Actions.SetIdleTime(Double.MaxValue);
+                CoreManager.Current.ChatBoxMessage += machine.ChatManager.Current_ChatBoxMessage;
 
-                machine.AdInterval = machine.Utility.BotSettings.AdInterval >= 5 ? machine.Utility.BotSettings.AdInterval : 5;
-                machine.Advertise = machine.Utility.BotSettings.AdsEnabled;
-                machine.RespondToOpenChat = machine.Utility.BotSettings.RespondToGeneralChat;
-                machine.RespondToAllegiance = machine.Utility.BotSettings.RespondToAllegiance;
-                machine.Verbosity = machine.Utility.BotSettings.Verbosity;
-                machine.ManaThreshold = machine.Utility.BotSettings.ManaThreshold;
-                machine.StaminaThreshold = machine.Utility.BotSettings.StaminaThreshold;
-                machine.DefaultHeading = machine.Utility.BotSettings.DefaultHeading;
-                machine.DesiredLandBlock = machine.Utility.BotSettings.DesiredLandBlock;
-                machine.DesiredBotLocationX = machine.Utility.BotSettings.DesiredBotLocationX;
-                machine.DesiredBotLocationY = machine.Utility.BotSettings.DesiredBotLocationY;
-                machine.EnablePositioning = machine.Utility.BotSettings.BotPositioning;
-                machine.BuffingCharacter = machine.Utility.BotSettings.BuffingCharacter;
-                machine.StayBuffed = machine.Utility.BotSettings.StayBuffed;
-                machine.Level7Self = machine.Utility.BotSettings.Level7Self;
-                machine.SkillOverride = machine.Utility.BotSettings.SkillOverride;
+                machine.AdInterval = Utility.BotSettings.AdInterval >= 5 ? Utility.BotSettings.AdInterval : 5;
+                machine.Advertise = Utility.BotSettings.AdsEnabled;
+                machine.RespondToOpenChat = Utility.BotSettings.RespondToGeneralChat;
+                machine.RespondToAllegiance = Utility.BotSettings.RespondToAllegiance;
+                machine.Verbosity = Utility.BotSettings.Verbosity;
+                machine.ManaThreshold = Utility.BotSettings.ManaThreshold;
+                machine.StaminaThreshold = Utility.BotSettings.StaminaThreshold;
+                machine.DefaultHeading = Utility.BotSettings.DefaultHeading;
+                machine.DesiredLandBlock = Utility.BotSettings.DesiredLandBlock;
+                machine.DesiredBotLocationX = Utility.BotSettings.DesiredBotLocationX;
+                machine.DesiredBotLocationY = Utility.BotSettings.DesiredBotLocationY;
+                machine.EnablePositioning = Utility.BotSettings.BotPositioning;
+                machine.BuffingCharacter = Utility.BotSettings.BuffingCharacter;
+                machine.StayBuffed = Utility.BotSettings.StayBuffed;
+                machine.Level7Self = Utility.BotSettings.Level7Self;
+                machine.SkillOverride = Utility.BotSettings.SkillOverride;
 
                 Debug.ToChat("Started successfully.");
-                machine.ChatManager.Broadcast($"/me is running ACManager {machine.Utility.Version} found at https://github.com/patri0t86/ACManager. Whisper 'help' to get started.");
+                ChatManager.Broadcast($"/me is running ACManager {Utility.Version} found at https://github.com/patri0t86/ACManager. Whisper 'help' to get started.");
             }
         }
 

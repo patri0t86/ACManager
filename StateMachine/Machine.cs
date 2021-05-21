@@ -1,5 +1,4 @@
-﻿using ACManager.StateMachine.Queues;
-using ACManager.StateMachine.States;
+﻿using ACManager.StateMachine.States;
 using ACManager.Views;
 using Decal.Adapter;
 using Decal.Adapter.Wrappers;
@@ -12,7 +11,7 @@ namespace ACManager.StateMachine
     /// <summary>
     /// State Machine to handle all state transitions, state of all parameters, and clock of the bot.
     /// </summary>
-    internal class Machine
+    public class Machine
     {
         /// <summary>
         /// Current IState of the State Machine.
@@ -60,26 +59,6 @@ namespace ACManager.StateMachine
         public ChatManager ChatManager { get; set; }
 
         /// <summary>
-        /// List of characters for the logged in account.
-        /// </summary>
-        public List<string> AccountCharacters { get; set; } = new List<string>();
-
-        /// <summary>
-        /// The list index of the next character to log in.
-        /// </summary>
-        public int NextCharacterIndex { get; set; }
-
-        /// <summary>
-        /// The next character to log in to summon the portal.
-        /// </summary>
-        public string NextCharacter { get; set; }
-
-        /// <summary>
-        /// The destination of the requested portal.
-        /// </summary>
-        public string PortalDescription { get; set; }
-
-        /// <summary>
         /// Time reference to control when advertisements are broadcast.
         /// </summary>
         public DateTime LastBroadcast { get; set; }
@@ -93,16 +72,6 @@ namespace ACManager.StateMachine
         /// Number of portals requested this instance of the machine.
         /// </summary>
         public int PortalsSummonedThisSession { get; set; }
-
-        /// <summary>
-        /// Random number to select items with.
-        /// </summary>
-        public Random RandomNumber { get; set; }
-
-        /// <summary>
-        /// Class to handle all file I/O for the machine.
-        /// </summary>
-        public Utility Utility { get; set; }
 
         /// <summary>
         /// Class to handle all command line arguments.
@@ -150,11 +119,6 @@ namespace ACManager.StateMachine
         public int Verbosity { get; set; } = 0;
 
         /// <summary>
-        /// CoreManager to perform actions in game.
-        /// </summary>
-        public CoreManager Core { get; set; }
-
-        /// <summary>
         /// Heading to restore to when the bot is idle.
         /// </summary>
         public double DefaultHeading { get; set; }
@@ -178,21 +142,6 @@ namespace ACManager.StateMachine
         /// Enable/disable navigation.
         /// </summary>
         public bool EnablePositioning { get; set; } = false;
-
-        /// <summary>
-        /// Class to check for component status on spellcast.
-        /// </summary>
-        public ComponentChecker ComponentChecker { get; set; }
-
-        /// <summary>
-        /// Holds the currently logged in character's relevant inventory.
-        /// </summary>
-        public Inventory Inventory { get; set; }
-
-        /// <summary>
-        /// Name of the item to use next.
-        /// </summary>
-        public string ItemToUse { get; set; }
 
         /// <summary>
         /// The bot management GUI in decal.
@@ -242,12 +191,7 @@ namespace ACManager.StateMachine
         /// <summary>
         /// Only send the Finished scanning inventory once.
         /// </summary>
-        public bool FinishedInitialScan { get; set; }
-
-        /// <summary>
-        /// Entire spell table read from the used .dat file.
-        /// </summary>
-        public SpellTable SpellTable { get; set; }
+        public bool FinishedScan { get; set; }
 
         /// <summary>
         /// Manual override of magic skills for determining skill checks.
@@ -257,49 +201,104 @@ namespace ACManager.StateMachine
         /// <summary>
         /// Create the state machine in the StoppedState and begin processing commands on intervals (every time a frame is rendered).
         /// </summary>
-        public Machine(CoreManager core, string path)
+        public Machine()
         {
-            Core = core;
-            Utility = new Utility(this, path);
             Interpreter = new Interpreter(this);
             ChatManager = new ChatManager(this);
-            ComponentChecker = new ComponentChecker(Core);
-            Inventory = new Inventory(this);
-            RandomNumber = new Random();
-            SpellTable = Core.Filter<FileService>().SpellTable;
         }
 
-        public void WorldFilter_ChangeObject(object sender, ChangeObjectEventArgs e)
+        public void Start()
         {
-            if (e.Change.Equals(WorldChangeType.IdentReceived))
+            if (!Enabled)
             {
-                if (CharacterEquipment.Contains(e.Changed))
+                Enabled = true;
+            }
+
+            if (!BotManagerView.ConfigTab.BotEnabled.Checked)
+            {
+                BotManagerView.ConfigTab.BotEnabled.Checked = true;
+            }
+        }
+
+        public void Stop()
+        {
+            if (Enabled)
+            {
+                Enabled = false;
+            }
+
+            if (BotManagerView.ConfigTab.BotEnabled.Checked)
+            {
+                BotManagerView.ConfigTab.BotEnabled.Checked = false;
+            }
+        }
+
+        public void Login()
+        {
+            LoggedIn = true;
+            BotManagerView = new BotManagerView(this);
+            Enabled = Utility.BotSettings.BotEnabled;
+            IdentifyInventory();
+        }
+
+        public void Logout()
+        {
+            LoggedIn = false;
+            BotManagerView?.Dispose();
+        }
+
+        /// <summary>
+        /// Identifies all wearable equipment found in the character's inventory.
+        /// </summary>
+        public void IdentifyInventory()
+        {
+            CharacterEquipment.Clear();
+            FinishedScan = false;
+            using (WorldObjectCollection inventory = CoreManager.Current.WorldFilter.GetInventory())
+            {
+                foreach (WorldObject item in inventory)
                 {
-                    for (int i = 0; i < CharacterEquipment.Count; i++)
+                    if (item.ObjectClass.Equals(ObjectClass.Armor)
+                        || item.ObjectClass.Equals(ObjectClass.Jewelry)
+                        || item.ObjectClass.Equals(ObjectClass.Clothing)
+                        || item.ObjectClass.Equals(ObjectClass.WandStaffOrb))
                     {
-                        if (CharacterEquipment[i].Id.Equals(e.Changed.Id))
-                        {
-                            CharacterEquipment[i] = e.Changed;
-                            break;
-                        }
-                    }
-
-                    bool complete = true;
-                    foreach (WorldObject item in CharacterEquipment)
-                    {
-                        if (!item.HasIdData)
-                        {
-                            complete = false;
-                            break;
-                        }
-                    }
-
-                    if (complete && !FinishedInitialScan)
-                    {
-                        FinishedInitialScan = true;
-                        Debug.ToChat($"Finished scanning your inventory. You can now build suits.");
+                        CharacterEquipment.Add(item);
+                        CoreManager.Current.Actions.RequestId(item.Id);
                     }
                 }
+            }
+            Debug.ToChat("Scanning inventory, please wait before using the Equipment manager to build suits...");
+            Debug.ToChat($"Scanning {CoreManager.Current.IDQueue.ActionCount} equippable items from your inventory.");
+        }
+
+        /// <summary>
+        /// As items are identified, checks if they are in the character equipment to determine if all wearable items have been identified for the suit builder.
+        /// </summary>
+        public void WorldFilter_ChangeObject(object sender, ChangeObjectEventArgs e)
+        {
+            if (FinishedScan)
+            {
+                return;
+            }
+
+            if (e.Change.Equals(WorldChangeType.IdentReceived) && CharacterEquipment.Contains(e.Changed))
+            {
+                for (int i = 0; i < CharacterEquipment.Count; i++)
+                {
+                    if (CharacterEquipment[i].Equals(e.Changed))
+                    {
+                        CharacterEquipment[i] = e.Changed;
+                        break;
+                    }
+                }
+
+                if (CoreManager.Current.IDQueue.ActionCount <= 1)
+                {
+                    FinishedScan = true;
+                    Debug.ToChat($"Finished scanning your inventory. You can now build suits.");
+                }
+
             }
         }
 
@@ -308,8 +307,6 @@ namespace ACManager.StateMachine
         /// the state machine processes the current state and determines the next action or state transition. 
         /// The faster the frame rate, the faster this processes.
         /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
         public void Clock(object sender, EventArgs e)
         {
             if (LoggedIn)
@@ -329,39 +326,22 @@ namespace ACManager.StateMachine
         }
 
         /// <summary>
-        /// Determines the next character to log in.
-        /// </summary>
-        public void GetNextCharacter()
-        {
-            for (int i = 0; i < AccountCharacters.Count; i++)
-            {
-                if (AccountCharacters[i].Equals(NextCharacter))
-                {
-                    NextCharacterIndex = i;
-                    break;
-                }
-            }
-        }
-
-        /// <summary>
         /// Determines in the bot is in the correct position in the world.
         /// </summary>
-        /// <returns></returns>
         public bool InPosition()
         {
-            return Core.Actions.Landcell == DesiredLandBlock
-                && Math.Abs(Core.Actions.LocationX - DesiredBotLocationX) < 1
-                && Math.Abs(Core.Actions.LocationY - DesiredBotLocationY) < 1;
+            return CoreManager.Current.Actions.Landcell == DesiredLandBlock
+                && Math.Abs(CoreManager.Current.Actions.LocationX - DesiredBotLocationX) < 1
+                && Math.Abs(CoreManager.Current.Actions.LocationY - DesiredBotLocationY) < 1;
         }
 
         /// <summary>
         /// Determines if the bot is facing the correct heading for the current purpose.
         /// </summary>
-        /// <returns></returns>
         public bool CorrectHeading()
         {
-            return (Core.Actions.Heading <= NextHeading + 1
-                && Core.Actions.Heading >= NextHeading - 1)
+            return (CoreManager.Current.Actions.Heading <= NextHeading + 1
+                && CoreManager.Current.Actions.Heading >= NextHeading - 1)
                 || NextHeading.Equals(-1);
         }
 
@@ -370,11 +350,11 @@ namespace ACManager.StateMachine
             switch (spell.School.Id)
             {
                 case 2:
-                    return Core.CharacterFilter.EffectiveSkill[CharFilterSkillType.LifeMagic] + SkillOverride >= spell.Difficulty + 20;
+                    return CoreManager.Current.CharacterFilter.EffectiveSkill[CharFilterSkillType.LifeMagic] + SkillOverride >= spell.Difficulty + 20;
                 case 3:
-                    return Core.CharacterFilter.EffectiveSkill[CharFilterSkillType.ItemEnchantment] + SkillOverride >= spell.Difficulty + 20;
+                    return CoreManager.Current.CharacterFilter.EffectiveSkill[CharFilterSkillType.ItemEnchantment] + SkillOverride >= spell.Difficulty + 20;
                 case 4:
-                    return Core.CharacterFilter.EffectiveSkill[CharFilterSkillType.CreatureEnchantment] + SkillOverride >= spell.Difficulty + 20;
+                    return CoreManager.Current.CharacterFilter.EffectiveSkill[CharFilterSkillType.CreatureEnchantment] + SkillOverride >= spell.Difficulty + 20;
                 default:
                     // Void or War
                     return false;
@@ -384,22 +364,109 @@ namespace ACManager.StateMachine
         public Spell GetFallbackSpell(Spell spell, bool IsUntargetted = false)
         {
             Spell fallback = null;
-            for (int i = 1; i < SpellTable.Length; i++)
+            for (int i = 1; i < CoreManager.Current.Filter<FileService>().SpellTable.Length; i++)
             {
-                if (SpellTable[i].Family.Equals(spell.Family) &&
-                    SpellTable[i].Difficulty < spell.Difficulty &&
-                    SpellTable[i].IsUntargetted.Equals(IsUntargetted) &&
-                    !SpellTable[i].IsFellowship &&
-                    (SpellTable[i].Duration >= 1800 && SpellTable[i].Duration < spell.Duration || SpellTable[i].Duration == -1))
+                if (CoreManager.Current.Filter<FileService>().SpellTable[i].Family.Equals(spell.Family) &&
+                    CoreManager.Current.Filter<FileService>().SpellTable[i].Difficulty < spell.Difficulty &&
+                    CoreManager.Current.Filter<FileService>().SpellTable[i].IsUntargetted.Equals(IsUntargetted) &&
+                    !CoreManager.Current.Filter<FileService>().SpellTable[i].IsFellowship &&
+                    (CoreManager.Current.Filter<FileService>().SpellTable[i].Duration >= 1800 && CoreManager.Current.Filter<FileService>().SpellTable[i].Duration < spell.Duration || CoreManager.Current.Filter<FileService>().SpellTable[i].Duration == -1))
                 {
-                    if (fallback == null || SpellTable[i].Difficulty > fallback.Difficulty)
+                    if (fallback == null || CoreManager.Current.Filter<FileService>().SpellTable[i].Difficulty > fallback.Difficulty)
                     {
-                        fallback = SpellTable[i];
+                        fallback = CoreManager.Current.Filter<FileService>().SpellTable[i];
                     }
                 }
             }
 
             return fallback;
+        }
+
+        public void AddToQueue(Request newRequest)
+        {
+            if (Requests.Contains(newRequest))
+            {
+                ChatManager.SendTell(newRequest.RequesterName, $"You already have a {newRequest.RequestType} request in.");
+            }
+            else if (CurrentRequest.Equals(newRequest))
+            {
+                ChatManager.SendTell(newRequest.RequesterName, $"I'm already helping you, please be patient.");
+            }
+            else
+            {
+                Requests.Enqueue(newRequest);
+
+                // Give an estimated wait time
+                TimeSpan waitTime;
+                int seconds = 0;
+                string lastCharacter = CoreManager.Current.CharacterFilter.Name;
+
+                int currentRequest = SpellsToCast.Count * 4;
+
+                // add the current request time in
+                seconds += currentRequest;
+
+                foreach (Request request in Requests)
+                {
+                    seconds += request.SpellsToCast.Count * 4;
+
+                    if (!request.Character.Equals(lastCharacter))
+                    {
+                        lastCharacter = request.Character;
+                        seconds += 17;
+                    }
+                }
+
+                string estimatedWait = "";
+
+                if (Requests.Count > 1)
+                {
+                    seconds += Requests.Count * 5;
+                    waitTime = TimeSpan.FromSeconds(seconds);
+                    estimatedWait = $" I should be able to get to your request in about {waitTime.Minutes} minutes and {waitTime.Seconds} seconds.";
+                }
+                else if (!string.IsNullOrEmpty(CurrentRequest.RequesterName))
+                {
+                    seconds = currentRequest + 5;
+                    waitTime = TimeSpan.FromSeconds(seconds);
+                    estimatedWait = $" I should be able to get to your request in about {waitTime.Minutes} minutes and {waitTime.Seconds} seconds.";
+                }
+
+                if (Requests.Count.Equals(1) && string.IsNullOrEmpty(CurrentRequest.RequesterName))
+                {
+                    ChatManager.SendTell(newRequest.RequesterName, "I have received your request and will help you now. Say 'cancel' at any time to cancel this request.");
+                }
+                else if (Requests.Count.Equals(1) && !string.IsNullOrEmpty(CurrentRequest.RequesterName))
+                {
+                    ChatManager.SendTell(newRequest.RequesterName, $"I have received your request. You are next in line. Say 'cancel' at any time to cancel this request.{(!string.IsNullOrEmpty(estimatedWait) ? estimatedWait : "")}");
+                }
+                else
+                {
+                    ChatManager.SendTell(newRequest.RequesterName, $"I have received your request. There are currently {Requests.Count} requests in the queue ahead of you, including the person I'm currently helping. Say 'cancel' at any time to cancel this request.{(!string.IsNullOrEmpty(estimatedWait) ? estimatedWait : "")}");
+                }
+            }
+        }
+
+        public void CancelRequest(string name)
+        {
+            if (CurrentRequest.RequesterName.Equals(name))
+            {
+                CancelList.Add(name);
+                ChatManager.SendTell(name, "I'm cancelling this request now.");
+            }
+            else
+            {
+                foreach (Request request in Requests)
+                {
+                    if (request.RequesterName.Equals(name))
+                    {
+                        CancelList.Add(name);
+                        ChatManager.SendTell(name, "I will remove your next request from my queue. If you wish to remove all requests, say 'cancel' for each request you have put in.");
+                        return;
+                    }
+                }
+                ChatManager.SendTell(name, "You don't have any requests in at this time.");
+            }
         }
     }
 }

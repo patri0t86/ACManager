@@ -1,5 +1,6 @@
 ﻿using ACManager.Settings;
 using ACManager.Settings.BuffDefaults;
+using Decal.Adapter;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -9,36 +10,34 @@ using System.Text;
 using System.Xml;
 using System.Xml.Serialization;
 
-namespace ACManager.StateMachine
+namespace ACManager
 {
     /// <summary>
     /// Static class to handle miscellaneous tasks, like file I/O, outside of the client.
     /// </summary>
-    internal class Utility
+    public static class Utility
     {
-        private Machine Machine { get; set; }
-        internal string Version { get; set; }
-        private string AllSettingsPath { get; set; }
-        private string CharacterSettingsFile { get { return "acm_settings.xml"; } }
-        private string CharacterSettingsPath { get; set; }
-        private string BotSettingsFile { get { return "acm_bot_settings.xml"; } }
-        private string BotSettingsPath { get; set; }
-        private string InventoryFile { get { return "acm_inventory.xml"; } }
-        private string InventoryPath { get; set; }
-        private string EquipmentSettingsFile { get { return "acm_equipment.xml"; } }
-        private string EquipmentSettingsPath { get; set; }
-        private string GiftsFile { get { return "acm_gifts.log"; } }
-        private string GiftsPath { get; set; }
-        private string BuffProfilesPath { get; set; }
-        internal CharacterSettings CharacterSettings { get; set; } = new CharacterSettings();
-        internal BotSettings BotSettings { get; set; } = new BotSettings();
-        internal InventorySettings Inventory { get; set; } = new InventorySettings();
-        internal List<BuffProfile> BuffProfiles { get; set; } = new List<BuffProfile>();
-        internal EquipmentSettings EquipmentSettings { get; set; } = new EquipmentSettings();
+        public static string Version { get; set; }
+        private static string AllSettingsPath { get; set; }
+        private static string CharacterSettingsFile { get { return "acm_settings.xml"; } }
+        private static string CharacterSettingsPath { get; set; }
+        private static string BotSettingsFile { get { return "acm_bot_settings.xml"; } }
+        private static string BotSettingsPath { get; set; }
+        private static string InventoryFile { get { return "acm_inventory.xml"; } }
+        private static string InventoryPath { get; set; }
+        private static string EquipmentSettingsFile { get { return "acm_equipment.xml"; } }
+        private static string EquipmentSettingsPath { get; set; }
+        private static string GiftsFile { get { return "acm_gifts.log"; } }
+        private static string GiftsPath { get; set; }
+        private static string BuffProfilesPath { get; set; }
+        public static CharacterSettings CharacterSettings { get; set; } = new CharacterSettings();
+        public static BotSettings BotSettings { get; set; } = new BotSettings();
+        public static InventorySettings Inventory { get; set; } = new InventorySettings();
+        public static List<BuffProfile> BuffProfiles { get; set; } = new List<BuffProfile>();
+        public static EquipmentSettings EquipmentSettings { get; set; } = new EquipmentSettings();
 
-        public Utility(Machine machine, string path)
+        public static void Init(string path)
         {
-            Machine = machine;
             CreatePaths(path);
             Version = FileVersionInfo.GetVersionInfo(Assembly.GetExecutingAssembly().Location).ProductVersion;
             CharacterSettings = LoadCharacterSettings();
@@ -48,38 +47,16 @@ namespace ACManager.StateMachine
             LoadBuffProfiles();
         }
 
-        internal Character GetCurrentCharacter()
-        {
-            Character newCharacter = new Character()
-            {
-                Name = Machine.Core.CharacterFilter.Name,
-                Account = Machine.Core.CharacterFilter.AccountName,
-                Server = Machine.Core.CharacterFilter.Server
-            };
-
-            if (CharacterSettings.Characters.Contains(newCharacter))
-            {
-                foreach (Character character in CharacterSettings.Characters)
-                {
-                    if (newCharacter.Equals(character))
-                    {
-                        return character;
-                    }
-                }
-            }
-            return newCharacter;
-        }
-
         /// <summary>
         /// Creates the paths necessary to save/load settings.
         /// </summary>
         /// <param name="root">Root path of the plugin.</param>
-        private void CreatePaths(string root)
+        private static void CreatePaths(string root)
         {
             try
             {
-                string intermediatePath = Path.Combine(root, Machine.Core.CharacterFilter.AccountName);
-                AllSettingsPath = Path.Combine(intermediatePath, Machine.Core.CharacterFilter.Server);
+                string intermediatePath = Path.Combine(root, CoreManager.Current.CharacterFilter.AccountName);
+                AllSettingsPath = Path.Combine(intermediatePath, CoreManager.Current.CharacterFilter.Server);
                 CharacterSettingsPath = Path.Combine(AllSettingsPath, CharacterSettingsFile);
                 BotSettingsPath = Path.Combine(AllSettingsPath, BotSettingsFile);
                 InventoryPath = Path.Combine(AllSettingsPath, InventoryFile);
@@ -94,7 +71,7 @@ namespace ACManager.StateMachine
         /// Creates the directory path if it does not exist.
         /// </summary>
         /// <returns>Boolean whether or not the directory path exists.</returns>
-        private bool SettingsPathCreateOrExists()
+        private static bool SettingsPathCreateOrExists()
         {
             try
             {
@@ -108,7 +85,7 @@ namespace ACManager.StateMachine
             }
         }
 
-        private bool BuffsPathCreateOrExists()
+        private static bool BuffsPathCreateOrExists()
         {
             try
             {
@@ -125,7 +102,7 @@ namespace ACManager.StateMachine
         /// <summary>
         /// Saves the per character settings to file.
         /// </summary>
-        public void SaveCharacterSettings()
+        public static void SaveCharacterSettings()
         {
             try
             {
@@ -151,7 +128,7 @@ namespace ACManager.StateMachine
         /// Loads the character settings file if it exists.
         /// </summary>
         /// <returns></returns>
-        internal CharacterSettings LoadCharacterSettings()
+        public static CharacterSettings LoadCharacterSettings()
         {
             try
             {
@@ -178,7 +155,7 @@ namespace ACManager.StateMachine
         /// <summary>
         /// Saves the bot settings to file.
         /// </summary>
-        public void SaveBotSettings()
+        public static void SaveBotSettings()
         {
             try
             {
@@ -204,7 +181,7 @@ namespace ACManager.StateMachine
         /// Loads the bot settings file if it exists.
         /// </summary>
         /// <returns></returns>
-        internal BotSettings LoadBotSettings()
+        public static BotSettings LoadBotSettings()
         {
             try
             {
@@ -231,10 +208,26 @@ namespace ACManager.StateMachine
         /// <summary>
         /// Save the updated inventory to disk.
         /// </summary>
-        internal void SaveInventory()
+        public static void SaveInventory(CharacterInventory inventory)
         {
             try
             {
+                if (Inventory.CharacterInventories.Contains(inventory))
+                {
+                    for (int i = 0; i < Inventory.CharacterInventories.Count; i++)
+                    {
+                        if (Inventory.CharacterInventories[i].Equals(inventory))
+                        {
+                            Inventory.CharacterInventories[i] = inventory;
+                            break;
+                        }
+                    }
+                }
+                else
+                {
+                    Inventory.CharacterInventories.Add(inventory);
+                }
+
                 if (SettingsPathCreateOrExists())
                 {
                     using (XmlTextWriter writer = new XmlTextWriter(InventoryPath, Encoding.UTF8))
@@ -257,7 +250,7 @@ namespace ACManager.StateMachine
         /// Load the known inventories from disk.
         /// </summary>
         /// <returns></returns>
-        internal InventorySettings LoadInventories()
+        public static InventorySettings LoadInventories()
         {
             try
             {
@@ -281,7 +274,7 @@ namespace ACManager.StateMachine
             }
         }
 
-        internal void SaveBuffProfile(BuffProfile profile)
+        public static void SaveBuffProfile(BuffProfile profile)
         {
             try
             {
@@ -304,7 +297,7 @@ namespace ACManager.StateMachine
             }
         }
 
-        internal bool LoadBuffProfiles()
+        public static bool LoadBuffProfiles()
         {
             try
             {
@@ -343,7 +336,7 @@ namespace ACManager.StateMachine
         /// <summary>
         /// Saves Equipment profiles to disk.
         /// </summary>
-        public void SaveEquipmentSettings()
+        public static void SaveEquipmentSettings()
         {
             try
             {
@@ -369,7 +362,7 @@ namespace ACManager.StateMachine
         /// Loads Equipment profiles if they exist.
         /// </summary>
         /// <returns></returns>
-        internal EquipmentSettings LoadEquipmentSettings()
+        public static EquipmentSettings LoadEquipmentSettings()
         {
             try
             {
@@ -393,7 +386,7 @@ namespace ACManager.StateMachine
             }
         }
 
-        internal void SaveGiftToLog(string message)
+        public static void SaveGiftToLog(string message)
         {
             try
             {
@@ -406,10 +399,9 @@ namespace ACManager.StateMachine
             }
         }
 
-
-        internal void GenerateDefaultProfiles()
+        public static void GenerateDefaultProfiles()
         {
-            BuffProfile newProfile = new BuffProfile();          
+            BuffProfile newProfile = new BuffProfile();
 
             BotBuffs botBuffs = new BotBuffs();
             newProfile.Commands = botBuffs.Commands;
@@ -467,7 +459,7 @@ namespace ACManager.StateMachine
             SaveBuffProfile(newProfile);
         }
 
-        internal BuffProfile GetProfile(string command)
+        public static BuffProfile GetProfile(string command)
         {
             for (int i = 0; i < BuffProfiles.Count; i++)
             {
@@ -477,6 +469,39 @@ namespace ACManager.StateMachine
                 }
             }
             return null;
+        }
+
+        /// <summary>
+        /// Builds the list of portals to respond with.
+        /// </summary>
+        /// <returns>List of formatted strings to be sent to the requestor.</returns>
+        public static List<string> GetPortals()
+        {
+            List<string> portals = new List<string>();
+            for (int i = 0; i < CharacterSettings.Characters.Count; i++)
+            {
+                foreach (Portal portal in CharacterSettings.Characters[i].Portals)
+                {
+                    if (!string.IsNullOrEmpty(portal.Keyword))
+                    {
+                        portals.Add($"{portal.Keyword} -> {(string.IsNullOrEmpty(portal.Description) ? "No description" : portal.Description)}{(portal.Level > 0 ? " [" + portal.Level + "+]" : "")}");
+                    }
+                }
+            }
+            return portals;
+        }
+
+        public static List<string> GetGems()
+        {
+            List<string> gems = new List<string>();
+            foreach (GemSetting gemSetting in BotSettings.GemSettings)
+            {
+                if (!string.IsNullOrEmpty(gemSetting.Keyword))
+                {
+                    gems.Add($"{gemSetting.Keyword} -> {gemSetting.Name}");
+                }
+            }
+            return gems;
         }
     }
 }

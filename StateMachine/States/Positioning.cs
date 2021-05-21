@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Decal.Adapter;
+using System;
 
 namespace ACManager.StateMachine.States
 {
@@ -30,31 +31,31 @@ namespace ACManager.StateMachine.States
                 {
                     if (machine.DesiredLandBlock.Equals(0) && machine.DesiredBotLocationX.Equals(0) && machine.DesiredBotLocationY.Equals(0))
                     {
-                        machine.DesiredLandBlock = machine.Core.Actions.Landcell;
-                        machine.DesiredBotLocationX = machine.Core.Actions.LocationX;
-                        machine.DesiredBotLocationY = machine.Core.Actions.LocationY;
+                        machine.DesiredLandBlock = CoreManager.Current.Actions.Landcell;
+                        machine.DesiredBotLocationX = CoreManager.Current.Actions.LocationX;
+                        machine.DesiredBotLocationY = CoreManager.Current.Actions.LocationY;
                         Debug.ToChat("Bot location set to current location since one was not set previously.");
                     }
                     else if (!machine.InPosition())
                     {
-                        TempHeading = TargetHeading(machine.Core.Actions.Landcell, machine.DesiredLandBlock, machine.Core.Actions.LocationX, machine.Core.Actions.LocationY, machine.DesiredBotLocationX, machine.DesiredBotLocationY);
+                        TempHeading = TargetHeading(CoreManager.Current.Actions.Landcell, machine.DesiredLandBlock, CoreManager.Current.Actions.LocationX, CoreManager.Current.Actions.LocationY, machine.DesiredBotLocationX, machine.DesiredBotLocationY);
 
-                        if (!CorrectHeading(machine.Core.Actions.Heading))
+                        if (!CorrectHeading(CoreManager.Current.Actions.Heading))
                         {
                             if (AutoRunning(machine))
                             {
-                                machine.Core.Actions.SetAutorun(false);
+                                CoreManager.Current.Actions.SetAutorun(false);
                             }
                             else if (!IsTurning(machine))
                             {
-                                machine.Core.Actions.FaceHeading(TempHeading, false);
+                                CoreManager.Current.Actions.FaceHeading(TempHeading, false);
                             }
                         }
                         else if (!IsTurning(machine))
                         {
                             if (!AutoRunning(machine))
                             {
-                                machine.Core.Actions.SetAutorun(true);
+                                CoreManager.Current.Actions.SetAutorun(true);
                             }
                         }
                     }
@@ -62,12 +63,12 @@ namespace ACManager.StateMachine.States
                     {
                         if (AutoRunning(machine))
                         {
-                            machine.Core.Actions.SetAutorun(false);
+                            CoreManager.Current.Actions.SetAutorun(false);
                         }
 
                         if (!machine.CorrectHeading() && !IsTurning(machine))
                         {
-                            machine.Core.Actions.FaceHeading(machine.NextHeading, false);
+                            CoreManager.Current.Actions.FaceHeading(machine.NextHeading, false);
                         }
                         else
                         {
@@ -80,16 +81,16 @@ namespace ACManager.StateMachine.States
                     // Positioning is disabled, but still need to face the correct direction for portals
                     if (!IsTurning(machine))
                     {
-                        machine.Core.Actions.FaceHeading(machine.NextHeading, false);
+                        CoreManager.Current.Actions.FaceHeading(machine.NextHeading, false);
                     }
                 }
                 else
                 {
                     machine.NextState = Idle.GetInstance;
                 }
-                LastLocationX = machine.Core.Actions.LocationX;
-                LastLocationY = machine.Core.Actions.LocationY;
-                LastHeading = machine.Core.Actions.Heading;
+                LastLocationX = CoreManager.Current.Actions.LocationX;
+                LastLocationY = CoreManager.Current.Actions.LocationY;
+                LastHeading = CoreManager.Current.Actions.Heading;
             }
             else
             {
@@ -99,12 +100,12 @@ namespace ACManager.StateMachine.States
 
         private bool AutoRunning(Machine machine)
         {
-            return !(machine.Core.Actions.LocationX == LastLocationX && machine.Core.Actions.LocationY == LastLocationY);
+            return !(CoreManager.Current.Actions.LocationX == LastLocationX && CoreManager.Current.Actions.LocationY == LastLocationY);
         }
 
         private bool IsTurning(Machine machine)
         {
-            return !machine.Core.Actions.Heading.Equals(LastHeading);
+            return !CoreManager.Current.Actions.Heading.Equals(LastHeading);
         }
 
         private bool CorrectHeading(double currentHeading)

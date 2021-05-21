@@ -1,5 +1,5 @@
 ﻿using ACManager.Settings;
-using ACManager.StateMachine.Queues;
+using Decal.Adapter;
 using Decal.Adapter.Wrappers;
 using System;
 using System.Collections.Generic;
@@ -22,30 +22,30 @@ namespace ACManager.StateMachine.States
 
         public void Enter(Machine machine)
         {
-            machine.Utility.EquipmentSettings = machine.Utility.LoadEquipmentSettings();
+            Utility.EquipmentSettings = Utility.LoadEquipmentSettings();
 
-            if (BuffingEquipment.Count.Equals(0) && machine.Core.CharacterFilter.Name.Equals(machine.BuffingCharacter))
+            if (BuffingEquipment.Count.Equals(0) && CoreManager.Current.CharacterFilter.Name.Equals(machine.BuffingCharacter))
             {
-                foreach (Equipment item in machine.Utility.EquipmentSettings.BuffingEquipment)
+                foreach (Equipment item in Utility.EquipmentSettings.BuffingEquipment)
                 {
                     BuffingEquipment.Add(item, false);
                 }
             }
 
-            if (IdleEquipment.Count.Equals(0) && machine.Core.CharacterFilter.Name.Equals(machine.BuffingCharacter))
+            if (IdleEquipment.Count.Equals(0) && CoreManager.Current.CharacterFilter.Name.Equals(machine.BuffingCharacter))
             {
-                foreach (Equipment item in machine.Utility.EquipmentSettings.IdleEquipment)
+                foreach (Equipment item in Utility.EquipmentSettings.IdleEquipment)
                 {
                     IdleEquipment.Add(item, true);
                 }
             }
 
-            using (WorldObjectCollection wands = machine.Core.WorldFilter.GetInventory())
+            using (WorldObjectCollection wands = CoreManager.Current.WorldFilter.GetInventory())
             {
                 wands.SetFilter(new ByObjectClassFilter(ObjectClass.WandStaffOrb));
                 foreach (WorldObject wand in wands)
                 {
-                    machine.Core.Actions.RequestId(wand.Id);
+                    CoreManager.Current.Actions.RequestId(wand.Id);
                 }
             }
         }
@@ -69,7 +69,7 @@ namespace ACManager.StateMachine.States
                 {
                     if (FullyEquipped)
                     {
-                        if (!machine.IsBuffed && machine.Core.CharacterFilter.Name.Equals(machine.BuffingCharacter))
+                        if (!machine.IsBuffed && CoreManager.Current.CharacterFilter.Name.Equals(machine.BuffingCharacter))
                         {
                             machine.NextState = SelfBuffing.GetInstance;
                         }
@@ -80,13 +80,13 @@ namespace ACManager.StateMachine.States
                     }
                     else if (BuffingEquipment.Count.Equals(0) || !machine.CurrentRequest.RequestType.Equals(RequestType.Buff))
                     {
-                        using (WorldObjectCollection wands = machine.Core.WorldFilter.GetInventory())
+                        using (WorldObjectCollection wands = CoreManager.Current.WorldFilter.GetInventory())
                         {
                             wands.SetFilter(new ByObjectClassFilter(ObjectClass.WandStaffOrb));
 
                             if (wands.Count.Equals(0))
                             {
-                                machine.ChatManager.Broadcast("Oops, my owner didn't give me a wand I can equip. I'm cancelling this request.");
+                                ChatManager.Broadcast("Oops, my owner didn't give me a wand I can equip. I'm cancelling this request.");
                                 machine.SpellsToCast.Clear();
                                 machine.NextState = Idle.GetInstance;
                             }
@@ -105,9 +105,9 @@ namespace ACManager.StateMachine.States
                             {
                                 foreach (WorldObject wand in wands)
                                 {
-                                    if (CanWield(machine, wand) && machine.Core.Actions.BusyState.Equals(0))
+                                    if (CanWield(machine, wand) && CoreManager.Current.Actions.BusyState.Equals(0))
                                     {
-                                        machine.Core.Actions.AutoWield(wand.Id);
+                                        CoreManager.Current.Actions.AutoWield(wand.Id);
                                         break;
                                     }
                                 }
@@ -118,13 +118,13 @@ namespace ACManager.StateMachine.States
                     {
                         foreach (KeyValuePair<Equipment, bool> item in IdleEquipment)
                         {
-                            if (machine.Core.Actions.BusyState.Equals(0))
+                            if (CoreManager.Current.Actions.BusyState.Equals(0))
                             {
                                 if (IdleEquipment[item.Key].Equals(true))
                                 {
                                     if (!BuffingEquipment.ContainsKey(item.Key))
                                     {
-                                        machine.Core.Actions.MoveItem(item.Key.Id, machine.Core.CharacterFilter.Id);
+                                        CoreManager.Current.Actions.MoveItem(item.Key.Id, CoreManager.Current.CharacterFilter.Id);
                                     }
                                     else
                                     {
@@ -140,18 +140,18 @@ namespace ACManager.StateMachine.States
 
                         foreach (KeyValuePair<Equipment, bool> item in BuffingEquipment)
                         {
-                            if (machine.Core.Actions.BusyState.Equals(0) && !item.Value)
+                            if (CoreManager.Current.Actions.BusyState.Equals(0) && !item.Value)
                             {
                                 if ((item.Key.EquipMask & (int)Ring) == (int)Ring)
                                 {
                                     if (!RingEquipped)
                                     {
                                         RingEquipped = true;
-                                        machine.Core.Actions.AutoWield(item.Key.Id, (int)EquipMask.RightRing, 0, 1, 1, 1);
+                                        CoreManager.Current.Actions.AutoWield(item.Key.Id, (int)EquipMask.RightRing, 0, 1, 1, 1);
                                     }
                                     else
                                     {
-                                        machine.Core.Actions.AutoWield(item.Key.Id, (int)EquipMask.LeftRing, 0, 1, 1, 1);
+                                        CoreManager.Current.Actions.AutoWield(item.Key.Id, (int)EquipMask.LeftRing, 0, 1, 1, 1);
                                     }
                                 }
                                 else if ((item.Key.EquipMask & (int)Bracelet) == (int)Bracelet)
@@ -159,20 +159,20 @@ namespace ACManager.StateMachine.States
                                     if (!BraceletEquipped)
                                     {
                                         BraceletEquipped = true;
-                                        machine.Core.Actions.AutoWield(item.Key.Id, (int)EquipMask.RightBracelet, 0, 1, 1, 1);
+                                        CoreManager.Current.Actions.AutoWield(item.Key.Id, (int)EquipMask.RightBracelet, 0, 1, 1, 1);
                                     }
                                     else
                                     {
-                                        machine.Core.Actions.AutoWield(item.Key.Id, (int)EquipMask.LeftBracelet, 0, 1, 1, 1);
+                                        CoreManager.Current.Actions.AutoWield(item.Key.Id, (int)EquipMask.LeftBracelet, 0, 1, 1, 1);
                                     }
                                 }
                                 else if (item.Key.ObjectClass.Equals(ObjectClass.Clothing.ToString()))
                                 {
-                                    machine.Core.Actions.UseItem(item.Key.Id, 0);
+                                    CoreManager.Current.Actions.UseItem(item.Key.Id, 0);
                                 }
                                 else
                                 {
-                                    machine.Core.Actions.AutoWield(item.Key.Id, item.Key.EquipMask, 0, 1, 1, 1);
+                                    CoreManager.Current.Actions.AutoWield(item.Key.Id, item.Key.EquipMask, 0, 1, 1, 1);
                                 }
 
                                 BuffingEquipment[item.Key] = true;
@@ -204,13 +204,13 @@ namespace ACManager.StateMachine.States
                         {
                             foreach (KeyValuePair<Equipment, bool> item in BuffingEquipment)
                             {
-                                if (machine.Core.Actions.BusyState.Equals(0))
+                                if (CoreManager.Current.Actions.BusyState.Equals(0))
                                 {
                                     if (BuffingEquipment[item.Key].Equals(true))
                                     {
                                         if (!IdleEquipment.ContainsKey(item.Key))
                                         {
-                                            machine.Core.Actions.MoveItem(item.Key.Id, machine.Core.CharacterFilter.Id);
+                                            CoreManager.Current.Actions.MoveItem(item.Key.Id, CoreManager.Current.CharacterFilter.Id);
                                         }
                                         else
                                         {
@@ -237,16 +237,16 @@ namespace ACManager.StateMachine.States
                         }
                         else // no suit equipped - remove the wand
                         {
-                            using (WorldObjectCollection wands = machine.Core.WorldFilter.GetInventory())
+                            using (WorldObjectCollection wands = CoreManager.Current.WorldFilter.GetInventory())
                             {
                                 wands.SetFilter(new ByObjectClassFilter(ObjectClass.WandStaffOrb));
                                 foreach (WorldObject wand in wands)
                                 {
                                     if (wand.Values(LongValueKey.EquippedSlots) > 0)
                                     {
-                                        if (machine.Core.Actions.BusyState.Equals(0))
+                                        if (CoreManager.Current.Actions.BusyState.Equals(0))
                                         {
-                                            machine.Core.Actions.MoveItem(wand.Id, machine.Core.CharacterFilter.Id);
+                                            CoreManager.Current.Actions.MoveItem(wand.Id, CoreManager.Current.CharacterFilter.Id);
                                             FullyEquipped = false;
                                         }
                                     }
@@ -264,15 +264,15 @@ namespace ACManager.StateMachine.States
                         {
                             foreach (KeyValuePair<Equipment, bool> item in IdleEquipment)
                             {
-                                if (machine.Core.Actions.BusyState.Equals(0) && !item.Value)
+                                if (CoreManager.Current.Actions.BusyState.Equals(0) && !item.Value)
                                 {
                                     if (item.Key.ObjectClass.Equals(ObjectClass.Clothing.ToString()))
                                     {
-                                        machine.Core.Actions.UseItem(item.Key.Id, 0);
+                                        CoreManager.Current.Actions.UseItem(item.Key.Id, 0);
                                     }
                                     else
                                     {
-                                        machine.Core.Actions.AutoWield(item.Key.Id, item.Key.EquipMask, 0, 1, 1, 1);
+                                        CoreManager.Current.Actions.AutoWield(item.Key.Id, item.Key.EquipMask, 0, 1, 1, 1);
                                     }
                                     IdleEquipment[item.Key] = true;
                                 }
@@ -292,7 +292,7 @@ namespace ACManager.StateMachine.States
                     }
                     else
                     {
-                        if (machine.Core.Actions.BusyState.Equals(0))
+                        if (CoreManager.Current.Actions.BusyState.Equals(0))
                         {
                             machine.NextState = Idle.GetInstance;
                         }
@@ -350,12 +350,12 @@ namespace ACManager.StateMachine.States
 
             if (wand.Values(LongValueKey.WieldReqType).Equals(7) || wand.Values(LongValueKey.WieldReqType).Equals(2))
             {
-                if (wand.Values(LongValueKey.WieldReqType).Equals(7) && !(machine.Core.CharacterFilter.Level >= wand.Values(LongValueKey.WieldReqValue)))
+                if (wand.Values(LongValueKey.WieldReqType).Equals(7) && !(CoreManager.Current.CharacterFilter.Level >= wand.Values(LongValueKey.WieldReqValue)))
                 {
                     return false;
                 }
 
-                if (wand.Values(LongValueKey.WieldReqType).Equals(2) && !(machine.Core.CharacterFilter.EffectiveSkill[(CharFilterSkillType)wand.Values(LongValueKey.WieldReqAttribute)] >= wand.Values(LongValueKey.WieldReqValue)))
+                if (wand.Values(LongValueKey.WieldReqType).Equals(2) && !(CoreManager.Current.CharacterFilter.EffectiveSkill[(CharFilterSkillType)wand.Values(LongValueKey.WieldReqAttribute)] >= wand.Values(LongValueKey.WieldReqValue)))
                 {
                     return false;
                 }
@@ -363,12 +363,12 @@ namespace ACManager.StateMachine.States
 
             if (wand.Values((LongValueKey)270).Equals(7) || wand.Values((LongValueKey)270).Equals(2))
             {
-                if (wand.Values((LongValueKey)270).Equals(7) && !(machine.Core.CharacterFilter.Level >= wand.Values((LongValueKey)272)))
+                if (wand.Values((LongValueKey)270).Equals(7) && !(CoreManager.Current.CharacterFilter.Level >= wand.Values((LongValueKey)272)))
                 {
                     return false;
                 }
 
-                if (wand.Values((LongValueKey)270).Equals(2) && !(machine.Core.CharacterFilter.EffectiveSkill[(CharFilterSkillType)wand.Values((LongValueKey)271)] >= wand.Values((LongValueKey)271)))
+                if (wand.Values((LongValueKey)270).Equals(2) && !(CoreManager.Current.CharacterFilter.EffectiveSkill[(CharFilterSkillType)wand.Values((LongValueKey)271)] >= wand.Values((LongValueKey)271)))
                 {
                     return false;
                 }
@@ -376,12 +376,12 @@ namespace ACManager.StateMachine.States
 
             if (wand.Values((LongValueKey)273).Equals(7) || wand.Values((LongValueKey)273).Equals(2))
             {
-                if (wand.Values((LongValueKey)273).Equals(7) && !(machine.Core.CharacterFilter.Level >= wand.Values((LongValueKey)275)))
+                if (wand.Values((LongValueKey)273).Equals(7) && !(CoreManager.Current.CharacterFilter.Level >= wand.Values((LongValueKey)275)))
                 {
                     return false;
                 }
 
-                if (wand.Values((LongValueKey)273).Equals(2) && !(machine.Core.CharacterFilter.EffectiveSkill[(CharFilterSkillType)wand.Values((LongValueKey)274)] >= wand.Values((LongValueKey)274)))
+                if (wand.Values((LongValueKey)273).Equals(2) && !(CoreManager.Current.CharacterFilter.EffectiveSkill[(CharFilterSkillType)wand.Values((LongValueKey)274)] >= wand.Values((LongValueKey)274)))
                 {
                     return false;
                 }
@@ -389,12 +389,12 @@ namespace ACManager.StateMachine.States
 
             if (wand.Values((LongValueKey)276).Equals(7) || wand.Values((LongValueKey)276).Equals(2))
             {
-                if (wand.Values((LongValueKey)276).Equals(7) && !(machine.Core.CharacterFilter.Level >= wand.Values((LongValueKey)278)))
+                if (wand.Values((LongValueKey)276).Equals(7) && !(CoreManager.Current.CharacterFilter.Level >= wand.Values((LongValueKey)278)))
                 {
                     return false;
                 }
 
-                if (wand.Values((LongValueKey)276).Equals(2) && !(machine.Core.CharacterFilter.EffectiveSkill[(CharFilterSkillType)wand.Values((LongValueKey)277)] >= wand.Values((LongValueKey)277)))
+                if (wand.Values((LongValueKey)276).Equals(2) && !(CoreManager.Current.CharacterFilter.EffectiveSkill[(CharFilterSkillType)wand.Values((LongValueKey)277)] >= wand.Values((LongValueKey)277)))
                 {
                     return false;
                 }

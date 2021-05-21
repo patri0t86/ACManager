@@ -1,11 +1,12 @@
 ﻿using ACManager.Settings;
+using Decal.Adapter;
 using Decal.Adapter.Wrappers;
 using System;
 using VirindiViewService.Controls;
 
 namespace ACManager.Views.Tabs
 {
-    internal class EquipmentTab : IDisposable
+    public class EquipmentTab : IDisposable
     {
         private BotManagerView Parent { get; set; }
         private HudList IdleEquipmentList { get; set; }
@@ -38,7 +39,7 @@ namespace ACManager.Views.Tabs
         {
             try
             {
-                foreach (Equipment item in Parent.Machine.Utility.EquipmentSettings.IdleEquipment)
+                foreach (Equipment item in Utility.EquipmentSettings.IdleEquipment)
                 {
                     HudList.HudListRowAccessor row = IdleEquipmentList.AddRow();
                     using (HudStaticText newItem = new HudStaticText())
@@ -48,7 +49,7 @@ namespace ACManager.Views.Tabs
                     }
                 }
 
-                foreach (Equipment item in Parent.Machine.Utility.EquipmentSettings.BuffingEquipment)
+                foreach (Equipment item in Utility.EquipmentSettings.BuffingEquipment)
                 {
                     HudList.HudListRowAccessor row = BuffEquipmentList.AddRow();
                     using (HudStaticText newItem = new HudStaticText())
@@ -65,15 +66,15 @@ namespace ACManager.Views.Tabs
         {
             try
             {
-                if (Parent.Machine.FinishedInitialScan)
+                if (Parent.Machine.FinishedScan)
                 {
-                    if (Parent.Machine.Core.CharacterFilter.Name.Equals(Parent.Machine.BuffingCharacter))
+                    if (CoreManager.Current.CharacterFilter.Name.Equals(Parent.Machine.BuffingCharacter))
                     {
-                        if (!Parent.Machine.Core.Actions.CurrentSelection.Equals(0) && Parent.Machine.Core.CharacterFilter.Name.Equals(Parent.Machine.BuffingCharacter))
+                        if (!CoreManager.Current.Actions.CurrentSelection.Equals(0) && CoreManager.Current.CharacterFilter.Name.Equals(Parent.Machine.BuffingCharacter))
                         {
                             foreach (WorldObject item in Parent.Machine.CharacterEquipment)
                             {
-                                if (item.Id.Equals(Parent.Machine.Core.Actions.CurrentSelection))
+                                if (item.Id.Equals(CoreManager.Current.Actions.CurrentSelection))
                                 {
                                     Equipment newEquipment = new Equipment
                                     {
@@ -83,7 +84,7 @@ namespace ACManager.Views.Tabs
                                         ObjectClass = item.ObjectClass.ToString()
                                     };
 
-                                    if (!Parent.Machine.Utility.EquipmentSettings.BuffingEquipment.Contains(newEquipment))
+                                    if (!Utility.EquipmentSettings.BuffingEquipment.Contains(newEquipment))
                                     {
                                         HudList.HudListRowAccessor row = BuffEquipmentList.AddRow();
                                         using (HudStaticText control = new HudStaticText())
@@ -92,8 +93,8 @@ namespace ACManager.Views.Tabs
                                             row[0] = control;
                                         }
 
-                                        Parent.Machine.Utility.EquipmentSettings.BuffingEquipment.Add(newEquipment);
-                                        Parent.Machine.Utility.SaveEquipmentSettings();
+                                        Utility.EquipmentSettings.BuffingEquipment.Add(newEquipment);
+                                        Utility.SaveEquipmentSettings();
                                     }
                                     else
                                     {
@@ -129,16 +130,16 @@ namespace ACManager.Views.Tabs
                 using (HudStaticText equipmentToDelete = (HudStaticText)BuffEquipmentList[row][0])
                 {
                     BuffEquipmentList.RemoveRow(row);
-                    foreach (Equipment item in Parent.Machine.Utility.EquipmentSettings.BuffingEquipment)
+                    foreach (Equipment item in Utility.EquipmentSettings.BuffingEquipment)
                     {
                         if (item.Name.Equals(equipmentToDelete.Text))
                         {
-                            Parent.Machine.Utility.EquipmentSettings.BuffingEquipment.Remove(item);
+                            Utility.EquipmentSettings.BuffingEquipment.Remove(item);
                             break;
                         }
                     }
                 }
-                Parent.Machine.Utility.SaveEquipmentSettings();
+                Utility.SaveEquipmentSettings();
             }
             catch (Exception ex) { Debug.LogException(ex); }
         }
@@ -147,15 +148,15 @@ namespace ACManager.Views.Tabs
         {
             try
             {
-                if (Parent.Machine.FinishedInitialScan)
+                if (Parent.Machine.FinishedScan)
                 {
-                    if (Parent.Machine.Core.CharacterFilter.Name.Equals(Parent.Machine.BuffingCharacter))
+                    if (CoreManager.Current.CharacterFilter.Name.Equals(Parent.Machine.BuffingCharacter))
                     {
-                        if (!Parent.Machine.Core.Actions.CurrentSelection.Equals(0))
+                        if (!CoreManager.Current.Actions.CurrentSelection.Equals(0))
                         {
                             foreach (WorldObject item in Parent.Machine.CharacterEquipment)
                             {
-                                if (item.Id.Equals(Parent.Machine.Core.Actions.CurrentSelection))
+                                if (item.Id.Equals(CoreManager.Current.Actions.CurrentSelection))
                                 {
                                     Equipment newEquipment = new Equipment
                                     {
@@ -165,7 +166,7 @@ namespace ACManager.Views.Tabs
                                         ObjectClass = item.ObjectClass.ToString()
                                     };
 
-                                    if (!Parent.Machine.Utility.EquipmentSettings.IdleEquipment.Contains(newEquipment))
+                                    if (!Utility.EquipmentSettings.IdleEquipment.Contains(newEquipment))
                                     {
                                         HudList.HudListRowAccessor row = IdleEquipmentList.AddRow();
                                         using (HudStaticText control = new HudStaticText())
@@ -173,8 +174,8 @@ namespace ACManager.Views.Tabs
                                             control.Text = item.Name;
                                             row[0] = control;
                                         }
-                                        Parent.Machine.Utility.EquipmentSettings.IdleEquipment.Add(newEquipment);
-                                        Parent.Machine.Utility.SaveEquipmentSettings();
+                                        Utility.EquipmentSettings.IdleEquipment.Add(newEquipment);
+                                        Utility.SaveEquipmentSettings();
                                     }
                                     else
                                     {
@@ -210,16 +211,16 @@ namespace ACManager.Views.Tabs
                 using (HudStaticText equipmentToDelete = (HudStaticText)IdleEquipmentList[row][0])
                 {
                     IdleEquipmentList.RemoveRow(row);
-                    foreach (Equipment item in Parent.Machine.Utility.EquipmentSettings.IdleEquipment)
+                    foreach (Equipment item in Utility.EquipmentSettings.IdleEquipment)
                     {
                         if (item.Name.Equals(equipmentToDelete.Text))
                         {
-                            Parent.Machine.Utility.EquipmentSettings.IdleEquipment.Remove(item);
+                            Utility.EquipmentSettings.IdleEquipment.Remove(item);
                             break;
                         }
                     }
                 }
-                Parent.Machine.Utility.SaveEquipmentSettings();
+                Utility.SaveEquipmentSettings();
             }
             catch (Exception ex) { Debug.LogException(ex); }
         }

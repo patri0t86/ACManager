@@ -2,9 +2,9 @@
 using System;
 using System.Collections.Generic;
 
-namespace ACManager.StateMachine.Queues
+namespace ACManager.StateMachine
 {
-    internal class Request : IEquatable<Request>
+    public class Request : IEquatable<Request>
     {
         public RequestType RequestType;
         public string RequesterName = "";
@@ -21,7 +21,7 @@ namespace ACManager.StateMachine.Queues
         }
     }
 
-    internal enum RequestType
+    public enum RequestType
     {
         Buff,
         Portal,

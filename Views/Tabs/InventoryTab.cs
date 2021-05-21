@@ -5,7 +5,7 @@ using VirindiViewService.Controls;
 
 namespace ACManager.Views.Tabs
 {
-    internal class InventoryTab : IDisposable
+    public class InventoryTab : IDisposable
     {
         private BotManagerView Parent { get; set; }
         private HudCombo CharacterChoice { get; set; }
@@ -66,15 +66,15 @@ namespace ACManager.Views.Tabs
         {
             try
             {
-                LeadScarabThreshold.Text = Parent.Machine.Utility.BotSettings.LeadScarabThreshold.ToString();
-                IronScarabThreshold.Text = Parent.Machine.Utility.BotSettings.IronScarabThreshold.ToString();
-                CopperScarabThreshold.Text = Parent.Machine.Utility.BotSettings.CopperScarabThreshold.ToString();
-                SilverScarabThreshold.Text = Parent.Machine.Utility.BotSettings.SilverScarabThreshold.ToString();
-                GoldScarabThreshold.Text = Parent.Machine.Utility.BotSettings.GoldScarabThreshold.ToString();
-                PyrealScarabThreshold.Text = Parent.Machine.Utility.BotSettings.PyrealScarabThreshold.ToString();
-                PlatinumScarabThreshold.Text = Parent.Machine.Utility.BotSettings.PlatinumScarabThreshold.ToString();
-                ManaScarabThreshold.Text = Parent.Machine.Utility.BotSettings.ManaScarabThreshold.ToString();
-                ComponentThreshold.Text = Parent.Machine.Utility.BotSettings.ComponentThreshold.ToString();
+                LeadScarabThreshold.Text = Utility.BotSettings.LeadScarabThreshold.ToString();
+                IronScarabThreshold.Text = Utility.BotSettings.IronScarabThreshold.ToString();
+                CopperScarabThreshold.Text = Utility.BotSettings.CopperScarabThreshold.ToString();
+                SilverScarabThreshold.Text = Utility.BotSettings.SilverScarabThreshold.ToString();
+                GoldScarabThreshold.Text = Utility.BotSettings.GoldScarabThreshold.ToString();
+                PyrealScarabThreshold.Text = Utility.BotSettings.PyrealScarabThreshold.ToString();
+                PlatinumScarabThreshold.Text = Utility.BotSettings.PlatinumScarabThreshold.ToString();
+                ManaScarabThreshold.Text = Utility.BotSettings.ManaScarabThreshold.ToString();
+                ComponentThreshold.Text = Utility.BotSettings.ComponentThreshold.ToString();
             }
             catch (Exception ex)
             {
@@ -138,14 +138,14 @@ namespace ACManager.Views.Tabs
                     {
                         result = 0;
                     }
-                    Parent.Machine.Inventory.LeadScarabThreshold = Parent.Machine.Utility.BotSettings.LeadScarabThreshold = result;
+                    Utility.BotSettings.LeadScarabThreshold = result;
                 }
                 else
                 {
                     LeadScarabThreshold.Text = "0";
-                    Parent.Machine.Inventory.LeadScarabThreshold = Parent.Machine.Utility.BotSettings.LeadScarabThreshold = 0;
+                    Utility.BotSettings.LeadScarabThreshold = 0;
                 }
-                Parent.Machine.Utility.SaveBotSettings();
+                Utility.SaveBotSettings();
             }
             catch (Exception ex)
             {
@@ -163,14 +163,14 @@ namespace ACManager.Views.Tabs
                     {
                         result = 0;
                     }
-                    Parent.Machine.Inventory.IronScarabThreshold = Parent.Machine.Utility.BotSettings.IronScarabThreshold = result;
+                    Utility.BotSettings.IronScarabThreshold = result;
                 }
                 else
                 {
                     IronScarabThreshold.Text = "0";
-                    Parent.Machine.Inventory.IronScarabThreshold = Parent.Machine.Utility.BotSettings.IronScarabThreshold = 0;
+                    Utility.BotSettings.IronScarabThreshold = 0;
                 }
-                Parent.Machine.Utility.SaveBotSettings();
+                Utility.SaveBotSettings();
             }
             catch (Exception ex)
             {
@@ -188,14 +188,14 @@ namespace ACManager.Views.Tabs
                     {
                         result = 0;
                     }
-                    Parent.Machine.Inventory.CopperScarabThreshold = Parent.Machine.Utility.BotSettings.CopperScarabThreshold = result;
+                    Utility.BotSettings.CopperScarabThreshold = result;
                 }
                 else
                 {
                     CopperScarabThreshold.Text = "0";
-                    Parent.Machine.Inventory.CopperScarabThreshold = Parent.Machine.Utility.BotSettings.CopperScarabThreshold = 0;
+                    Utility.BotSettings.CopperScarabThreshold = 0;
                 }
-                Parent.Machine.Utility.SaveBotSettings();
+                Utility.SaveBotSettings();
             }
             catch (Exception ex)
             {
@@ -213,14 +213,14 @@ namespace ACManager.Views.Tabs
                     {
                         result = 0;
                     }
-                    Parent.Machine.Inventory.PyrealScarabThreshold = Parent.Machine.Utility.BotSettings.PyrealScarabThreshold = result;
+                    Utility.BotSettings.PyrealScarabThreshold = result;
                 }
                 else
                 {
                     PyrealScarabThreshold.Text = "0";
-                    Parent.Machine.Inventory.PyrealScarabThreshold = Parent.Machine.Utility.BotSettings.PyrealScarabThreshold = 0;
+                    Utility.BotSettings.PyrealScarabThreshold = 0;
                 }
-                Parent.Machine.Utility.SaveBotSettings();
+                Utility.SaveBotSettings();
             }
             catch (Exception ex)
             {
@@ -238,14 +238,14 @@ namespace ACManager.Views.Tabs
                     {
                         result = 0;
                     }
-                    Parent.Machine.Inventory.SilverScarabThreshold = Parent.Machine.Utility.BotSettings.SilverScarabThreshold = result;
+                    Utility.BotSettings.SilverScarabThreshold = result;
                 }
                 else
                 {
                     SilverScarabThreshold.Text = "0";
-                    Parent.Machine.Inventory.SilverScarabThreshold = Parent.Machine.Utility.BotSettings.SilverScarabThreshold = 0;
+                    Utility.BotSettings.SilverScarabThreshold = 0;
                 }
-                Parent.Machine.Utility.SaveBotSettings();
+                Utility.SaveBotSettings();
             }
             catch (Exception ex)
             {
@@ -263,14 +263,14 @@ namespace ACManager.Views.Tabs
                     {
                         result = 0;
                     }
-                    Parent.Machine.Inventory.GoldScarabThreshold = Parent.Machine.Utility.BotSettings.GoldScarabThreshold = result;
+                    Utility.BotSettings.GoldScarabThreshold = result;
                 }
                 else
                 {
                     GoldScarabThreshold.Text = "0";
-                    Parent.Machine.Inventory.GoldScarabThreshold = Parent.Machine.Utility.BotSettings.GoldScarabThreshold = 0;
+                    Utility.BotSettings.GoldScarabThreshold = 0;
                 }
-                Parent.Machine.Utility.SaveBotSettings();
+                Utility.SaveBotSettings();
             }
             catch (Exception ex)
             {
@@ -288,14 +288,14 @@ namespace ACManager.Views.Tabs
                     {
                         result = 0;
                     }
-                    Parent.Machine.Inventory.PlatinumScarabThreshold = Parent.Machine.Utility.BotSettings.PlatinumScarabThreshold = result;
+                    Utility.BotSettings.PlatinumScarabThreshold = result;
                 }
                 else
                 {
                     PlatinumScarabThreshold.Text = "0";
-                    Parent.Machine.Inventory.PlatinumScarabThreshold = Parent.Machine.Utility.BotSettings.PlatinumScarabThreshold = 0;
+                    Utility.BotSettings.PlatinumScarabThreshold = 0;
                 }
-                Parent.Machine.Utility.SaveBotSettings();
+                Utility.SaveBotSettings();
             }
             catch (Exception ex)
             {
@@ -313,14 +313,14 @@ namespace ACManager.Views.Tabs
                     {
                         result = 0;
                     }
-                    Parent.Machine.Inventory.ManaScarabThreshold = Parent.Machine.Utility.BotSettings.ManaScarabThreshold = result;
+                    Utility.BotSettings.ManaScarabThreshold = result;
                 }
                 else
                 {
                     ManaScarabThreshold.Text = "0";
-                    Parent.Machine.Inventory.ManaScarabThreshold = Parent.Machine.Utility.BotSettings.ManaScarabThreshold = 0;
+                    Utility.BotSettings.ManaScarabThreshold = 0;
                 }
-                Parent.Machine.Utility.SaveBotSettings();
+                Utility.SaveBotSettings();
             }
             catch (Exception ex)
             {
@@ -338,14 +338,14 @@ namespace ACManager.Views.Tabs
                     {
                         result = 0;
                     }
-                    Parent.Machine.Inventory.ComponentThreshold = Parent.Machine.Utility.BotSettings.ComponentThreshold = result;
+                    Utility.BotSettings.ComponentThreshold = result;
                 }
                 else
                 {
                     ComponentThreshold.Text = "0";
-                    Parent.Machine.Inventory.ComponentThreshold = Parent.Machine.Utility.BotSettings.ComponentThreshold = 0;
+                    Utility.BotSettings.ComponentThreshold = 0;
                 }
-                Parent.Machine.Utility.SaveBotSettings();
+                Utility.SaveBotSettings();
             }
             catch (Exception ex)
             {
@@ -380,15 +380,15 @@ namespace ACManager.Views.Tabs
         private void PopulateCharacterChoice()
         {
             CharacterChoice.AddItem("Select character...", null);
-            for (int i = 0; i < Parent.Machine.AccountCharacters.Count; i++)
+            for (int i = 0; i < FilterCore.AccountCharacters.Count; i++)
             {
-                CharacterChoice.AddItem(Parent.Machine.AccountCharacters[i], null);
+                CharacterChoice.AddItem(FilterCore.AccountCharacters[i], null);
             }
         }
 
         private CharacterInventory GetInventory(string name)
         {
-            foreach (CharacterInventory characterInventory in Parent.Machine.Utility.Inventory.CharacterInventories)
+            foreach (CharacterInventory characterInventory in Utility.Inventory.CharacterInventories)
             {
                 if (characterInventory.Name.Equals(name))
                 {

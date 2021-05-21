@@ -1,11 +1,12 @@
 ﻿using ACManager.Settings;
+using Decal.Adapter;
 using Decal.Adapter.Wrappers;
 using System;
 using VirindiViewService.Controls;
 
 namespace ACManager.Views.Tabs
 {
-    internal class GemsTab : IDisposable
+    public class GemsTab : IDisposable
     {
         private BotManagerView Parent { get; set; }
         private HudList Gems { get; set; }
@@ -41,16 +42,16 @@ namespace ACManager.Views.Tabs
                     HudStaticText gemToDelete = (HudStaticText)Gems[row][0];
                     Gems.RemoveRow(row);
 
-                    for (int i = 0; i < Parent.Machine.Utility.BotSettings.GemSettings.Count; i++)
+                    for (int i = 0; i < Utility.BotSettings.GemSettings.Count; i++)
                     {
-                        if (Parent.Machine.Utility.BotSettings.GemSettings[i].Name.Equals(gemToDelete.Text))
+                        if (Utility.BotSettings.GemSettings[i].Name.Equals(gemToDelete.Text))
                         {
-                            Parent.Machine.Utility.BotSettings.GemSettings.RemoveAt(i);
+                            Utility.BotSettings.GemSettings.RemoveAt(i);
                             break;
                         }
                     }
 
-                    Parent.Machine.Utility.SaveBotSettings();
+                    Utility.SaveBotSettings();
                     gemToDelete.Dispose();
                 }
             }
@@ -60,7 +61,7 @@ namespace ACManager.Views.Tabs
         private void GetGems()
         {
             SetupGemsList();
-            foreach (GemSetting gemSetting in Parent.Machine.Utility.BotSettings.GemSettings)
+            foreach (GemSetting gemSetting in Utility.BotSettings.GemSettings)
             {
                 HudList.HudListRowAccessor row = Gems.AddRow();
                 using (HudStaticText text = new HudStaticText())
@@ -87,9 +88,9 @@ namespace ACManager.Views.Tabs
         {
             try
             {
-                if (Parent.Machine.Core.Actions.CurrentSelection != 0 && Parent.Machine.Core.WorldFilter[Parent.Machine.Core.Actions.CurrentSelection] != null)
+                if (CoreManager.Current.Actions.CurrentSelection != 0 && CoreManager.Current.WorldFilter[CoreManager.Current.Actions.CurrentSelection] != null)
                 {
-                    WorldObject worldObject = Parent.Machine.Core.WorldFilter[Parent.Machine.Core.Actions.CurrentSelection];
+                    WorldObject worldObject = CoreManager.Current.WorldFilter[CoreManager.Current.Actions.CurrentSelection];
                     if (worldObject.ObjectClass.Equals(ObjectClass.Gem))
                     {
                         if (!string.IsNullOrEmpty(GemKeyword.Text))
@@ -98,18 +99,18 @@ namespace ACManager.Views.Tabs
                             {
                                 GemSetting gemSetting = new GemSetting
                                 {
-                                    Name = Parent.Machine.Core.WorldFilter[Parent.Machine.Core.Actions.CurrentSelection].Name,
+                                    Name = CoreManager.Current.WorldFilter[CoreManager.Current.Actions.CurrentSelection].Name,
                                     Keyword = GemKeyword.Text,
                                     Heading = double.Parse(GemHeading.Text)
                                 };
 
-                                if (Parent.Machine.Utility.BotSettings.GemSettings.Contains(gemSetting))
+                                if (Utility.BotSettings.GemSettings.Contains(gemSetting))
                                 {
-                                    for (int i = 0; i < Parent.Machine.Utility.BotSettings.GemSettings.Count; i++)
+                                    for (int i = 0; i < Utility.BotSettings.GemSettings.Count; i++)
                                     {
-                                        if (Parent.Machine.Utility.BotSettings.GemSettings[i].Equals(gemSetting))
+                                        if (Utility.BotSettings.GemSettings[i].Equals(gemSetting))
                                         {
-                                            Parent.Machine.Utility.BotSettings.GemSettings[i] = gemSetting;
+                                            Utility.BotSettings.GemSettings[i] = gemSetting;
                                         }
                                     }
 
@@ -118,12 +119,12 @@ namespace ACManager.Views.Tabs
                                 }
                                 else
                                 {
-                                    Parent.Machine.Utility.BotSettings.GemSettings.Add(gemSetting);
+                                    Utility.BotSettings.GemSettings.Add(gemSetting);
 
                                     HudList.HudListRowAccessor row = Gems.AddRow();
                                     using (HudStaticText text = new HudStaticText())
                                     {
-                                        text.Text = Parent.Machine.Core.WorldFilter[Parent.Machine.Core.Actions.CurrentSelection].Name;
+                                        text.Text = CoreManager.Current.WorldFilter[CoreManager.Current.Actions.CurrentSelection].Name;
                                         row[0] = text;
                                     }
 
@@ -139,7 +140,7 @@ namespace ACManager.Views.Tabs
                                     }
                                 }
 
-                                Parent.Machine.Utility.SaveBotSettings();
+                                Utility.SaveBotSettings();
 
                                 GemKeyword.Text = "";
                                 GemHeading.Text = "";

@@ -1,4 +1,4 @@
-﻿using ACManager.StateMachine.Queues;
+﻿using Decal.Adapter;
 using System;
 
 namespace ACManager.StateMachine.States
@@ -6,13 +6,20 @@ namespace ACManager.StateMachine.States
     /// <summary>
     /// This state handles logging a character out, and if the correct character is logged in, resuming requested operation.
     /// </summary>
-    internal class SwitchingCharacters : StateBase<SwitchingCharacters>, IState
+    public class SwitchingCharacters : StateBase<SwitchingCharacters>, IState
     {
-        private DateTime AttempedLogoff = DateTime.MinValue;
+        private DateTime AttemptedLogoff = DateTime.MinValue;
 
         public void Enter(Machine machine)
         {
-            machine.GetNextCharacter();
+            for (int i = 0; i < FilterCore.AccountCharacters.Count; i++)
+            {
+                if (FilterCore.AccountCharacters[i].Equals(machine.CurrentRequest.Character))
+                {
+                    FilterCore.NextCharacterIndex = i;
+                    break;
+                }
+            }
         }
 
         public void Exit(Machine machine)
@@ -24,29 +31,28 @@ namespace ACManager.StateMachine.States
         {
             if (machine.Enabled)
             {
-                if (machine.Core.CharacterFilter.Name.Equals(machine.NextCharacter))
+                if (CoreManager.Current.CharacterFilter.Name.Equals(machine.CurrentRequest.Character))
                 {
                     machine.NextState = Idle.GetInstance;
                 }
                 else
                 {
-                    if (DateTime.Now - AttempedLogoff > TimeSpan.FromMilliseconds(10000))
+                    if (DateTime.Now - AttemptedLogoff > TimeSpan.FromMilliseconds(10000))
                     {
                         if (machine.CurrentRequest.RequestType.Equals(RequestType.Portal))
                         {
-                            machine.ChatManager.Broadcast($"Be right back, switching to {machine.NextCharacter} to summon{(string.IsNullOrEmpty(machine.PortalDescription) ? "" : $" {machine.PortalDescription}")}.");
+                            ChatManager.Broadcast($"Be right back, switching to {machine.CurrentRequest.Character} to summon{(string.IsNullOrEmpty(machine.CurrentRequest.Destination) ? "" : $" {machine.CurrentRequest.Destination}")}.");
                         }
                         else if (machine.CurrentRequest.RequestType.Equals(RequestType.Gem))
                         {
-                            machine.ChatManager.Broadcast($"Be right back, switching to {machine.NextCharacter} to use {machine.PortalDescription}.");
+                            ChatManager.Broadcast($"Be right back, switching to {machine.CurrentRequest.Character} to use {machine.CurrentRequest.Destination}.");
                         }
                         else if (machine.CurrentRequest.RequestType.Equals(RequestType.Buff))
                         {
-                            machine.ChatManager.Broadcast($"Be right back, switching to {machine.NextCharacter} to buff someone.");
-                            machine.ChatManager.SendTell(machine.CurrentRequest.RequesterName, "I'm switching to my buffing character for you now. Please stand near me.");
+                            ChatManager.Broadcast($"Be right back, switching to {machine.CurrentRequest.Character} to buff.");
                         }
-                        AttempedLogoff = DateTime.Now;
-                        machine.Core.Actions.Logout();
+                        AttemptedLogoff = DateTime.Now;
+                        CoreManager.Current.Actions.Logout();
                     }
                 }
             }

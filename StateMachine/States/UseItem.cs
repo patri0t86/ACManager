@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Decal.Adapter;
+using Decal.Adapter.Wrappers;
+using System;
 
 namespace ACManager.StateMachine.States
 {
@@ -16,27 +18,32 @@ namespace ACManager.StateMachine.States
 
         public void Exit(Machine machine)
         {
-            machine.ItemToUse = null;
+            machine.CurrentRequest.ItemToUse = null;
         }
 
         public void Process(Machine machine)
         {
             if (machine.Enabled)
             {
-                if (machine.Inventory.GetInventoryCount(machine.ItemToUse) > 0)
+                if (Inventory.GetInventoryCount(machine.CurrentRequest.ItemToUse) > 0)
                 {
                     if (DateTime.Now - UseDelay > TimeSpan.FromSeconds(1))
                     {
-                        if (machine.Inventory.UseItem(machine.ItemToUse))
+                        using (WorldObjectCollection inventory = CoreManager.Current.WorldFilter.GetInventory())
                         {
-                            machine.ChatManager.Broadcast($"Portal opened with {machine.PortalDescription}. Safe journey, friend.");
-                            machine.NextState = Idle.GetInstance;
+                            inventory.SetFilter(new ByNameFilter(machine.CurrentRequest.ItemToUse));
+                            if (inventory.Quantity > 0)
+                            {
+                                CoreManager.Current.Actions.UseItem(inventory.First.Id, 0);
+                                ChatManager.Broadcast($"Portal opened with {machine.CurrentRequest.Destination}. Safe journey, friend.");
+                                machine.NextState = Idle.GetInstance;
+                            }
                         }
                     }
                 }
                 else
                 {
-                    machine.ChatManager.Broadcast($"It appears I've run out of {machine.ItemToUse}.");
+                    ChatManager.Broadcast($"It appears I've run out of {machine.CurrentRequest.ItemToUse}.");
                     machine.NextState = Idle.GetInstance;
                 }
             }

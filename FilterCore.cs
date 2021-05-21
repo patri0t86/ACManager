@@ -1,8 +1,6 @@
 ﻿using ACManager.StateMachine;
 using ACManager.StateMachine.States;
-using ACManager.Views;
 using Decal.Adapter;
-using Decal.Adapter.Wrappers;
 using System;
 using System.Collections.Generic;
 using System.Windows.Forms;
@@ -12,10 +10,11 @@ namespace ACManager
     [FriendlyName("ACManager")]
     public class FilterCore : FilterBase
     {
-        internal Machine Machine { get; set; }
+        public Machine Machine { get; set; }
         private Timer LogonTimer { get; set; } = new Timer();
-        public List<string> AccountCharacters { get; set; } = new List<string>();
-        public int TotalSlots { get; set; }
+        public static List<string> AccountCharacters { get; set; } = new List<string>();
+        public static int NextCharacterIndex;
+        public uint TotalSlots { get; set; }
 
         /// <summary>
         /// Called as soon as the client is launched.
@@ -26,6 +25,7 @@ namespace ACManager
             ClientDispatch += FilterCore_ClientDispatch;
             LogonTimer.Interval = 1000;
             LogonTimer.Tick += LogonTimer_Tick;
+            Debug.Init(Path);
         }
 
         /// <summary>
@@ -39,7 +39,6 @@ namespace ACManager
             LogonTimer.Tick -= LogonTimer_Tick;
             LogonTimer?.Dispose();
             Machine.BotManagerView?.Dispose();
-            Machine = null;
         }
 
         /// <summary>
@@ -48,152 +47,99 @@ namespace ACManager
         /// http://skunkworks.sourceforge.net/protocol/Protocol.php
         /// https://acemulator.github.io/protocol/
         /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
         private void FilterCore_ServerDispatch(object sender, NetworkMessageEventArgs e)
         {
-            // End 3D Mode and return to character screen
-            if (e.Message.Type.Equals(0xF653))
+            switch (e.Message.Type)
             {
-                Machine.LoggedIn = false;
-                CommandLineText -= Machine.Interpreter.Command;
-                Core.RenderFrame -= Machine.Clock;
-                Core.WorldFilter.ChangeObject -= Machine.WorldFilter_ChangeObject;
-                Machine.BotManagerView?.Dispose();
-            }
-
-            // Received the character list from the server
-            if (e.Message.Type.Equals(0xF658))
-            {
-                AccountCharacters.Clear();
-                TotalSlots = Convert.ToInt32(e.Message["slotCount"]);
-                int charCount = Convert.ToInt32(e.Message["characterCount"]);
-
-                MessageStruct characterStruct = e.Message.Struct("characters");
-                for (int i = 0; i < charCount; i++)
-                {
-                    AccountCharacters.Add(characterStruct.Struct(i)["name"].ToString());
-                }
-
-                // Must sort the characters ordinally to be in the same order as displayed
-                AccountCharacters.Sort((a, b) => String.Compare(a, b, StringComparison.Ordinal));
-            }
-
-            // Login Character
-            if (e.Message.Type.Equals(0xF746))
-            {
-                LogonTimer.Stop();
-            }
-
-            // Game events
-            if (e.Message.Type.Equals(0xF7B0))
-            {
-                // Action complete
-                if (Convert.ToInt32(e.Message["event"]).Equals(0x01C7))
-                {
-                    Machine.CastCompleted = true;
-                }
-
-                // Status messages
-                if (Convert.ToInt32(e.Message["event"]).Equals(0x028A))
-                {
-                    // Your spell fizzled.
-                    if (Convert.ToInt32(e.Message[3]).Equals(0x0402))
+                case 0xf653: // End 3D Mode and return to character screen
+                    Machine.Logout();
+                    CommandLineText -= Machine.Interpreter.Command;
+                    Core.RenderFrame -= Machine.Clock;
+                    Core.WorldFilter.ChangeObject -= Machine.WorldFilter_ChangeObject;
+                    break;
+                case 0xf658: // Received the character list from the server
+                    AccountCharacters.Clear();
+                    TotalSlots = e.Message.Value<uint>("slotCount");
+                    for (int i = 0; i < e.Message.Value<uint>("characterCount"); i++)
                     {
-                        Machine.Fizzled = true;
+                        AccountCharacters.Add(e.Message.Struct("characters").Struct(i).Value<string>("name"));
                     }
-                }
-            }
 
-            // Server Name (last server message sent when logging out)
-            if (e.Message.Type.Equals(0xF7E1) && Machine.CurrentState == SwitchingCharacters.GetInstance)
-            {
-                LogonTimer.Start();
+                    AccountCharacters.Sort((a, b) => String.Compare(a, b, StringComparison.Ordinal));
+                    break;
+                case 0xf746: // Character login request
+                    LogonTimer.Stop();
+                    break;
+                case 0xf7b0: // Game events                    
+                    switch (e.Message.Value<uint>("event"))
+                    {
+                        case 0x01c7: // Ready, previous action complete
+                            Machine.CastCompleted = true;
+                            break;
+                        case 0x028a: // Status message
+                            switch (e.Message.Value<uint>("type"))
+                            {
+                                case 0x0402:
+                                    Machine.Fizzled = true;
+                                    break;
+                            }
+                            break;
+                    }
+                    break;
+                case 0xf7e1:
+                    if (Machine.CurrentState == SwitchingCharacters.GetInstance)
+                    {
+                        LogonTimer.Start();
+                    }
+                    break;
             }
         }
 
         /// <summary>
         /// Parses the client messages.
         /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
         private void FilterCore_ClientDispatch(object sender, NetworkMessageEventArgs e)
         {
-            if (e.Message.Type.Equals(0xF7B1))
+            switch (e.Message.Type)
             {
-                // Materialize character (including any portal taken)
-                if (e.Message.Value<int>("action").Equals(0x00A1))
-                {
-                    if (Machine == null)
+                case 0xf7b1:
+                    switch (e.Message.Value<uint>("action"))
                     {
-                        Debug.Init(Path);
-                        Machine = new Machine(Core, Path);
-                    }
-
-                    if (!Machine.LoggedIn)
-                    {
-                        CommandLineText += Machine.Interpreter.Command;
-                        Machine.AccountCharacters = AccountCharacters;
-                        Machine.Core = Core;
-
-                        // Instantiate views
-                        Machine.BotManagerView = new BotManagerView(Machine);
-
-                        Machine.CharacterEquipment.Clear();
-                        Machine.FinishedInitialScan = false;
-                        Machine.Enabled = Machine.Utility.BotSettings.BotEnabled;
-                        Machine.LoggedIn = true;
-                        Core.RenderFrame += Machine.Clock;
-                        Core.WorldFilter.ChangeObject += Machine.WorldFilter_ChangeObject;
-
-                        Debug.ToChat($"Running ACManager {Machine.Utility.Version} by Shem of Harvestgain (now Coldeve). Check out the latest on the project at https://github.com/patri0t86/ACManager.");
-                        Debug.ToChat("Scanning inventory, please wait before using the Equipment manager to build suits...");
-
-                        using (WorldObjectCollection inventory = Core.WorldFilter.GetInventory())
-                        {
-                            foreach (WorldObject item in inventory)
+                        case 0x00a1: // Character materializes (including exiting portal space)
+                            if (Machine == null)
                             {
-                                if (item.ObjectClass.Equals(ObjectClass.Armor)
-                                    || item.ObjectClass.Equals(ObjectClass.Jewelry)
-                                    || item.ObjectClass.Equals(ObjectClass.Clothing)
-                                    || item.ObjectClass.Equals(ObjectClass.WandStaffOrb))
-                                {
-                                    Machine.CharacterEquipment.Add(item);
-                                    Core.Actions.RequestId(item.Id);
-                                }
+                                Utility.Init(Path);
+                                Machine = new Machine();
                             }
-                        }
-                    }
-                }
 
-                // Start casting
-                if (Convert.ToInt32(e.Message.Value<int>("action")).Equals(0x004A))
-                {
-                    Machine.CastStarted = true;
-                }
+                            Debug.ToChat($"ACManager {Utility.Version}. Check out the latest on the project at https://github.com/patri0t86/ACManager.");
+
+                            if (!Machine.LoggedIn)
+                            {
+                                CommandLineText += Machine.Interpreter.Command;
+                                Core.RenderFrame += Machine.Clock;
+                                Core.WorldFilter.ChangeObject += Machine.WorldFilter_ChangeObject;
+                                Machine.Login();
+                            }
+                            break;
+                        case 0x004a: // Started casting
+                            Machine.CastStarted = true;
+                            break;
+                    }
+                    break;
             }
         }
 
         /// <summary>
         /// On every timer tick, this will run the LoginNextCharacter method.
         /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
         private void LogonTimer_Tick(object sender, EventArgs e)
-        {
-            LoginNextCharacter();
-        }
-
-        /// <summary>
-        /// Controls logging in the next character. Credit to Mag for this.
-        /// </summary>
-        private void LoginNextCharacter()
         {
             int XPixelOffset = 121;
             int YTopOfBox = 209;
             int YBottomOfBox = 532;
             float characterNameSize = (YBottomOfBox - YTopOfBox) / (float)TotalSlots;
-            int yOffset = (int)(YTopOfBox + (characterNameSize / 2) + (characterNameSize * Machine.NextCharacterIndex));
+            int yOffset = (int)(YTopOfBox + (characterNameSize / 2) + (characterNameSize * NextCharacterIndex));
 
             // Select the character
             Simulate.MouseClick(Core.Decal.Hwnd, XPixelOffset, yOffset);

@@ -9,7 +9,7 @@ namespace ACManager
     /// General debugging class.
     /// Can write to debug file, or just output to chat.
     /// </summary>
-    internal static class Debug
+    public static class Debug
     {
         private static string DebugFileName { get { return "acm_debug.log"; } }
         private static string DebugFilePath { get; set; }
@@ -19,8 +19,7 @@ namespace ACManager
         /// <summary>
         /// Sets the file paths to print debug/exceptions statements to.
         /// </summary>
-        /// <param name="path"></param>
-        internal static void Init(string path)
+        public static void Init(string path)
         {
             ErrorFilePath = Path.Combine(path, ErrorFileName);
             DebugFilePath = Path.Combine(path, DebugFileName);
@@ -29,8 +28,7 @@ namespace ACManager
         /// <summary>
         /// Function to debug errors to a file.
         /// </summary>
-        /// <param name="e"></param>
-        internal static void LogException(Exception e)
+        public static void LogException(Exception e)
         {
             try
             {
@@ -50,12 +48,11 @@ namespace ACManager
         /// <summary>
         /// Function to write in-line debug statements to a file.
         /// </summary>
-        /// <param name="message"></param>
-        internal static void ToFile(string message)
+        public static void ToFile(string message)
         {
             try
             {
-                string text = $"{DateTime.Now} --- {message}{Environment.NewLine}";
+                string text = $"{DateTime.Now} --- {message}";
                 File.AppendAllText(DebugFilePath, text);
             }
             catch (Exception e)
@@ -68,10 +65,12 @@ namespace ACManager
         /// Sends a chat message in-game. This is visible only to the client running this bot.
         /// This is used for debugging or sending info to the user.
         /// </summary>
-        /// <param name="text"></param>
-        internal static void ToChat(string text)
+        public static void ToChat(string text)
         {
-            CoreManager.Current.Actions.AddChatText(text, 5, 1);
+            if (!string.IsNullOrEmpty(text))
+            {
+                CoreManager.Current.Actions.AddChatText($"<ACManager> {text}", 5, 1);
+            }
         }
     }
 }

@@ -1,4 +1,4 @@
-﻿using ACManager.StateMachine.Queues;
+﻿using Decal.Adapter;
 using Decal.Adapter.Wrappers;
 using Decal.Filters;
 using System;
@@ -9,7 +9,7 @@ namespace ACManager.StateMachine.States
     /// <summary>
     /// This state controls the casting of all spells.
     /// </summary>
-    internal class Casting : StateBase<Casting>, IState
+    public class Casting : StateBase<Casting>, IState
     {
         private DateTime Started { get; set; }
         private bool SentInitialInfo { get; set; }
@@ -36,10 +36,12 @@ namespace ACManager.StateMachine.States
                     SentInitialInfo = true;
                     SpellCastCount = 0;
 
-                    if (machine.Inventory.LowComponents.Count > 0)
-                    {
-                        machine.ChatManager.Broadcast(machine.Inventory.LowCompsReport());
-                    }
+                    ChatManager.Broadcast(Inventory.ReportOnLowComponents());
+
+                    //if (machine.Inventory.LowComponents.Count > 0)
+                    //{
+                    //    ChatManager.Broadcast(machine.Inventory.LowCompsReport());
+                    //}
 
                     TimeSpan buffTime = TimeSpan.FromSeconds(machine.SpellsToCast.Count * 4);
                     string message = $"Casting {machine.SpellsToCast.Count} buffs on you. This should take about {buffTime.Minutes} minutes and {buffTime.Seconds} seconds.";
@@ -48,7 +50,7 @@ namespace ACManager.StateMachine.States
                     {
                         if (ContainsBanes(machine.SpellsToCast))
                         {
-                            using (WorldObjectCollection items = machine.Core.WorldFilter.GetByContainer(machine.CurrentRequest.RequesterGuid))
+                            using (WorldObjectCollection items = CoreManager.Current.WorldFilter.GetByContainer(machine.CurrentRequest.RequesterGuid))
                             {
                                 items.SetFilter(new ByObjectClassFilter(ObjectClass.Armor));
                                 if (items.Count > 0)
@@ -69,7 +71,7 @@ namespace ACManager.StateMachine.States
                             }
                         }
                     }
-                    machine.ChatManager.SendTell(machine.CurrentRequest.RequesterName, message);
+                    ChatManager.SendTell(machine.CurrentRequest.RequesterName, message);
                 }
             }
         }
@@ -82,7 +84,7 @@ namespace ACManager.StateMachine.States
                 TimeSpan duration = DateTime.Now - Started;
                 if (!Cancelled)
                 {
-                    machine.ChatManager.SendTell(machine.CurrentRequest.RequesterName, $"Buffing is complete with {SpellCastCount} buffs, it took {duration.Minutes} minutes and {duration.Seconds} seconds.");
+                    ChatManager.SendTell(machine.CurrentRequest.RequesterName, $"Buffing is complete with {SpellCastCount} buffs, it took {duration.Minutes} minutes and {duration.Seconds} seconds.");
                 }
                 CastBanes = false;
                 LastSpell = 0;
@@ -96,28 +98,28 @@ namespace ACManager.StateMachine.States
             {
                 if (machine.SpellsToCast.Count > 0)
                 {
-                    if (machine.Core.Actions.CombatMode != CombatState.Magic)
+                    if (CoreManager.Current.Actions.CombatMode != CombatState.Magic)
                     {
-                        machine.Core.Actions.SetCombatMode(CombatState.Magic);
+                        CoreManager.Current.Actions.SetCombatMode(CombatState.Magic);
                         if ((DateTime.Now - EnteredState).TotalSeconds > 1)
                         {
                             machine.SpellsToCast.Clear();
                         }
                     }
-                    else if (machine.Core.Actions.CombatMode == CombatState.Magic)
+                    else if (CoreManager.Current.Actions.CombatMode == CombatState.Magic)
                     {
                         if (machine.CastStarted && machine.CastCompleted && !machine.Fizzled)
                         {
                             if (machine.SpellsToCast[0].Id.Equals(157) || machine.SpellsToCast[0].Id.Equals(2648))
                             {
                                 machine.PortalsSummonedThisSession += 1;
-                                if (!string.IsNullOrEmpty(machine.PortalDescription))
+                                if (!string.IsNullOrEmpty(machine.CurrentRequest.Destination))
                                 {
-                                    machine.ChatManager.Broadcast($"/s Portal now open to {machine.PortalDescription}. Safe journey, friend.");
+                                    ChatManager.Broadcast($"/s Portal now open to {machine.CurrentRequest.Destination}. Safe journey, friend.");
                                 }
                                 else
                                 {
-                                    machine.ChatManager.Broadcast($"/s Portal now open. Safe journey, friend.");
+                                    ChatManager.Broadcast($"/s Portal now open. Safe journey, friend.");
                                 }
                             }
                             else
@@ -148,16 +150,16 @@ namespace ACManager.StateMachine.States
                         }
                         else if (!machine.CastStarted)
                         {
-                            if (machine.Core.CharacterFilter.Mana < machine.ManaThreshold * machine.Core.CharacterFilter.EffectiveVital[CharFilterVitalType.Mana]
-                                && machine.Core.Actions.SkillTrainLevel[Decal.Adapter.Wrappers.SkillType.BaseLifeMagic] != 1)
+                            if (CoreManager.Current.CharacterFilter.Mana < machine.ManaThreshold * CoreManager.Current.CharacterFilter.EffectiveVital[CharFilterVitalType.Mana]
+                                && CoreManager.Current.Actions.SkillTrainLevel[Decal.Adapter.Wrappers.SkillType.BaseLifeMagic] != 1)
                             {
                                 machine.NextState = VitalManagement.GetInstance;
                             }
                             else
                             {
-                                if (machine.Core.CharacterFilter.IsSpellKnown(machine.SpellsToCast[0].Id) && machine.SpellSkillCheck(machine.SpellsToCast[0]))
+                                if (CoreManager.Current.CharacterFilter.IsSpellKnown(machine.SpellsToCast[0].Id) && machine.SpellSkillCheck(machine.SpellsToCast[0]))
                                 {
-                                    if (machine.ComponentChecker.HaveComponents(machine.SpellsToCast[0].Id))
+                                    if (Inventory.HaveComponents(machine.SpellsToCast[0]))
                                     {
                                         if (LastSpell.Equals(machine.SpellsToCast[0].Id) && !(machine.SpellsToCast[0].Id.Equals(157) || machine.SpellsToCast[0].Id.Equals(2648)))
                                         {
@@ -180,7 +182,7 @@ namespace ACManager.StateMachine.States
                                         LastSpell = machine.SpellsToCast[0].Id;
                                         if (IsBane(machine.SpellsToCast[0]) && CastBanes)
                                         {
-                                            machine.Core.Actions.CastSpell(machine.SpellsToCast[0].Id, machine.CurrentRequest.RequesterGuid);
+                                            CoreManager.Current.Actions.CastSpell(machine.SpellsToCast[0].Id, machine.CurrentRequest.RequesterGuid);
                                         }
                                         else if (IsBane(machine.SpellsToCast[0]) && !CastBanes)
                                         {
@@ -188,12 +190,12 @@ namespace ACManager.StateMachine.States
                                         }
                                         else
                                         {
-                                            machine.Core.Actions.CastSpell(machine.SpellsToCast[0].Id, machine.CurrentRequest.RequesterGuid);
+                                            CoreManager.Current.Actions.CastSpell(machine.SpellsToCast[0].Id, machine.CurrentRequest.RequesterGuid);
                                         }
                                     }
                                     else
                                     {
-                                        machine.ChatManager.Broadcast($"I have run out of spell components.");
+                                        ChatManager.Broadcast($"I have run out of spell components.");
                                         machine.SpellsToCast.Clear();
                                     }
                                 }

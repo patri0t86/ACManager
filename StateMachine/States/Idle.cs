@@ -1,5 +1,5 @@
 ﻿using ACManager.Settings;
-using ACManager.StateMachine.Queues;
+using Decal.Adapter;
 using Decal.Adapter.Wrappers;
 using Decal.Filters;
 using System;
@@ -11,18 +11,18 @@ namespace ACManager.StateMachine.States
     /// This is the idle state, where the bot is awaiting commands.
     /// This state is entered and exited many times throughout the lifecycle. Upon entry, ensures it is in a peaceful stance.
     /// </summary>
-    internal class Idle : StateBase<Idle>, IState
+    public class Idle : StateBase<Idle>, IState
     {
         private DateTime BuffCheck { get; set; }
         public void Enter(Machine machine)
         {
-            machine.Inventory.GetComponentLevels();
-            machine.Inventory.UpdateInventoryFile();
+            Inventory.GetComponentLevels();
+            Inventory.UpdateInventoryFile();
         }
 
         public void Exit(Machine machine)
         {
-            machine.Inventory.GetComponentLevels();
+
         }
 
         /// <summary>
@@ -35,16 +35,15 @@ namespace ACManager.StateMachine.States
         /// Broadcast advertisement / low on spell comps
         /// Set machine variables depending on status
         /// </summary>
-        /// <param name="machine"></param>
         public void Process(Machine machine)
         {
             if (machine.Enabled)
             {
-                if (machine.Core.Actions.CombatMode != CombatState.Peace)
+                if (CoreManager.Current.Actions.CombatMode != CombatState.Peace)
                 {
-                    machine.Core.Actions.SetCombatMode(CombatState.Peace);
+                    CoreManager.Current.Actions.SetCombatMode(CombatState.Peace);
                 }
-                else if ((!string.IsNullOrEmpty(machine.ItemToUse) || machine.SpellsToCast.Count > 0) && !machine.Core.CharacterFilter.Name.Equals(machine.NextCharacter))
+                else if ((!string.IsNullOrEmpty(machine.CurrentRequest.ItemToUse) || machine.SpellsToCast.Count > 0) && !CoreManager.Current.CharacterFilter.Name.Equals(machine.CurrentRequest.Character))
                 {
                     machine.NextState = SwitchingCharacters.GetInstance;
                 }
@@ -52,9 +51,9 @@ namespace ACManager.StateMachine.States
                 {
                     machine.NextState = Positioning.GetInstance;
                 }
-                else if (machine.SpellsToCast.Count > 0 && machine.Core.CharacterFilter.Name.Equals(machine.NextCharacter))
+                else if (machine.SpellsToCast.Count > 0 && CoreManager.Current.CharacterFilter.Name.Equals(machine.CurrentRequest.Character))
                 {
-                    if (machine.CurrentRequest.RequestType.Equals(RequestType.Buff) && machine.Core.CharacterFilter.Name.Equals(machine.BuffingCharacter))
+                    if (machine.CurrentRequest.RequestType.Equals(RequestType.Buff) && CoreManager.Current.CharacterFilter.Name.Equals(machine.BuffingCharacter))
                     {
                         machine.IsBuffed = HaveAllBuffs(machine);
                     }
@@ -64,7 +63,7 @@ namespace ACManager.StateMachine.States
                     }
                     machine.NextState = Equipping.GetInstance;
                 }
-                else if (!string.IsNullOrEmpty(machine.ItemToUse) && machine.Core.CharacterFilter.Name.Equals(machine.NextCharacter))
+                else if (!string.IsNullOrEmpty(machine.CurrentRequest.ItemToUse) && CoreManager.Current.CharacterFilter.Name.Equals(machine.CurrentRequest.Character))
                 {
                     machine.NextState = UseItem.GetInstance;
                 }
@@ -82,36 +81,34 @@ namespace ACManager.StateMachine.States
 
                     if (machine.CurrentRequest.RequestType.Equals(RequestType.Portal))
                     {
-                        machine.NextCharacter = machine.CurrentRequest.Character;
-                        machine.PortalDescription = machine.CurrentRequest.Destination;
+                        //machine.NextCharacter = machine.CurrentRequest.Character;
+                        //machine.PortalDescription = machine.CurrentRequest.Destination;
                         machine.NextHeading = machine.CurrentRequest.Heading;
                         machine.SpellsToCast.AddRange(machine.CurrentRequest.SpellsToCast);
                     }
                     else if (machine.CurrentRequest.RequestType.Equals(RequestType.Buff))
                     {
-                        machine.NextCharacter = machine.CurrentRequest.Character;
+                        //machine.NextCharacter = machine.CurrentRequest.Character;
                         machine.NextHeading = machine.CurrentRequest.Heading;
                         machine.SpellsToCast.AddRange(machine.CurrentRequest.SpellsToCast);
                     }
                     else if (machine.CurrentRequest.RequestType.Equals(RequestType.Gem))
                     {
-                        machine.NextCharacter = machine.CurrentRequest.Character;
-                        machine.PortalDescription = machine.CurrentRequest.Destination;
+                        //machine.NextCharacter = machine.CurrentRequest.Character;
+                        //machine.PortalDescription = machine.CurrentRequest.Destination;
                         machine.NextHeading = machine.CurrentRequest.Heading;
-                        machine.ItemToUse = machine.CurrentRequest.ItemToUse;
+                        //machine.ItemToUse = machine.CurrentRequest.ItemToUse;
                     }
                 }
                 else if (machine.Advertise && DateTime.Now - machine.LastBroadcast > TimeSpan.FromMinutes(machine.AdInterval))
                 {
                     machine.LastBroadcast = DateTime.Now;
-                    if (machine.Utility.BotSettings.Advertisements.Count > 0)
+                    if (Utility.BotSettings.Advertisements.Count > 0)
                     {
-                        machine.ChatManager.Broadcast(machine.Utility.BotSettings.Advertisements[machine.RandomNumber.Next(0, machine.Utility.BotSettings.Advertisements.Count)].Message);
+                        ChatManager.Broadcast(Utility.BotSettings.Advertisements[new Random().Next(0, Utility.BotSettings.Advertisements.Count)].Message);
                     }
-                    if (machine.Inventory.LowComponents.Count > 0)
-                    {
-                        machine.ChatManager.Broadcast(machine.Inventory.LowCompsReport());
-                    }
+
+                    ChatManager.Broadcast(Inventory.ReportOnLowComponents());
                 }
                 else
                 {
@@ -144,7 +141,7 @@ namespace ACManager.StateMachine.States
                     }
 
                     // check for status of buffs on teh buffed character every 30 seconds, if currently logged into the buffing character AND keep buffs alive is enabled
-                    if (machine.StayBuffed && machine.Core.CharacterFilter.Name.Equals(machine.BuffingCharacter) && (DateTime.Now - BuffCheck).TotalSeconds > 30)
+                    if (machine.StayBuffed && CoreManager.Current.CharacterFilter.Name.Equals(machine.BuffingCharacter) && (DateTime.Now - BuffCheck).TotalSeconds > 30)
                     {
                         BuffCheck = DateTime.Now;
                         machine.IsBuffed = HaveAllBuffs(machine);
@@ -170,12 +167,12 @@ namespace ACManager.StateMachine.States
         {
             try
             {
-                BuffProfile profile = machine.Utility.GetProfile("botbuffs");
+                BuffProfile profile = Utility.GetProfile("botbuffs");
 
                 List<Spell> requiredBuffs = new List<Spell>();
                 foreach (Buff buff in profile.Buffs)
                 {
-                    Spell spell = machine.SpellTable.GetById(buff.Id);
+                    Spell spell = CoreManager.Current.Filter<FileService>().SpellTable.GetById(buff.Id);
 
                     if (machine.Level7Self && spell.Difficulty > 300)
                     {
@@ -188,9 +185,9 @@ namespace ACManager.StateMachine.States
                 }
 
                 Dictionary<int, int> enchantments = new Dictionary<int, int>();
-                foreach (EnchantmentWrapper enchantment in machine.Core.CharacterFilter.Enchantments)
+                foreach (EnchantmentWrapper enchantment in CoreManager.Current.CharacterFilter.Enchantments)
                 {
-                    if (requiredBuffs.Contains(machine.SpellTable.GetById(enchantment.SpellId)) && !enchantments.ContainsKey(enchantment.SpellId))
+                    if (requiredBuffs.Contains(CoreManager.Current.Filter<FileService>().SpellTable.GetById(enchantment.SpellId)) && !enchantments.ContainsKey(enchantment.SpellId))
                     {
                         enchantments.Add(enchantment.SpellId, enchantment.TimeRemaining);
                     }

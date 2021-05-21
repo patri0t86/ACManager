@@ -4,7 +4,7 @@ using VirindiViewService.Controls;
 
 namespace ACManager.Views.Tabs
 {
-    internal class AdvertisementsTab : IDisposable
+    public class AdvertisementsTab : IDisposable
     {
         private BotManagerView Parent { get; set; }
         private HudList Advertisements { get; set; }
@@ -45,8 +45,8 @@ namespace ACManager.Views.Tabs
                         {
                             Message = ad
                         };
-                        Parent.Machine.Utility.BotSettings.Advertisements.Add(advertisement);
-                        Parent.Machine.Utility.SaveBotSettings();
+                        Utility.BotSettings.Advertisements.Add(advertisement);
+                        Utility.SaveBotSettings();
                     }
                 }
             }
@@ -60,16 +60,16 @@ namespace ACManager.Views.Tabs
                 HudStaticText adToDelete = (HudStaticText)Advertisements[row][0];
                 Advertisements.RemoveRow(row);
 
-                for (int i = 0; i < Parent.Machine.Utility.BotSettings.Advertisements.Count; i++)
+                for (int i = 0; i < Utility.BotSettings.Advertisements.Count; i++)
                 {
-                    if (Parent.Machine.Utility.BotSettings.Advertisements[i].Message.Equals(adToDelete.Text))
+                    if (Utility.BotSettings.Advertisements[i].Message.Equals(adToDelete.Text))
                     {
-                        Parent.Machine.Utility.BotSettings.Advertisements.RemoveAt(i);
+                        Utility.BotSettings.Advertisements.RemoveAt(i);
                         break;
                     }
                 }
 
-                Parent.Machine.Utility.SaveBotSettings();
+                Utility.SaveBotSettings();
                 adToDelete.Dispose();
             }
             catch (Exception ex) { Debug.LogException(ex); }
@@ -77,12 +77,12 @@ namespace ACManager.Views.Tabs
 
         private void GetAdvertisements()
         {
-            for (int i = 0; i < Parent.Machine.Utility.BotSettings.Advertisements.Count; i++)
+            for (int i = 0; i < Utility.BotSettings.Advertisements.Count; i++)
             {
                 HudList.HudListRowAccessor rowAccessor = Advertisements.AddRow();
                 using (HudStaticText row = new HudStaticText())
                 {
-                    row.Text = Parent.Machine.Utility.BotSettings.Advertisements[i].Message;
+                    row.Text = Utility.BotSettings.Advertisements[i].Message;
                     rowAccessor[0] = row;
                 }
             }

@@ -106,15 +106,14 @@
     <Compile Include="Settings\BuffDefaults\XpChain.cs" />
     <Compile Include="Settings\BuffSettings.cs" />
     <Compile Include="Settings\BuffDefaults\Light.cs" />
-    <Compile Include="StateMachine\ComponentChecker.cs" />
     <Compile Include="Settings\BotSettings.cs" />
     <Compile Include="Settings\InventorySettings.cs" />
     <Compile Include="StateMachine\ChatManager.cs" />
     <Compile Include="Debug.cs" />
     <Compile Include="Settings\CharacterSettings.cs" />
     <Compile Include="StateMachine\Interpreter.cs" />
-    <Compile Include="StateMachine\Inventory.cs" />
-    <Compile Include="StateMachine\Queues\Request.cs" />
+    <Compile Include="Inventory.cs" />
+    <Compile Include="StateMachine\Request.cs" />
     <Compile Include="StateMachine\States\Casting.cs" />
     <Compile Include="StateMachine\States\Equipping.cs" />
     <Compile Include="StateMachine\States\IState.cs" />
@@ -129,7 +128,7 @@
     <Compile Include="StateMachine\States\UseItem.cs" />
     <Compile Include="StateMachine\States\VitalManagement.cs" />
     <Compile Include="Simulate.cs" />
-    <Compile Include="StateMachine\Utility.cs" />
+    <Compile Include="Utility.cs" />
     <Compile Include="FilterCore.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Views\BotManagerView.cs" />

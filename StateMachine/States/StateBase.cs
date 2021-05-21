@@ -1,6 +1,6 @@
 ﻿namespace ACManager.StateMachine.States
 {
-    internal abstract class StateBase<T>
+    public abstract class StateBase<T>
         where T : StateBase<T>, new()
     {
         public static T GetInstance { get; } = new T();
