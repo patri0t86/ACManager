@@ -24,7 +24,7 @@ namespace ACManager.StateMachine.States
         {
             Utility.EquipmentSettings = Utility.LoadEquipmentSettings();
 
-            if (BuffingEquipment.Count.Equals(0) && CoreManager.Current.CharacterFilter.Name.Equals(machine.BuffingCharacter))
+            if (BuffingEquipment.Count.Equals(0) && CoreManager.Current.CharacterFilter.Name.Equals(Utility.BotSettings.BuffingCharacter))
             {
                 foreach (Equipment item in Utility.EquipmentSettings.BuffingEquipment)
                 {
@@ -32,7 +32,7 @@ namespace ACManager.StateMachine.States
                 }
             }
 
-            if (IdleEquipment.Count.Equals(0) && CoreManager.Current.CharacterFilter.Name.Equals(machine.BuffingCharacter))
+            if (IdleEquipment.Count.Equals(0) && CoreManager.Current.CharacterFilter.Name.Equals(Utility.BotSettings.BuffingCharacter))
             {
                 foreach (Equipment item in Utility.EquipmentSettings.IdleEquipment)
                 {
@@ -65,11 +65,11 @@ namespace ACManager.StateMachine.States
         {
             if (machine.Enabled)
             {
-                if (machine.SpellsToCast.Count > 0 || !machine.IsBuffed)
+                if (machine.CurrentRequest.SpellsToCast.Count > 0 || !machine.IsBuffed)
                 {
                     if (FullyEquipped)
                     {
-                        if (!machine.IsBuffed && CoreManager.Current.CharacterFilter.Name.Equals(machine.BuffingCharacter))
+                        if (!machine.IsBuffed && CoreManager.Current.CharacterFilter.Name.Equals(Utility.BotSettings.BuffingCharacter))
                         {
                             machine.NextState = SelfBuffing.GetInstance;
                         }
@@ -87,7 +87,7 @@ namespace ACManager.StateMachine.States
                             if (wands.Count.Equals(0))
                             {
                                 ChatManager.Broadcast("Oops, my owner didn't give me a wand I can equip. I'm cancelling this request.");
-                                machine.SpellsToCast.Clear();
+                                machine.CurrentRequest.SpellsToCast.Clear();
                                 machine.NextState = Idle.GetInstance;
                             }
 

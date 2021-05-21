@@ -214,8 +214,8 @@ namespace ACManager
             {
                 return true;
             }
-            if (spell.School.Name.Equals("Foci of Verdancy")
-                && (GetInventoryCount("Life Magic") > 0 || CoreManager.Current.CharacterFilter.GetCharProperty((int)Augmentations.InfusedLife) > 0))
+            if (spell.School.Name.Equals("Life Magic")
+                && (GetInventoryCount("Foci of Verdancy") > 0 || CoreManager.Current.CharacterFilter.GetCharProperty((int)Augmentations.InfusedLife) > 0))
             {
                 return true;
             }

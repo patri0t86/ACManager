@@ -32,7 +32,7 @@ namespace ACManager.Settings
         public bool AdsEnabled = true;
 
         [XmlElement(IsNullable = false)]
-        public double DefaultHeading;
+        public double DefaultHeading = -1;
 
         [XmlElement(IsNullable = false)]
         public int DesiredLandBlock;
@@ -77,13 +77,13 @@ namespace ACManager.Settings
         public string BuffingCharacter;
 
         [XmlElement(IsNullable = false)]
-        public bool StayBuffed;
+        public bool StayBuffed = true;
 
         [XmlElement(IsNullable = false)]
-        public bool Level7Self;
+        public bool Level7Self = false;
 
         [XmlElement(IsNullable = false)]
-        public int SkillOverride;
+        public int SkillOverride = 0;
 
         public List<GemSetting> GemSettings = new List<GemSetting>();
 

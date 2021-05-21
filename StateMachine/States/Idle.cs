@@ -43,17 +43,17 @@ namespace ACManager.StateMachine.States
                 {
                     CoreManager.Current.Actions.SetCombatMode(CombatState.Peace);
                 }
-                else if ((!string.IsNullOrEmpty(machine.CurrentRequest.ItemToUse) || machine.SpellsToCast.Count > 0) && !CoreManager.Current.CharacterFilter.Name.Equals(machine.CurrentRequest.Character))
+                else if ((!string.IsNullOrEmpty(machine.CurrentRequest.ItemToUse) || machine.CurrentRequest.SpellsToCast.Count > 0) && !CoreManager.Current.CharacterFilter.Name.Equals(machine.CurrentRequest.Character))
                 {
                     machine.NextState = SwitchingCharacters.GetInstance;
                 }
-                else if ((machine.EnablePositioning && (!machine.InPosition() || !machine.CorrectHeading())) || !machine.CorrectHeading())
+                else if ((Utility.BotSettings.BotPositioning && (!machine.InPosition() || !machine.CorrectHeading())) || !machine.CorrectHeading())
                 {
                     machine.NextState = Positioning.GetInstance;
                 }
-                else if (machine.SpellsToCast.Count > 0 && CoreManager.Current.CharacterFilter.Name.Equals(machine.CurrentRequest.Character))
+                else if (machine.CurrentRequest.SpellsToCast.Count > 0 && CoreManager.Current.CharacterFilter.Name.Equals(machine.CurrentRequest.Character))
                 {
-                    if (machine.CurrentRequest.RequestType.Equals(RequestType.Buff) && CoreManager.Current.CharacterFilter.Name.Equals(machine.BuffingCharacter))
+                    if (machine.CurrentRequest.RequestType.Equals(RequestType.Buff) && CoreManager.Current.CharacterFilter.Name.Equals(Utility.BotSettings.BuffingCharacter))
                     {
                         machine.IsBuffed = HaveAllBuffs(machine);
                     }
@@ -78,29 +78,8 @@ namespace ACManager.StateMachine.States
                             return;
                         }
                     }
-
-                    if (machine.CurrentRequest.RequestType.Equals(RequestType.Portal))
-                    {
-                        //machine.NextCharacter = machine.CurrentRequest.Character;
-                        //machine.PortalDescription = machine.CurrentRequest.Destination;
-                        machine.NextHeading = machine.CurrentRequest.Heading;
-                        machine.SpellsToCast.AddRange(machine.CurrentRequest.SpellsToCast);
-                    }
-                    else if (machine.CurrentRequest.RequestType.Equals(RequestType.Buff))
-                    {
-                        //machine.NextCharacter = machine.CurrentRequest.Character;
-                        machine.NextHeading = machine.CurrentRequest.Heading;
-                        machine.SpellsToCast.AddRange(machine.CurrentRequest.SpellsToCast);
-                    }
-                    else if (machine.CurrentRequest.RequestType.Equals(RequestType.Gem))
-                    {
-                        //machine.NextCharacter = machine.CurrentRequest.Character;
-                        //machine.PortalDescription = machine.CurrentRequest.Destination;
-                        machine.NextHeading = machine.CurrentRequest.Heading;
-                        //machine.ItemToUse = machine.CurrentRequest.ItemToUse;
-                    }
                 }
-                else if (machine.Advertise && DateTime.Now - machine.LastBroadcast > TimeSpan.FromMinutes(machine.AdInterval))
+                else if (Utility.BotSettings.AdsEnabled && DateTime.Now - machine.LastBroadcast > TimeSpan.FromMinutes(Utility.BotSettings.AdInterval))
                 {
                     machine.LastBroadcast = DateTime.Now;
                     if (Utility.BotSettings.Advertisements.Count > 0)
@@ -118,30 +97,23 @@ namespace ACManager.StateMachine.States
                         machine.CancelList.Clear();
                     }
 
-                    // set teh current request to a new, blank instance
+                    // set the current request to a new, blank instance
                     if (!machine.CurrentRequest.RequesterName.Equals(""))
                     {
                         machine.CurrentRequest = new Request();
                     }
 
                     // if positioning is enabled, reset heading properly - else, set next heading to -1 or disabled
-                    if (machine.EnablePositioning)
+                    if (Utility.BotSettings.BotPositioning)
                     {
-                        if (!machine.NextHeading.Equals(machine.DefaultHeading))
+                        if (!machine.CurrentRequest.Heading.Equals(Utility.BotSettings.DefaultHeading))
                         {
-                            machine.NextHeading = machine.DefaultHeading;
-                        }
-                    }
-                    else
-                    {
-                        if (!machine.NextHeading.Equals(-1))
-                        {
-                            machine.NextHeading = -1;
+                            machine.CurrentRequest.Heading = Utility.BotSettings.DefaultHeading;
                         }
                     }
 
                     // check for status of buffs on teh buffed character every 30 seconds, if currently logged into the buffing character AND keep buffs alive is enabled
-                    if (machine.StayBuffed && CoreManager.Current.CharacterFilter.Name.Equals(machine.BuffingCharacter) && (DateTime.Now - BuffCheck).TotalSeconds > 30)
+                    if (Utility.BotSettings.StayBuffed && CoreManager.Current.CharacterFilter.Name.Equals(Utility.BotSettings.BuffingCharacter) && (DateTime.Now - BuffCheck).TotalSeconds > 30)
                     {
                         BuffCheck = DateTime.Now;
                         machine.IsBuffed = HaveAllBuffs(machine);
@@ -174,7 +146,7 @@ namespace ACManager.StateMachine.States
                 {
                     Spell spell = CoreManager.Current.Filter<FileService>().SpellTable.GetById(buff.Id);
 
-                    if (machine.Level7Self && spell.Difficulty > 300)
+                    if (Utility.BotSettings.Level7Self && spell.Difficulty > 300)
                     {
                         requiredBuffs.Add(machine.GetFallbackSpell(spell, true));
                     }

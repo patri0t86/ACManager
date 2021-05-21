@@ -36,7 +36,7 @@ namespace ACManager.StateMachine
         /// <summary>
         /// Determines whether the character has begun casting a spell.
         /// </summary>
-        public bool CastStarted { get; set; }
+        public bool CastStarted { get; set; } = false;
 
         /// <summary>
         /// Determines whether the current cast fizzled or not.
@@ -47,11 +47,6 @@ namespace ACManager.StateMachine
         /// Determines whether the current cast is complete or not.
         /// </summary>
         public bool CastCompleted { get; set; } = false;
-
-        /// <summary>
-        /// List of spells to cast.
-        /// </summary>
-        public List<Spell> SpellsToCast { get; set; } = new List<Spell>();
 
         /// <summary>
         /// An instance of the ChatManager to handle all chat commands/requests.
@@ -79,71 +74,6 @@ namespace ACManager.StateMachine
         public Interpreter Interpreter { get; set; }
 
         /// <summary>
-        /// Toggle this bots advertising on and off.
-        /// </summary>
-        public bool Advertise { get; set; } = true;
-
-        /// <summary>
-        /// Interval, in minutes, to send advertisements.
-        /// </summary>
-        public double AdInterval { get; set; } = 10;
-
-        /// <summary>
-        /// Threshhold to begin regaining mana.
-        /// </summary>
-        public double ManaThreshold { get; set; } = 0.5;
-
-        /// <summary>
-        /// Threshhold to begin regaining stamina.
-        /// </summary>
-        public double StaminaThreshold { get; set; } = 0.5;
-
-        /// <summary>
-        /// The heading of the next portal to summon.
-        /// </summary>
-        public double NextHeading { get; set; } = -1;
-
-        /// <summary>
-        /// Setting to determine if the machine will listen to portal requests from open chat.
-        /// </summary>
-        public bool RespondToOpenChat { get; set; } = true;
-
-        /// <summary>
-        /// Determines whether or not the machine listens to requests from the allegiance channel.
-        /// </summary>
-        public bool RespondToAllegiance { get; set; } = false;
-
-        /// <summary>
-        /// Determines the output style of the list of portals.
-        /// </summary>
-        public int Verbosity { get; set; } = 0;
-
-        /// <summary>
-        /// Heading to restore to when the bot is idle.
-        /// </summary>
-        public double DefaultHeading { get; set; }
-
-        /// <summary>
-        /// Navigation landblock to maintain.
-        /// </summary>
-        public int DesiredLandBlock { get; set; }
-
-        /// <summary>
-        /// X coordinate in the landblock to maintain.
-        /// </summary>
-        public double DesiredBotLocationX { get; set; }
-
-        /// <summary>
-        /// Y coordinate in the landblock to maintain.
-        /// </summary>
-        public double DesiredBotLocationY { get; set; }
-
-        /// <summary>
-        /// Enable/disable navigation.
-        /// </summary>
-        public bool EnablePositioning { get; set; } = false;
-
-        /// <summary>
         /// The bot management GUI in decal.
         /// </summary>
         public BotManagerView BotManagerView { get; set; }
@@ -159,24 +89,9 @@ namespace ACManager.StateMachine
         public Request CurrentRequest { get; set; } = new Request();
 
         /// <summary>
-        /// Character name on the account that is capable of being a buff bot.
-        /// </summary>
-        public string BuffingCharacter { get; set; }
-
-        /// <summary>
         /// Determines state of the bot being buffed for buffing.
         /// </summary>
         public bool IsBuffed { get; set; }
-
-        /// <summary>
-        /// Determines if the bot should let buffs run out or not.
-        /// </summary>
-        public bool StayBuffed { get; set; }
-
-        /// <summary>
-        /// Setting determines whether to only buff the bot with lvl 7 self spells.
-        /// </summary>
-        public bool Level7Self { get; set; }
 
         /// <summary>
         /// List to keep track of cancelled requests as the requests are dequeued.
@@ -192,11 +107,6 @@ namespace ACManager.StateMachine
         /// Only send the Finished scanning inventory once.
         /// </summary>
         public bool FinishedScan { get; set; }
-
-        /// <summary>
-        /// Manual override of magic skills for determining skill checks.
-        /// </summary>
-        public int SkillOverride { get; set; } = 0;
 
         /// <summary>
         /// Create the state machine in the StoppedState and begin processing commands on intervals (every time a frame is rendered).
@@ -235,16 +145,22 @@ namespace ACManager.StateMachine
 
         public void Login()
         {
-            LoggedIn = true;
-            BotManagerView = new BotManagerView(this);
-            Enabled = Utility.BotSettings.BotEnabled;
-            IdentifyInventory();
+            if (!LoggedIn)
+            {
+                LoggedIn = true;
+                BotManagerView = new BotManagerView(this);
+                Enabled = Utility.BotSettings.BotEnabled;
+                IdentifyInventory();
+            }
         }
 
         public void Logout()
         {
-            LoggedIn = false;
-            BotManagerView?.Dispose();
+            if (LoggedIn)
+            {
+                LoggedIn = false;
+                BotManagerView?.Dispose();
+            }
         }
 
         /// <summary>
@@ -268,8 +184,7 @@ namespace ACManager.StateMachine
                     }
                 }
             }
-            Debug.ToChat("Scanning inventory, please wait before using the Equipment manager to build suits...");
-            Debug.ToChat($"Scanning {CoreManager.Current.IDQueue.ActionCount} equippable items from your inventory.");
+            Debug.ToChat($"Scanning {CoreManager.Current.IDQueue.ActionCount} equippable inventory items, please wait before using the Equipment manager to build suits.");
         }
 
         /// <summary>
@@ -330,9 +245,9 @@ namespace ACManager.StateMachine
         /// </summary>
         public bool InPosition()
         {
-            return CoreManager.Current.Actions.Landcell == DesiredLandBlock
-                && Math.Abs(CoreManager.Current.Actions.LocationX - DesiredBotLocationX) < 1
-                && Math.Abs(CoreManager.Current.Actions.LocationY - DesiredBotLocationY) < 1;
+            return CoreManager.Current.Actions.Landcell == Utility.BotSettings.DesiredLandBlock
+                && Math.Abs(CoreManager.Current.Actions.LocationX - Utility.BotSettings.DesiredBotLocationX) < 1
+                && Math.Abs(CoreManager.Current.Actions.LocationY - Utility.BotSettings.DesiredBotLocationY) < 1;
         }
 
         /// <summary>
@@ -340,9 +255,9 @@ namespace ACManager.StateMachine
         /// </summary>
         public bool CorrectHeading()
         {
-            return (CoreManager.Current.Actions.Heading <= NextHeading + 1
-                && CoreManager.Current.Actions.Heading >= NextHeading - 1)
-                || NextHeading.Equals(-1);
+            return (CoreManager.Current.Actions.Heading <= CurrentRequest.Heading + 1
+                && CoreManager.Current.Actions.Heading >= CurrentRequest.Heading - 1)
+                || CurrentRequest.Heading.Equals(-1);
         }
 
         public bool SpellSkillCheck(Spell spell)
@@ -350,11 +265,11 @@ namespace ACManager.StateMachine
             switch (spell.School.Id)
             {
                 case 2:
-                    return CoreManager.Current.CharacterFilter.EffectiveSkill[CharFilterSkillType.LifeMagic] + SkillOverride >= spell.Difficulty + 20;
+                    return CoreManager.Current.CharacterFilter.EffectiveSkill[CharFilterSkillType.LifeMagic] + Utility.BotSettings.SkillOverride >= spell.Difficulty + 20;
                 case 3:
-                    return CoreManager.Current.CharacterFilter.EffectiveSkill[CharFilterSkillType.ItemEnchantment] + SkillOverride >= spell.Difficulty + 20;
+                    return CoreManager.Current.CharacterFilter.EffectiveSkill[CharFilterSkillType.ItemEnchantment] + Utility.BotSettings.SkillOverride >= spell.Difficulty + 20;
                 case 4:
-                    return CoreManager.Current.CharacterFilter.EffectiveSkill[CharFilterSkillType.CreatureEnchantment] + SkillOverride >= spell.Difficulty + 20;
+                    return CoreManager.Current.CharacterFilter.EffectiveSkill[CharFilterSkillType.CreatureEnchantment] + Utility.BotSettings.SkillOverride >= spell.Difficulty + 20;
                 default:
                     // Void or War
                     return false;
@@ -401,7 +316,7 @@ namespace ACManager.StateMachine
                 int seconds = 0;
                 string lastCharacter = CoreManager.Current.CharacterFilter.Name;
 
-                int currentRequest = SpellsToCast.Count * 4;
+                int currentRequest = CurrentRequest.SpellsToCast.Count * 4;
 
                 // add the current request time in
                 seconds += currentRequest;
@@ -452,7 +367,7 @@ namespace ACManager.StateMachine
             if (CurrentRequest.RequesterName.Equals(name))
             {
                 CancelList.Add(name);
-                ChatManager.SendTell(name, "I'm cancelling this request now.");
+                ChatManager.SendTell(name, "Your current request is now cancelled. If you had another request in the queue then your spot is maintained.");
             }
             else
             {

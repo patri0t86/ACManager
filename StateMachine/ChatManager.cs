@@ -36,14 +36,14 @@ namespace ACManager.StateMachine
             Match match = RegexLocal.Match(e.Text);
             if (match.Success)
             {
-                if (Machine.RespondToOpenChat) { Handle(match, false); }
+                if (Utility.BotSettings.RespondToGeneralChat) { Handle(match, false); }
                 return;
             }
 
             match = RegexAllegiance.Match(e.Text);
             if (match.Success)
             {
-                if (Machine.RespondToAllegiance) { Handle(match, false); }
+                if (Utility.BotSettings.RespondToAllegiance) { Handle(match, false); }
                 return;
             }
 
@@ -81,7 +81,7 @@ namespace ACManager.StateMachine
                     if (responeStrings.Count > 0)
                     {
                         SendTell(name, "You can tell me any keyword, and I will summon the corresponding portal.");
-                        if (Machine.Verbosity > 0)
+                        if (Utility.BotSettings.Verbosity > 0)
                         {
                             StringBuilder sb = new StringBuilder();
                             int count = 0;
@@ -89,7 +89,7 @@ namespace ACManager.StateMachine
                             {
                                 sb.Append(responeStrings[i]);
                                 count++;
-                                if (count.Equals(Machine.Verbosity + 1))
+                                if (count.Equals(Utility.BotSettings.Verbosity + 1))
                                 {
                                     SendTell(name, sb.ToString());
                                     sb.Length = 0;
@@ -97,7 +97,7 @@ namespace ACManager.StateMachine
                                     sb.Capacity = 16;
                                     count = 0;
                                 }
-                                else if (count < Machine.Verbosity + 1 && !i.Equals(responeStrings.Count - 1))
+                                else if (count < Utility.BotSettings.Verbosity + 1 && !i.Equals(responeStrings.Count - 1))
                                 {
                                     sb.Append(", ");
                                 }
@@ -124,7 +124,7 @@ namespace ACManager.StateMachine
                     }
                     break;
                 case "profiles":
-                    if (isTell && !string.IsNullOrEmpty(Machine.BuffingCharacter))
+                    if (isTell && !string.IsNullOrEmpty(Utility.BotSettings.BuffingCharacter))
                     {
                         List<string> profiles = new List<string>();
                         foreach (BuffProfile profile in Utility.BuffProfiles)
@@ -203,7 +203,7 @@ namespace ACManager.StateMachine
                     }
                     break;
                 case "help":
-                    if (!string.IsNullOrEmpty(Machine.BuffingCharacter))
+                    if (!string.IsNullOrEmpty(Utility.BotSettings.BuffingCharacter))
                     {
                         SendTell(name, "My list of commands are: 'profiles', 'whereto', and 'comps'.");
                     }
@@ -285,7 +285,7 @@ namespace ACManager.StateMachine
                         }
                     }
 
-                    if (!string.IsNullOrEmpty(Machine.BuffingCharacter) && isTell)
+                    if (!string.IsNullOrEmpty(Utility.BotSettings.BuffingCharacter) && isTell)
                     {
                         if (!message.Equals("botbuffs"))
                         {
@@ -296,7 +296,7 @@ namespace ACManager.StateMachine
                                     Request newRequest = new Request
                                     {
                                         RequestType = RequestType.Buff,
-                                        Character = Machine.BuffingCharacter,
+                                        Character = Utility.BotSettings.BuffingCharacter,
                                         RequesterName = name,
                                         RequesterGuid = guid
                                     };

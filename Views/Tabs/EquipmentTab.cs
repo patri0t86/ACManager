@@ -68,9 +68,9 @@ namespace ACManager.Views.Tabs
             {
                 if (Parent.Machine.FinishedScan)
                 {
-                    if (CoreManager.Current.CharacterFilter.Name.Equals(Parent.Machine.BuffingCharacter))
+                    if (CoreManager.Current.CharacterFilter.Name.Equals(Utility.BotSettings.BuffingCharacter))
                     {
-                        if (!CoreManager.Current.Actions.CurrentSelection.Equals(0) && CoreManager.Current.CharacterFilter.Name.Equals(Parent.Machine.BuffingCharacter))
+                        if (!CoreManager.Current.Actions.CurrentSelection.Equals(0) && CoreManager.Current.CharacterFilter.Name.Equals(Utility.BotSettings.BuffingCharacter))
                         {
                             foreach (WorldObject item in Parent.Machine.CharacterEquipment)
                             {
@@ -150,7 +150,7 @@ namespace ACManager.Views.Tabs
             {
                 if (Parent.Machine.FinishedScan)
                 {
-                    if (CoreManager.Current.CharacterFilter.Name.Equals(Parent.Machine.BuffingCharacter))
+                    if (CoreManager.Current.CharacterFilter.Name.Equals(Utility.BotSettings.BuffingCharacter))
                     {
                         if (!CoreManager.Current.Actions.CurrentSelection.Equals(0))
                         {

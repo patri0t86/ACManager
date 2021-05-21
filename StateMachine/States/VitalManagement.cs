@@ -39,7 +39,7 @@ namespace ACManager.StateMachine.States
                 {
                     if (machine.CastStarted && machine.CastCompleted)
                     {
-                        if (CoreManager.Current.CharacterFilter.Mana >= machine.ManaThreshold * CoreManager.Current.CharacterFilter.EffectiveVital[CharFilterVitalType.Mana])
+                        if (CoreManager.Current.CharacterFilter.Mana >= Utility.BotSettings.ManaThreshold * CoreManager.Current.CharacterFilter.EffectiveVital[CharFilterVitalType.Mana])
                         {
                             if (machine.IsBuffed)
                             {
@@ -55,7 +55,7 @@ namespace ACManager.StateMachine.States
                     }
                     else if (!machine.CastStarted)
                     {
-                        if (CoreManager.Current.CharacterFilter.Stamina < machine.StaminaThreshold * CoreManager.Current.CharacterFilter.EffectiveVital[CharFilterVitalType.Stamina])
+                        if (CoreManager.Current.CharacterFilter.Stamina < Utility.BotSettings.StaminaThreshold * CoreManager.Current.CharacterFilter.EffectiveVital[CharFilterVitalType.Stamina])
                         {
                             if (CoreManager.Current.CharacterFilter.IsSpellKnown(RevitalizeSelf.Id) && machine.SpellSkillCheck(RevitalizeSelf) && Inventory.HaveComponents(RevitalizeSelf))
                             {

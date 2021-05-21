@@ -38,17 +38,12 @@ namespace ACManager.StateMachine.States
 
                     ChatManager.Broadcast(Inventory.ReportOnLowComponents());
 
-                    //if (machine.Inventory.LowComponents.Count > 0)
-                    //{
-                    //    ChatManager.Broadcast(machine.Inventory.LowCompsReport());
-                    //}
-
-                    TimeSpan buffTime = TimeSpan.FromSeconds(machine.SpellsToCast.Count * 4);
-                    string message = $"Casting {machine.SpellsToCast.Count} buffs on you. This should take about {buffTime.Minutes} minutes and {buffTime.Seconds} seconds.";
+                    TimeSpan buffTime = TimeSpan.FromSeconds(machine.CurrentRequest.SpellsToCast.Count * 4);
+                    string message = $"Casting {machine.CurrentRequest.SpellsToCast.Count} buffs on you. This should take about {buffTime.Minutes} minutes and {buffTime.Seconds} seconds.";
 
                     if (machine.CurrentRequest.RequesterGuid != 0 && !CastBanes)
                     {
-                        if (ContainsBanes(machine.SpellsToCast))
+                        if (ContainsBanes(machine.CurrentRequest.SpellsToCast))
                         {
                             using (WorldObjectCollection items = CoreManager.Current.WorldFilter.GetByContainer(machine.CurrentRequest.RequesterGuid))
                             {
@@ -78,7 +73,7 @@ namespace ACManager.StateMachine.States
 
         public void Exit(Machine machine)
         {
-            if (machine.CurrentRequest.RequestType.Equals(RequestType.Buff) && machine.SpellsToCast.Count.Equals(0))
+            if (machine.CurrentRequest.RequestType.Equals(RequestType.Buff) && machine.CurrentRequest.SpellsToCast.Count.Equals(0))
             {
                 SentInitialInfo = false;
                 TimeSpan duration = DateTime.Now - Started;
@@ -96,21 +91,21 @@ namespace ACManager.StateMachine.States
         {
             if (machine.Enabled)
             {
-                if (machine.SpellsToCast.Count > 0)
+                if (machine.CurrentRequest.SpellsToCast.Count > 0)
                 {
                     if (CoreManager.Current.Actions.CombatMode != CombatState.Magic)
                     {
                         CoreManager.Current.Actions.SetCombatMode(CombatState.Magic);
                         if ((DateTime.Now - EnteredState).TotalSeconds > 1)
                         {
-                            machine.SpellsToCast.Clear();
+                            machine.CurrentRequest.SpellsToCast.Clear();
                         }
                     }
                     else if (CoreManager.Current.Actions.CombatMode == CombatState.Magic)
                     {
                         if (machine.CastStarted && machine.CastCompleted && !machine.Fizzled)
                         {
-                            if (machine.SpellsToCast[0].Id.Equals(157) || machine.SpellsToCast[0].Id.Equals(2648))
+                            if (machine.CurrentRequest.SpellsToCast[0].Id.Equals(157) || machine.CurrentRequest.SpellsToCast[0].Id.Equals(2648))
                             {
                                 machine.PortalsSummonedThisSession += 1;
                                 if (!string.IsNullOrEmpty(machine.CurrentRequest.Destination))
@@ -126,7 +121,7 @@ namespace ACManager.StateMachine.States
                             {
                                 SpellCastCount += 1;
                             }
-                            machine.SpellsToCast.RemoveAt(0);
+                            machine.CurrentRequest.SpellsToCast.RemoveAt(0);
                             machine.CastCompleted = false;
                             machine.CastStarted = false;
 
@@ -136,7 +131,7 @@ namespace ACManager.StateMachine.States
                                 if (machine.CurrentRequest.RequesterName.Equals(cancel))
                                 {
                                     Cancelled = true;
-                                    machine.SpellsToCast.Clear();
+                                    machine.CurrentRequest.SpellsToCast.Clear();
                                     machine.CancelList.Remove(cancel);
                                     break;
                                 }
@@ -150,18 +145,18 @@ namespace ACManager.StateMachine.States
                         }
                         else if (!machine.CastStarted)
                         {
-                            if (CoreManager.Current.CharacterFilter.Mana < machine.ManaThreshold * CoreManager.Current.CharacterFilter.EffectiveVital[CharFilterVitalType.Mana]
+                            if (CoreManager.Current.CharacterFilter.Mana < Utility.BotSettings.ManaThreshold * CoreManager.Current.CharacterFilter.EffectiveVital[CharFilterVitalType.Mana]
                                 && CoreManager.Current.Actions.SkillTrainLevel[Decal.Adapter.Wrappers.SkillType.BaseLifeMagic] != 1)
                             {
                                 machine.NextState = VitalManagement.GetInstance;
                             }
                             else
                             {
-                                if (CoreManager.Current.CharacterFilter.IsSpellKnown(machine.SpellsToCast[0].Id) && machine.SpellSkillCheck(machine.SpellsToCast[0]))
+                                if (CoreManager.Current.CharacterFilter.IsSpellKnown(machine.CurrentRequest.SpellsToCast[0].Id) && machine.SpellSkillCheck(machine.CurrentRequest.SpellsToCast[0]))
                                 {
-                                    if (Inventory.HaveComponents(machine.SpellsToCast[0]))
+                                    if (Inventory.HaveComponents(machine.CurrentRequest.SpellsToCast[0]))
                                     {
-                                        if (LastSpell.Equals(machine.SpellsToCast[0].Id) && !(machine.SpellsToCast[0].Id.Equals(157) || machine.SpellsToCast[0].Id.Equals(2648)))
+                                        if (LastSpell.Equals(machine.CurrentRequest.SpellsToCast[0].Id) && !(machine.CurrentRequest.SpellsToCast[0].Id.Equals(157) || machine.CurrentRequest.SpellsToCast[0].Id.Equals(2648)))
                                         {
                                             if (!StartedTracking)
                                             {
@@ -171,7 +166,7 @@ namespace ACManager.StateMachine.States
                                             else if ((DateTime.Now - StartedTrackingTime).TotalSeconds > 5)
                                             {
                                                 StartedTracking = !StartedTracking;
-                                                machine.SpellsToCast.Clear();
+                                                machine.CurrentRequest.SpellsToCast.Clear();
                                             }
                                         }
                                         else if (StartedTracking)
@@ -179,33 +174,33 @@ namespace ACManager.StateMachine.States
                                             StartedTracking = !StartedTracking;
                                         }
 
-                                        LastSpell = machine.SpellsToCast[0].Id;
-                                        if (IsBane(machine.SpellsToCast[0]) && CastBanes)
+                                        LastSpell = machine.CurrentRequest.SpellsToCast[0].Id;
+                                        if (IsBane(machine.CurrentRequest.SpellsToCast[0]) && CastBanes)
                                         {
-                                            CoreManager.Current.Actions.CastSpell(machine.SpellsToCast[0].Id, machine.CurrentRequest.RequesterGuid);
+                                            CoreManager.Current.Actions.CastSpell(machine.CurrentRequest.SpellsToCast[0].Id, machine.CurrentRequest.RequesterGuid);
                                         }
-                                        else if (IsBane(machine.SpellsToCast[0]) && !CastBanes)
+                                        else if (IsBane(machine.CurrentRequest.SpellsToCast[0]) && !CastBanes)
                                         {
-                                            machine.SpellsToCast.RemoveAt(0);
+                                            machine.CurrentRequest.SpellsToCast.RemoveAt(0);
                                         }
                                         else
                                         {
-                                            CoreManager.Current.Actions.CastSpell(machine.SpellsToCast[0].Id, machine.CurrentRequest.RequesterGuid);
+                                            CoreManager.Current.Actions.CastSpell(machine.CurrentRequest.SpellsToCast[0].Id, machine.CurrentRequest.RequesterGuid);
                                         }
                                     }
                                     else
                                     {
                                         ChatManager.Broadcast($"I have run out of spell components.");
-                                        machine.SpellsToCast.Clear();
+                                        machine.CurrentRequest.SpellsToCast.Clear();
                                     }
                                 }
                                 else
                                 {
-                                    Spell fallbackSpell = machine.GetFallbackSpell(machine.SpellsToCast[0]);
-                                    machine.SpellsToCast.RemoveAt(0);
+                                    Spell fallbackSpell = machine.GetFallbackSpell(machine.CurrentRequest.SpellsToCast[0]);
+                                    machine.CurrentRequest.SpellsToCast.RemoveAt(0);
                                     if (fallbackSpell != null)
                                     {
-                                        machine.SpellsToCast.Insert(0, fallbackSpell);
+                                        machine.CurrentRequest.SpellsToCast.Insert(0, fallbackSpell);
                                     }
                                 }
                             }
