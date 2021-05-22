@@ -14,6 +14,7 @@ namespace ACManager.StateMachine.States
     public class Idle : StateBase<Idle>, IState
     {
         private DateTime BuffCheck { get; set; }
+        private DateTime LastBroadcast;
         public void Enter(Machine machine)
         {
             Inventory.GetComponentLevels();
@@ -37,97 +38,106 @@ namespace ACManager.StateMachine.States
         /// </summary>
         public void Process(Machine machine)
         {
-            if (machine.Enabled)
+            if (!machine.Enabled)
             {
-                if (CoreManager.Current.Actions.CombatMode != CombatState.Peace)
-                {
-                    CoreManager.Current.Actions.SetCombatMode(CombatState.Peace);
-                }
-                else if ((!string.IsNullOrEmpty(machine.CurrentRequest.ItemToUse) || machine.CurrentRequest.SpellsToCast.Count > 0) && !CoreManager.Current.CharacterFilter.Name.Equals(machine.CurrentRequest.Character))
-                {
-                    machine.NextState = SwitchingCharacters.GetInstance;
-                }
-                else if ((Utility.BotSettings.BotPositioning && (!machine.InPosition() || !machine.CorrectHeading())) || !machine.CorrectHeading())
-                {
-                    machine.NextState = Positioning.GetInstance;
-                }
-                else if (machine.CurrentRequest.SpellsToCast.Count > 0 && CoreManager.Current.CharacterFilter.Name.Equals(machine.CurrentRequest.Character))
-                {
-                    if (machine.CurrentRequest.RequestType.Equals(RequestType.Buff) && CoreManager.Current.CharacterFilter.Name.Equals(Utility.BotSettings.BuffingCharacter))
-                    {
-                        machine.IsBuffed = HaveAllBuffs(machine);
-                    }
-                    else
-                    {
-                        machine.IsBuffed = true;
-                    }
-                    machine.NextState = Equipping.GetInstance;
-                }
-                else if (!string.IsNullOrEmpty(machine.CurrentRequest.ItemToUse) && CoreManager.Current.CharacterFilter.Name.Equals(machine.CurrentRequest.Character))
-                {
-                    machine.NextState = UseItem.GetInstance;
-                }
-                else if (machine.Requests.Count > 0)
-                {
-                    machine.CurrentRequest = machine.Requests.Dequeue();
-                    foreach (string cancelled in machine.CancelList)
-                    {
-                        if (machine.CurrentRequest.RequesterName.Equals(cancelled))
-                        {
-                            machine.CancelList.Remove(cancelled);
-                            return;
-                        }
-                    }
-                }
-                else if (Utility.BotSettings.AdsEnabled && DateTime.Now - machine.LastBroadcast > TimeSpan.FromMinutes(Utility.BotSettings.AdInterval))
-                {
-                    machine.LastBroadcast = DateTime.Now;
-                    if (Utility.BotSettings.Advertisements.Count > 0)
-                    {
-                        ChatManager.Broadcast(Utility.BotSettings.Advertisements[new Random().Next(0, Utility.BotSettings.Advertisements.Count)].Message);
-                    }
+                machine.NextState = Stopped.GetInstance;
+                return;
+            }
 
-                    ChatManager.Broadcast(Inventory.ReportOnLowComponents());
+            if (!CoreManager.Current.Actions.CombatMode.Equals(CombatState.Peace))
+            {
+                CoreManager.Current.Actions.SetCombatMode(CombatState.Peace);
+                return;
+            }
+
+            if (!CoreManager.Current.CharacterFilter.Name.Equals(machine.CurrentRequest.Character))
+            {
+                machine.NextState = SwitchingCharacters.GetInstance;
+                return;
+            }
+
+            if ((Utility.BotSettings.BotPositioning && (!machine.InPosition() || !machine.CorrectHeading())) || !machine.CorrectHeading())
+            {
+                machine.NextState = Positioning.GetInstance;
+                return;
+            }
+
+            if (!machine.CurrentRequest.SpellsToCast.Count.Equals(0))
+            {
+                if (machine.CurrentRequest.RequestType.Equals(RequestType.Buff))
+                {
+                    machine.IsBuffed = HaveAllBuffs(machine);
                 }
                 else
                 {
-                    // clear the cancel list
-                    if (machine.CancelList.Count > 0)
-                    {
-                        machine.CancelList.Clear();
-                    }
+                    machine.IsBuffed = true;
+                }
+                machine.NextState = Equipping.GetInstance;
+                return;
+            }
 
-                    // set the current request to a new, blank instance
-                    if (!machine.CurrentRequest.RequesterName.Equals(""))
-                    {
-                        machine.CurrentRequest = new Request();
-                    }
+            if (!string.IsNullOrEmpty(machine.CurrentRequest.ItemToUse))
+            {
+                machine.NextState = UseItem.GetInstance;
+                return;
+            }
 
-                    // if positioning is enabled, reset heading properly - else, set next heading to -1 or disabled
-                    if (Utility.BotSettings.BotPositioning)
+            if (machine.Requests.Count > 0)
+            {
+                machine.CurrentRequest = machine.Requests.Dequeue();
+                foreach (string cancelled in machine.CancelList)
+                {
+                    if (machine.CurrentRequest.RequesterName.Equals(cancelled))
                     {
-                        if (!machine.CurrentRequest.Heading.Equals(Utility.BotSettings.DefaultHeading))
-                        {
-                            machine.CurrentRequest.Heading = Utility.BotSettings.DefaultHeading;
-                        }
-                    }
-
-                    // check for status of buffs on teh buffed character every 30 seconds, if currently logged into the buffing character AND keep buffs alive is enabled
-                    if (Utility.BotSettings.StayBuffed && CoreManager.Current.CharacterFilter.Name.Equals(Utility.BotSettings.BuffingCharacter) && (DateTime.Now - BuffCheck).TotalSeconds > 30)
-                    {
-                        BuffCheck = DateTime.Now;
-                        machine.IsBuffed = HaveAllBuffs(machine);
-                        if (!machine.IsBuffed)
-                        {
-                            machine.NextState = Equipping.GetInstance;
-                        }
+                        machine.CancelList.Remove(cancelled);
+                        return;
                     }
                 }
+                return;
             }
-            else
+
+            if (Utility.BotSettings.AdsEnabled && DateTime.Now - LastBroadcast > TimeSpan.FromMinutes(Utility.BotSettings.AdInterval))
             {
-                machine.NextState = Stopped.GetInstance;
+                LastBroadcast = DateTime.Now;
+
+                if (!Utility.BotSettings.Advertisements.Count.Equals(0))
+                {
+                    ChatManager.Broadcast(Utility.BotSettings.Advertisements[new Random().Next(0, Utility.BotSettings.Advertisements.Count)].Message);
+                }
+
+                ChatManager.Broadcast(Inventory.ReportOnLowComponents());
             }
+
+            // set the current request to a new, blank instance
+            if (!string.IsNullOrEmpty(machine.CurrentRequest.RequesterName))
+            {
+                machine.CurrentRequest = new Request();
+            }
+
+            // if positioning is enabled, set heading properly - else, set next heading to -1 (disabled)
+            if (Utility.BotSettings.BotPositioning)
+            {
+                if (!machine.CurrentRequest.Heading.Equals(Utility.BotSettings.DefaultHeading))
+                {
+                    machine.CurrentRequest.Heading = Utility.BotSettings.DefaultHeading;
+                }
+            }
+            else if (!machine.CurrentRequest.Heading.Equals(-1))
+            {
+                machine.CurrentRequest.Heading = -1;
+            }
+
+            // check for status of buffs on teh buffed character every 30 seconds, if currently logged into the buffing character AND keep buffs alive is enabled
+            if (Utility.BotSettings.StayBuffed && CoreManager.Current.CharacterFilter.Name.Equals(Utility.BotSettings.BuffingCharacter) && (DateTime.Now - BuffCheck).TotalSeconds > 30)
+            {
+                BuffCheck = DateTime.Now;
+                machine.IsBuffed = HaveAllBuffs(machine);
+                if (!machine.IsBuffed)
+                {
+                    machine.NextState = Equipping.GetInstance;
+                }
+            }
+            
         }
 
         public override string ToString()

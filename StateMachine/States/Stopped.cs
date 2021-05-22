@@ -21,7 +21,6 @@ namespace ACManager.StateMachine.States
             if (machine.NextState == Idle.GetInstance)
             {
                 machine.MachineStarted = DateTime.Now;
-                machine.LastBroadcast = DateTime.Now;
                 CoreManager.Current.Actions.SetIdleTime(double.MaxValue);
                 CoreManager.Current.ChatBoxMessage += machine.ChatManager.Current_ChatBoxMessage;
                 ChatManager.Broadcast($"/me is running ACManager {Utility.Version} found at https://github.com/patri0t86/ACManager. Whisper 'help' to get started.");

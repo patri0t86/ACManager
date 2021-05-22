@@ -53,10 +53,6 @@ namespace ACManager.StateMachine
         /// </summary>
         public ChatManager ChatManager { get; set; }
 
-        /// <summary>
-        /// Time reference to control when advertisements are broadcast.
-        /// </summary>
-        public DateTime LastBroadcast { get; set; }
 
         /// <summary>
         /// Time the machine was turned on.
