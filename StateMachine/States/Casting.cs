@@ -12,211 +12,182 @@ namespace ACManager.StateMachine.States
     public class Casting : StateBase<Casting>, IState
     {
         private DateTime Started { get; set; }
-        private bool SentInitialInfo { get; set; }
-        private bool CastBanes { get; set; }
-        private int LastSpell { get; set; }
-        private bool StartedTracking { get; set; }
-        private DateTime StartedTrackingTime { get; set; }
+        private bool StartedBuffCycle { get; set; }
+        private Spell LastSpell { get; set; }
+        private bool LostTarget { get; set; }
+        private DateTime StartedTracking { get; set; }
         private int SpellCastCount { get; set; }
-        private DateTime EnteredState { get; set; }
-        private bool Cancelled { get; set; }
-
+        
         public void Enter(Machine machine)
         {
             machine.Fizzled = false;
             machine.CastCompleted = false;
             machine.CastStarted = false;
-            EnteredState = DateTime.Now;
+            LostTarget = false;
 
-            if (machine.CurrentRequest.RequestType.Equals(RequestType.Buff))
+            if (machine.CurrentRequest.RequestType.Equals(RequestType.Buff) && !StartedBuffCycle)
             {
-                if (!SentInitialInfo)
-                {
-                    Started = DateTime.Now;
-                    SentInitialInfo = true;
-                    SpellCastCount = 0;
+                Started = DateTime.Now;
+                StartedBuffCycle = true;
+                SpellCastCount = 0;
 
-                    ChatManager.Broadcast(Inventory.ReportOnLowComponents());
-
-                    TimeSpan buffTime = TimeSpan.FromSeconds(machine.CurrentRequest.SpellsToCast.Count * 4);
-                    string message = $"Casting {machine.CurrentRequest.SpellsToCast.Count} buffs on you. This should take about {buffTime.Minutes} minutes and {buffTime.Seconds} seconds.";
-
-                    if (machine.CurrentRequest.RequesterGuid != 0 && !CastBanes)
-                    {
-                        if (ContainsBanes(machine.CurrentRequest.SpellsToCast))
-                        {
-                            using (WorldObjectCollection items = CoreManager.Current.WorldFilter.GetByContainer(machine.CurrentRequest.RequesterGuid))
-                            {
-                                items.SetFilter(new ByObjectClassFilter(ObjectClass.Armor));
-                                if (items.Count > 0)
-                                {
-                                    if (!items.First.Name.Contains("Covenant"))
-                                    {
-                                        CastBanes = true;
-                                    }
-                                    else
-                                    {
-                                        message += " You are wearing a covenant shield, so I will be skipping banes.";
-                                    }
-                                }
-                                else
-                                {
-                                    message += " You are not wearing a shield, so I will be skipping banes.";
-                                }
-                            }
-                        }
-                    }
-                    ChatManager.SendTell(machine.CurrentRequest.RequesterName, message);
-                }
+                ChatManager.Broadcast(Inventory.ReportOnLowComponents());
+                TimeSpan buffTime = TimeSpan.FromSeconds(machine.CurrentRequest.SpellsToCast.Count * 4);
+                ChatManager.SendTell(machine.CurrentRequest.RequesterName, $"Casting {machine.CurrentRequest.SpellsToCast.Count} buffs on you. This should take about {buffTime.Minutes} minutes and {buffTime.Seconds} seconds.");
             }
         }
 
         public void Exit(Machine machine)
         {
-            if (machine.CurrentRequest.RequestType.Equals(RequestType.Buff) && machine.CurrentRequest.SpellsToCast.Count.Equals(0))
-            {
-                SentInitialInfo = false;
-                TimeSpan duration = DateTime.Now - Started;
-                if (!Cancelled)
-                {
-                    ChatManager.SendTell(machine.CurrentRequest.RequesterName, $"Buffing is complete with {SpellCastCount} buffs, it took {duration.Minutes} minutes and {duration.Seconds} seconds.");
-                }
-                CastBanes = false;
-                LastSpell = 0;
-            }
-            Cancelled = false;
+            
         }
 
         public void Process(Machine machine)
         {
-            if (machine.Enabled)
+            if (!machine.Enabled)
             {
-                if (machine.CurrentRequest.SpellsToCast.Count > 0)
+                StartedBuffCycle = false;
+                machine.NextState = Equipping.GetInstance;
+                return;
+            }
+
+            if (machine.CurrentRequest.SpellsToCast.Count.Equals(0))
+            {
+                if (machine.CurrentRequest.RequestType.Equals(RequestType.Buff))
                 {
-                    if (CoreManager.Current.Actions.CombatMode != CombatState.Magic)
-                    {
-                        CoreManager.Current.Actions.SetCombatMode(CombatState.Magic);
-                        if ((DateTime.Now - EnteredState).TotalSeconds > 1)
-                        {
-                            machine.CurrentRequest.SpellsToCast.Clear();
-                        }
-                    }
-                    else if (CoreManager.Current.Actions.CombatMode == CombatState.Magic)
-                    {
-                        if (machine.CastStarted && machine.CastCompleted && !machine.Fizzled)
-                        {
-                            if (machine.CurrentRequest.SpellsToCast[0].Id.Equals(157) || machine.CurrentRequest.SpellsToCast[0].Id.Equals(2648))
-                            {
-                                machine.PortalsSummonedThisSession += 1;
-                                if (!string.IsNullOrEmpty(machine.CurrentRequest.Destination))
-                                {
-                                    ChatManager.Broadcast($"/s Portal now open to {machine.CurrentRequest.Destination}. Safe journey, friend.");
-                                }
-                                else
-                                {
-                                    ChatManager.Broadcast($"/s Portal now open. Safe journey, friend.");
-                                }
-                            }
-                            else
-                            {
-                                SpellCastCount += 1;
-                            }
-                            machine.CurrentRequest.SpellsToCast.RemoveAt(0);
-                            machine.CastCompleted = false;
-                            machine.CastStarted = false;
+                    StartedBuffCycle = false;
+                    TimeSpan duration = DateTime.Now - Started;
+                    ChatManager.SendTell(machine.CurrentRequest.RequesterName, $"Your request is complete with {SpellCastCount} buffs, it took {duration.Minutes} minutes and {duration.Seconds} seconds.");
+                    LastSpell = null;
+                }
 
-                            // Check to see if this request was cancelled.
-                            foreach (string cancel in machine.CancelList)
-                            {
-                                if (machine.CurrentRequest.RequesterName.Equals(cancel))
-                                {
-                                    Cancelled = true;
-                                    machine.CurrentRequest.SpellsToCast.Clear();
-                                    machine.CancelList.Remove(cancel);
-                                    break;
-                                }
-                            }
-                        }
-                        else if (machine.CastStarted && machine.CastCompleted && machine.Fizzled)
-                        {
-                            machine.Fizzled = false;
-                            machine.CastCompleted = false;
-                            machine.CastStarted = false;
-                        }
-                        else if (!machine.CastStarted)
-                        {
-                            if (CoreManager.Current.CharacterFilter.Mana < Utility.BotSettings.ManaThreshold * CoreManager.Current.CharacterFilter.EffectiveVital[CharFilterVitalType.Mana]
-                                && CoreManager.Current.Actions.SkillTrainLevel[Decal.Adapter.Wrappers.SkillType.BaseLifeMagic] != 1)
-                            {
-                                machine.NextState = VitalManagement.GetInstance;
-                            }
-                            else
-                            {
-                                if (CoreManager.Current.CharacterFilter.IsSpellKnown(machine.CurrentRequest.SpellsToCast[0].Id) && machine.SpellSkillCheck(machine.CurrentRequest.SpellsToCast[0]))
-                                {
-                                    if (Inventory.HaveComponents(machine.CurrentRequest.SpellsToCast[0]))
-                                    {
-                                        if (LastSpell.Equals(machine.CurrentRequest.SpellsToCast[0].Id) && !(machine.CurrentRequest.SpellsToCast[0].Id.Equals(157) || machine.CurrentRequest.SpellsToCast[0].Id.Equals(2648)))
-                                        {
-                                            if (!StartedTracking)
-                                            {
-                                                StartedTrackingTime = DateTime.Now;
-                                                StartedTracking = !StartedTracking;
-                                            }
-                                            else if ((DateTime.Now - StartedTrackingTime).TotalSeconds > 5)
-                                            {
-                                                StartedTracking = !StartedTracking;
-                                                machine.CurrentRequest.SpellsToCast.Clear();
-                                            }
-                                        }
-                                        else if (StartedTracking)
-                                        {
-                                            StartedTracking = !StartedTracking;
-                                        }
+                if (machine.Requests.Count.Equals(0))
+                {
+                    machine.NextState = Equipping.GetInstance;
+                    return;
+                }
 
-                                        LastSpell = machine.CurrentRequest.SpellsToCast[0].Id;
-                                        if (IsBane(machine.CurrentRequest.SpellsToCast[0]) && CastBanes)
-                                        {
-                                            CoreManager.Current.Actions.CastSpell(machine.CurrentRequest.SpellsToCast[0].Id, machine.CurrentRequest.RequesterGuid);
-                                        }
-                                        else if (IsBane(machine.CurrentRequest.SpellsToCast[0]) && !CastBanes)
-                                        {
-                                            machine.CurrentRequest.SpellsToCast.RemoveAt(0);
-                                        }
-                                        else
-                                        {
-                                            CoreManager.Current.Actions.CastSpell(machine.CurrentRequest.SpellsToCast[0].Id, machine.CurrentRequest.RequesterGuid);
-                                        }
-                                    }
-                                    else
-                                    {
-                                        ChatManager.Broadcast($"I have run out of spell components.");
-                                        machine.CurrentRequest.SpellsToCast.Clear();
-                                    }
-                                }
-                                else
-                                {
-                                    Spell fallbackSpell = machine.GetFallbackSpell(machine.CurrentRequest.SpellsToCast[0]);
-                                    machine.CurrentRequest.SpellsToCast.RemoveAt(0);
-                                    if (fallbackSpell != null)
-                                    {
-                                        machine.CurrentRequest.SpellsToCast.Insert(0, fallbackSpell);
-                                    }
-                                }
-                            }
-                        }
-                    }
+                if (machine.Requests.Peek().RequestType.Equals(RequestType.Buff))
+                {
+                    machine.CurrentRequest = machine.Requests.Dequeue();
+                    Started = DateTime.Now;
+                    StartedBuffCycle = true;
+                    SpellCastCount = 0;
+
+                    ChatManager.Broadcast(Inventory.ReportOnLowComponents());
+                    TimeSpan buffTime = TimeSpan.FromSeconds(machine.CurrentRequest.SpellsToCast.Count * 4);
+                    ChatManager.SendTell(machine.CurrentRequest.RequesterName, $"Casting {machine.CurrentRequest.SpellsToCast.Count} buffs on you. This should take about {buffTime.Minutes} minutes and {buffTime.Seconds} seconds.");
                 }
                 else
                 {
                     machine.NextState = Equipping.GetInstance;
                 }
+                return;
             }
+
+            if (!CoreManager.Current.Actions.CombatMode.Equals(CombatState.Magic))
+            {
+                CoreManager.Current.Actions.SetCombatMode(CombatState.Magic);
+                return;
+            }
+            
+            if (machine.CastStarted && machine.CastCompleted && !machine.Fizzled)
+            {
+                if (machine.CurrentRequest.SpellsToCast[0].Id.Equals(157) || machine.CurrentRequest.SpellsToCast[0].Id.Equals(2648))
+                {
+                    machine.PortalsSummonedThisSession += 1;
+                    ChatManager.Broadcast($"/s Portal now open to {(string.IsNullOrEmpty(machine.CurrentRequest.Destination) ? "Portal now open." : machine.CurrentRequest.Destination)}. Safe journey, friend.");
+                }
+                else
+                {
+                    SpellCastCount += 1;
+                }
+                machine.CurrentRequest.SpellsToCast.RemoveAt(0);
+                machine.CastCompleted = false;
+                machine.CastStarted = false;
+                return;
+            }
+
+
+            if (machine.CastStarted && machine.CastCompleted && machine.Fizzled)
+            {
+                machine.Fizzled = false;
+                machine.CastCompleted = false;
+                machine.CastStarted = false;
+                return;
+            }
+
+            if (CoreManager.Current.CharacterFilter.Mana < Utility.BotSettings.ManaThreshold * CoreManager.Current.CharacterFilter.EffectiveVital[CharFilterVitalType.Mana]
+                && !CoreManager.Current.Actions.SkillTrainLevel[Decal.Adapter.Wrappers.SkillType.BaseLifeMagic].Equals(1))
+            {
+                machine.NextState = VitalManagement.GetInstance;
+                return;
+            }
+
+            foreach (string cancel in machine.CancelList)
+            {
+                if (machine.CurrentRequest.RequesterName.Equals(cancel))
+                {
+                    machine.CurrentRequest.SpellsToCast.Clear();
+                    machine.CancelList.Remove(cancel);
+                    return;
+                }
+            }
+
+            if (machine.CastStarted)
+            {
+                return;
+            }
+
+            if (!(CoreManager.Current.CharacterFilter.IsSpellKnown(machine.CurrentRequest.SpellsToCast[0].Id) && machine.SpellSkillCheck(machine.CurrentRequest.SpellsToCast[0])))
+            {
+                Spell fallbackSpell = machine.GetFallbackSpell(machine.CurrentRequest.SpellsToCast[0]);
+                machine.CurrentRequest.SpellsToCast.RemoveAt(0);
+                if (fallbackSpell != null)
+                {
+                    machine.CurrentRequest.SpellsToCast.Insert(0, fallbackSpell);
+                }
+                return;
+            }
+
+            if (!Inventory.HaveComponents(machine.CurrentRequest.SpellsToCast[0]))
+            {
+                ChatManager.Broadcast($"I have run out of spell components.");
+                machine.CurrentRequest.SpellsToCast.Clear();
+                return;
+            }
+
+            if (LastSpell != null
+                && LastSpell.Equals(machine.CurrentRequest.SpellsToCast[0])
+                && !(machine.CurrentRequest.SpellsToCast[0].Id.Equals(157)
+                || machine.CurrentRequest.SpellsToCast[0].Id.Equals(2648)))
+            {
+                if (!LostTarget)
+                {
+                    StartedTracking = DateTime.Now;
+                    LostTarget = true;
+                }
+                else if ((DateTime.Now - StartedTracking).TotalSeconds > 5)
+                {
+                    machine.CurrentRequest.SpellsToCast.Clear();
+                    return;
+                }
+            } 
             else
             {
-                SentInitialInfo = false;
-                machine.NextState = Equipping.GetInstance;
+                LastSpell = machine.CurrentRequest.SpellsToCast[0];
+                LostTarget = false;
             }
+
+            if (IsBane(machine.CurrentRequest.SpellsToCast[0]) && !IsBaneable(machine.CurrentRequest.RequesterGuid))
+            {
+                while(IsBane(machine.CurrentRequest.SpellsToCast[0]))
+                {
+                    machine.CurrentRequest.SpellsToCast.RemoveAt(0);
+                }
+            }
+
+            CoreManager.Current.Actions.CastSpell(machine.CurrentRequest.SpellsToCast[0].Id, machine.CurrentRequest.RequesterGuid);
         }
 
         public override string ToString()
@@ -243,6 +214,22 @@ namespace ACManager.StateMachine.States
                 if (IsBane(spell))
                 {
                     return true;
+                }
+            }
+            return false;
+        }
+
+        private bool IsBaneable(int targetGuid)
+        {
+            using (WorldObjectCollection items = CoreManager.Current.WorldFilter.GetByContainer(targetGuid))
+            {
+                items.SetFilter(new ByObjectClassFilter(ObjectClass.Armor));
+                if (items.Count > 0)
+                {
+                    if (!items.First.Name.Contains("Covenant"))
+                    {
+                        return true;
+                    }
                 }
             }
             return false;
