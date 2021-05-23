@@ -103,6 +103,10 @@ namespace ACManager.StateMachine.States
                 if (!Utility.BotSettings.Advertisements.Count.Equals(0))
                 {
                     ChatManager.Broadcast(Utility.BotSettings.Advertisements[new Random().Next(0, Utility.BotSettings.Advertisements.Count)].Message);
+                } 
+                else
+                {
+                    ChatManager.Broadcast($"/me is running ACManager v{Utility.Version} found at https://github.com/patri0t86/ACManager. Whisper 'help' to get started.");
                 }
 
                 ChatManager.Broadcast(Inventory.ReportOnLowComponents());

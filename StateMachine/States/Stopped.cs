@@ -18,13 +18,9 @@ namespace ACManager.StateMachine.States
 
         public void Exit(Machine machine)
         {
-            if (machine.NextState == Idle.GetInstance)
-            {
-                machine.MachineStarted = DateTime.Now;
-                CoreManager.Current.Actions.SetIdleTime(double.MaxValue);
-                CoreManager.Current.ChatBoxMessage += machine.ChatManager.Current_ChatBoxMessage;
-                ChatManager.Broadcast($"/me is running ACManager {Utility.Version} found at https://github.com/patri0t86/ACManager. Whisper 'help' to get started.");
-            }
+            machine.MachineStarted = DateTime.Now;
+            CoreManager.Current.Actions.SetIdleTime(double.MaxValue);
+            CoreManager.Current.ChatBoxMessage += machine.ChatManager.Current_ChatBoxMessage;
         }
 
         public void Process(Machine machine)

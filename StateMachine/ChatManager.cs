@@ -205,12 +205,15 @@ namespace ACManager.StateMachine
                 case "help":
                     if (!string.IsNullOrEmpty(Utility.BotSettings.BuffingCharacter))
                     {
-                        SendTell(name, "My list of commands are: 'profiles', 'whereto', and 'comps'.");
+                        SendTell(name, "My list of commands are: 'profiles', 'whereto', 'comps', and 'info'.");
                     }
                     else
                     {
-                        SendTell(name, "My list of commands are: 'whereto', and 'comps'.");
+                        SendTell(name, "My list of commands are: 'whereto','comps', and 'info'.");
                     }
+                    break;
+                case "info":
+                    SendTell(name, $"I'm using the ACManager bot v{Utility.Version} found at https://github.com/patri0t86/ACManager.");
                     break;
                 default:
                     for (int i = 0; i < Utility.CharacterSettings.Characters.Count; i++)
