@@ -23,32 +23,23 @@ namespace ACManager.StateMachine.States
 
         public void Process(Machine machine)
         {
-            if (machine.Enabled)
+            if (!machine.Enabled)
             {
-                if (Inventory.GetInventoryCount(machine.CurrentRequest.ItemToUse) > 0)
-                {
-                    if (DateTime.Now - UseDelay > TimeSpan.FromSeconds(1))
-                    {
-                        using (WorldObjectCollection inventory = CoreManager.Current.WorldFilter.GetInventory())
-                        {
-                            inventory.SetFilter(new ByNameFilter(machine.CurrentRequest.ItemToUse));
-                            if (inventory.Quantity > 0)
-                            {
-                                CoreManager.Current.Actions.UseItem(inventory.First.Id, 0);
-                                ChatManager.Broadcast($"Portal opened with {machine.CurrentRequest.Destination}. Safe journey, friend.");
-                                machine.NextState = Idle.GetInstance;
-                            }
-                        }
-                    }
-                }
-                else
-                {
-                    ChatManager.Broadcast($"It appears I've run out of {machine.CurrentRequest.ItemToUse}.");
-                    machine.NextState = Idle.GetInstance;
-                }
+                machine.NextState = Idle.GetInstance;
+                return;
             }
-            else
+
+            if (!(Inventory.GetInventoryCount(machine.CurrentRequest.ItemToUse) > 0))
             {
+                ChatManager.Broadcast($"It appears I've run out of {machine.CurrentRequest.ItemToUse}.");
+                machine.NextState = Idle.GetInstance;
+                return;
+            }
+
+            if (DateTime.Now - UseDelay > TimeSpan.FromSeconds(1))
+            {
+                CoreManager.Current.Actions.UseItem(Inventory.GetItemByName(machine.CurrentRequest.ItemToUse).Id, 0);
+                ChatManager.Broadcast($"Portal opened with {machine.CurrentRequest.Destination}. Safe journey, friend.");
                 machine.NextState = Idle.GetInstance;
             }
         }

@@ -221,5 +221,21 @@ namespace ACManager
             }
             return false;
         }
+
+        public static WorldObject GetItemByName(string name)
+        {
+            using (WorldObjectCollection inventory = CoreManager.Current.WorldFilter.GetInventory())
+            {
+                inventory.SetFilter(new ByNameFilter(name));
+                if (inventory.Quantity > 0)
+                {
+                    return inventory.First;
+                }
+                else
+                {
+                    return null;
+                }
+            }
+        }
     }
 }
