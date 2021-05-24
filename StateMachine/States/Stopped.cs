@@ -14,6 +14,7 @@ namespace ACManager.StateMachine.States
             machine.Requests.Clear();
             CoreManager.Current.ChatBoxMessage -= machine.ChatManager.Current_ChatBoxMessage;
             CoreManager.Current.Actions.SetIdleTime(1200);
+            Debug.ToChat("Bot stopped successfully.");
         }
 
         public void Exit(Machine machine)
@@ -21,6 +22,7 @@ namespace ACManager.StateMachine.States
             machine.MachineStarted = DateTime.Now;
             CoreManager.Current.Actions.SetIdleTime(double.MaxValue);
             CoreManager.Current.ChatBoxMessage += machine.ChatManager.Current_ChatBoxMessage;
+            Debug.ToChat("Bot started successfully.");
         }
 
         public void Process(Machine machine)

@@ -85,11 +85,6 @@ namespace ACManager.StateMachine
         public Request CurrentRequest { get; set; } = new Request();
 
         /// <summary>
-        /// Determines state of the bot being buffed for buffing.
-        /// </summary>
-        public bool IsBuffed { get; set; }
-
-        /// <summary>
         /// List to keep track of cancelled requests as the requests are dequeued.
         /// </summary>
         public List<string> CancelList { get; set; } = new List<string>();
@@ -301,7 +296,7 @@ namespace ACManager.StateMachine
             }
             else if (CurrentRequest.Equals(newRequest))
             {
-                ChatManager.SendTell(newRequest.RequesterName, $"I'm already helping you, please be patient.");
+                ChatManager.SendTell(newRequest.RequesterName, $"I'm already helping you with this type of request.");
             }
             else
             {
@@ -349,11 +344,11 @@ namespace ACManager.StateMachine
                 }
                 else if (Requests.Count.Equals(1) && !string.IsNullOrEmpty(CurrentRequest.RequesterName))
                 {
-                    ChatManager.SendTell(newRequest.RequesterName, $"I have received your request. You are next in line. Say 'cancel' at any time to cancel this request.{(!string.IsNullOrEmpty(estimatedWait) ? estimatedWait : "")}");
+                    ChatManager.SendTell(newRequest.RequesterName, $"I have received your request. You are next in line. Say 'cancel' at any time to cancel this request.{(!string.IsNullOrEmpty(estimatedWait) ? estimatedWait : string.Empty)}");
                 }
                 else
                 {
-                    ChatManager.SendTell(newRequest.RequesterName, $"I have received your request. There are currently {Requests.Count} requests in the queue ahead of you, including the person I'm currently helping. Say 'cancel' at any time to cancel this request.{(!string.IsNullOrEmpty(estimatedWait) ? estimatedWait : "")}");
+                    ChatManager.SendTell(newRequest.RequesterName, $"I have received your request. There are currently {Requests.Count} requests ahead of you, including the person I'm currently helping. Say 'cancel' at any time to cancel this request.{(!string.IsNullOrEmpty(estimatedWait) ? estimatedWait : string.Empty)}");
                 }
             }
         }

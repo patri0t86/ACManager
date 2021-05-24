@@ -41,14 +41,7 @@ namespace ACManager.StateMachine.States
                     {
                         if (CoreManager.Current.CharacterFilter.Mana >= Utility.BotSettings.ManaThreshold * CoreManager.Current.CharacterFilter.EffectiveVital[CharFilterVitalType.Mana])
                         {
-                            if (machine.IsBuffed)
-                            {
-                                machine.NextState = Casting.GetInstance;
-                            }
-                            else
-                            {
-                                machine.NextState = SelfBuffing.GetInstance;
-                            }
+                            machine.NextState = Casting.GetInstance;
                         }
                         machine.CastStarted = false;
                         machine.CastCompleted = false;

@@ -22,8 +22,6 @@ namespace ACManager.StateMachine.States
 
         public void Enter(Machine machine)
         {
-            Utility.EquipmentSettings = Utility.LoadEquipmentSettings();
-
             if (BuffingEquipment.Count.Equals(0) && CoreManager.Current.CharacterFilter.Name.Equals(Utility.BotSettings.BuffingCharacter))
             {
                 foreach (Equipment item in Utility.EquipmentSettings.BuffingEquipment)
@@ -65,18 +63,11 @@ namespace ACManager.StateMachine.States
         {
             if (machine.Enabled)
             {
-                if (machine.CurrentRequest.SpellsToCast.Count > 0 || !machine.IsBuffed)
+                if (machine.CurrentRequest.SpellsToCast.Count > 0 || !Casting.HaveSelfBuffs(machine))
                 {
                     if (FullyEquipped)
                     {
-                        if (!machine.IsBuffed && CoreManager.Current.CharacterFilter.Name.Equals(Utility.BotSettings.BuffingCharacter))
-                        {
-                            machine.NextState = SelfBuffing.GetInstance;
-                        }
-                        else
-                        {
-                            machine.NextState = Casting.GetInstance;
-                        }
+                        machine.NextState = Casting.GetInstance;
                     }
                     else if (BuffingEquipment.Count.Equals(0) || !machine.CurrentRequest.RequestType.Equals(RequestType.Buff))
                     {

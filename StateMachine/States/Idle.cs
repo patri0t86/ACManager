@@ -64,14 +64,6 @@ namespace ACManager.StateMachine.States
 
             if (!machine.CurrentRequest.SpellsToCast.Count.Equals(0))
             {
-                if (machine.CurrentRequest.RequestType.Equals(RequestType.Buff))
-                {
-                    machine.IsBuffed = HaveAllBuffs(machine);
-                }
-                else
-                {
-                    machine.IsBuffed = true;
-                }
                 machine.NextState = Equipping.GetInstance;
                 return;
             }
@@ -131,73 +123,20 @@ namespace ACManager.StateMachine.States
                 machine.CurrentRequest.Heading = -1;
             }
 
-            // check for status of buffs on teh buffed character every 30 seconds, if currently logged into the buffing character AND keep buffs alive is enabled
+            // check for status of buffs on the buffing character every 30 seconds, if currently logged into the buffing character AND keep buffs alive is enabled
             if (Utility.BotSettings.StayBuffed && CoreManager.Current.CharacterFilter.Name.Equals(Utility.BotSettings.BuffingCharacter) && (DateTime.Now - BuffCheck).TotalSeconds > 30)
             {
                 BuffCheck = DateTime.Now;
-                machine.IsBuffed = HaveAllBuffs(machine);
-                if (!machine.IsBuffed)
+                if (!Casting.HaveSelfBuffs(machine))
                 {
                     machine.NextState = Equipping.GetInstance;
                 }
             }
-            
         }
 
         public override string ToString()
         {
             return nameof(Idle);
-        }
-
-        public bool HaveAllBuffs(Machine machine)
-        {
-            try
-            {
-                BuffProfile profile = Utility.GetProfile("botbuffs");
-
-                List<Spell> requiredBuffs = new List<Spell>();
-                foreach (Buff buff in profile.Buffs)
-                {
-                    Spell spell = CoreManager.Current.Filter<FileService>().SpellTable.GetById(buff.Id);
-
-                    if (Utility.BotSettings.Level7Self && spell.Difficulty > 300)
-                    {
-                        requiredBuffs.Add(machine.GetFallbackSpell(spell, true));
-                    }
-                    else
-                    {
-                        requiredBuffs.Add(spell);
-                    }
-                }
-
-                Dictionary<int, int> enchantments = new Dictionary<int, int>();
-                foreach (EnchantmentWrapper enchantment in CoreManager.Current.CharacterFilter.Enchantments)
-                {
-                    if (requiredBuffs.Contains(CoreManager.Current.Filter<FileService>().SpellTable.GetById(enchantment.SpellId)) && !enchantments.ContainsKey(enchantment.SpellId))
-                    {
-                        enchantments.Add(enchantment.SpellId, enchantment.TimeRemaining);
-                    }
-                }
-
-                foreach (Spell requiredBuff in requiredBuffs)
-                {
-                    if (!enchantments.ContainsKey(requiredBuff.Id))
-                    {
-                        return false;
-                    }
-
-                    else if (enchantments[requiredBuff.Id] < 300 && !enchantments[requiredBuff.Id].Equals(-1))
-                    {
-                        return false;
-                    }
-                }
-                return true;
-            }
-            catch (Exception ex)
-            {
-                Debug.ToChat(ex.Message);
-                return false;
-            }
         }
     }
 }
