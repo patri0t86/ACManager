@@ -118,6 +118,11 @@ namespace ACManager.StateMachine.States
                 return;
             }
 
+            if (machine.CastStarted)
+            {
+                return;
+            }
+
             foreach (string cancel in machine.CancelList)
             {
                 if (machine.CurrentRequest.RequesterName.Equals(cancel))
@@ -126,11 +131,6 @@ namespace ACManager.StateMachine.States
                     machine.CancelList.Remove(cancel);
                     return;
                 }
-            }
-
-            if (machine.CastStarted)
-            {
-                return;
             }
 
             if (CoreManager.Current.CharacterFilter.Mana < Utility.BotSettings.ManaThreshold * CoreManager.Current.CharacterFilter.EffectiveVital[CharFilterVitalType.Mana]
