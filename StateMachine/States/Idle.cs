@@ -129,7 +129,12 @@ namespace ACManager.StateMachine.States
                 BuffCheck = DateTime.Now;
                 if (!Casting.HaveSelfBuffs(machine))
                 {
-                    machine.NextState = Equipping.GetInstance;
+                    Request request = new Request
+                    { 
+                        RequestType = RequestType.SelfBuff
+                    };
+                    request.SpellsToCast.AddRange(Casting.GetSelfBuffs(machine));
+                    machine.Requests.Enqueue(request);
                 }
             }
         }

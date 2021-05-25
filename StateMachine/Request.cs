@@ -26,6 +26,7 @@ namespace ACManager.StateMachine
     {
         Buff,
         Portal,
-        Gem
+        Gem,
+        SelfBuff
     }
 }

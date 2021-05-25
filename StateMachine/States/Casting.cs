@@ -34,11 +34,10 @@ namespace ACManager.StateMachine.States
                 ChatManager.Broadcast(Inventory.ReportOnLowComponents());
                 TimeSpan buffTime = TimeSpan.FromSeconds(machine.CurrentRequest.SpellsToCast.Count * 4);
                 ChatManager.SendTell(machine.CurrentRequest.RequesterName, $"Casting {machine.CurrentRequest.SpellsToCast.Count} buffs on you. This should take about {(buffTime.Minutes > 0 ? $"{buffTime.Minutes} minutes and " : string.Empty)}{buffTime.Seconds} seconds.");
-            }
-
-            if (!HaveSelfBuffs(machine))
-            {
-                SetupSelfBuffing(machine);
+                if (!HaveSelfBuffs(machine))
+                {
+                    SetupSelfBuffing(machine);
+                }
             }
         }
 
@@ -72,8 +71,7 @@ namespace ACManager.StateMachine.States
                     ChatManager.SendTell(machine.CurrentRequest.RequesterName, $"Your request is complete, it took {(duration.Minutes > 0 ? $"{duration.Minutes} minutes and ": string.Empty)}{duration.Seconds} seconds.");
                 }
 
-                if (machine.Requests.Count.Equals(0) || !machine.Requests.Peek().RequestType.Equals(RequestType.Buff))
-                {
+                if (machine.Requests.Count.Equals(0) || !machine.Requests.Peek().RequestType.Equals(RequestType.Buff) || !CoreManager.Current.CharacterFilter.Name.Equals(Utility.BotSettings.BuffingCharacter)) { 
                     machine.NextState = Equipping.GetInstance;
                     return;
                 }
@@ -120,13 +118,6 @@ namespace ACManager.StateMachine.States
                 return;
             }
 
-            if (CoreManager.Current.CharacterFilter.Mana < Utility.BotSettings.ManaThreshold * CoreManager.Current.CharacterFilter.EffectiveVital[CharFilterVitalType.Mana]
-                && !CoreManager.Current.Actions.SkillTrainLevel[Decal.Adapter.Wrappers.SkillType.BaseLifeMagic].Equals(1))
-            {
-                machine.NextState = VitalManagement.GetInstance;
-                return;
-            }
-
             foreach (string cancel in machine.CancelList)
             {
                 if (machine.CurrentRequest.RequesterName.Equals(cancel))
@@ -139,6 +130,13 @@ namespace ACManager.StateMachine.States
 
             if (machine.CastStarted)
             {
+                return;
+            }
+
+            if (CoreManager.Current.CharacterFilter.Mana < Utility.BotSettings.ManaThreshold * CoreManager.Current.CharacterFilter.EffectiveVital[CharFilterVitalType.Mana]
+                && !CoreManager.Current.Actions.SkillTrainLevel[Decal.Adapter.Wrappers.SkillType.BaseLifeMagic].Equals(1))
+            {
+                machine.NextState = VitalManagement.GetInstance;
                 return;
             }
 
@@ -299,25 +297,31 @@ namespace ACManager.StateMachine.States
 
             HoldSpells.AddRange(machine.CurrentRequest.SpellsToCast);
             machine.CurrentRequest.SpellsToCast.Clear();
+            machine.CurrentRequest.SpellsToCast.AddRange(GetSelfBuffs(machine));
+        }
 
+        public static List<Spell> GetSelfBuffs(Machine machine)
+        {
+            List<Spell> spells = new List<Spell>();
             foreach (Buff buff in Utility.GetProfile("botbuffs").Buffs)
             {
                 if (Utility.BotSettings.Level7Self && CoreManager.Current.Filter<FileService>().SpellTable.GetById(buff.Id).Difficulty > 300)
                 {
-                    machine.CurrentRequest.SpellsToCast.Add(machine.GetFallbackSpell(CoreManager.Current.Filter<FileService>().SpellTable.GetById(buff.Id), true));
+                    spells.Add(machine.GetFallbackSpell(CoreManager.Current.Filter<FileService>().SpellTable.GetById(buff.Id), true));
                 }
                 else
                 {
-                    machine.CurrentRequest.SpellsToCast.Add(CoreManager.Current.Filter<FileService>().SpellTable.GetById(buff.Id));
+                    spells.Add(CoreManager.Current.Filter<FileService>().SpellTable.GetById(buff.Id));
                 }
             }
 
             if (CoreManager.Current.CharacterFilter.EffectiveSkill[CharFilterSkillType.CreatureEnchantment] < 400 && !Utility.BotSettings.Level7Self)
             {
-                machine.CurrentRequest.SpellsToCast.Insert(0, CoreManager.Current.Filter<FileService>().SpellTable.GetById(2215)); // creature 7
-                machine.CurrentRequest.SpellsToCast.Insert(0, CoreManager.Current.Filter<FileService>().SpellTable.GetById(2067)); // focus 7
-                machine.CurrentRequest.SpellsToCast.Insert(0, CoreManager.Current.Filter<FileService>().SpellTable.GetById(2091)); // self 7
+                spells.Insert(0, CoreManager.Current.Filter<FileService>().SpellTable.GetById(2215)); // creature 7
+                spells.Insert(0, CoreManager.Current.Filter<FileService>().SpellTable.GetById(2067)); // focus 7
+                spells.Insert(0, CoreManager.Current.Filter<FileService>().SpellTable.GetById(2091)); // self 7
             }
+            return spells;
         }
     }
 }

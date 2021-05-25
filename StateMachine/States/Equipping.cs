@@ -61,9 +61,12 @@ namespace ACManager.StateMachine.States
 
         public void Process(Machine machine)
         {
-            if (machine.Enabled)
+            if (!machine.Enabled)
             {
-                if (machine.CurrentRequest.SpellsToCast.Count > 0 || !Casting.HaveSelfBuffs(machine))
+                machine.NextState = Idle.GetInstance;
+            }
+
+                if (machine.CurrentRequest.SpellsToCast.Count > 0)
                 {
                     if (FullyEquipped)
                     {
@@ -289,11 +292,6 @@ namespace ACManager.StateMachine.States
                         }
                     }
                 }
-            }
-            else
-            {
-                machine.NextState = Idle.GetInstance;
-            }
         }
 
         public override string ToString()
