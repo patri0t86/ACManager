@@ -110,12 +110,11 @@ namespace ACManager
                             {
                                 Utility.Init(Path);
                                 Machine = new Machine();
-                            }
-
-                            Debug.ToChat($"ACManager {Utility.Version}. Check out the latest on the project at https://github.com/patri0t86/ACManager.");
+                            }                           
 
                             if (!Machine.LoggedIn)
                             {
+                                Debug.ToChat($"ACManager {Utility.Version}. Check out the latest on the project at https://github.com/patri0t86/ACManager.");
                                 CommandLineText += Machine.Interpreter.Command;
                                 Core.RenderFrame += Machine.Clock;
                                 Core.WorldFilter.ChangeObject += Machine.WorldFilter_ChangeObject;
