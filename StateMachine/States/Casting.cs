@@ -17,7 +17,7 @@ namespace ACManager.StateMachine.States
         private Spell LastSpell { get; set; }
         private bool LostTarget { get; set; }
         private DateTime StartedTracking { get; set; }
-        private List<Spell> HoldSpells = new List<Spell>();
+        private readonly List<Spell> HoldSpells = new List<Spell>();
 
         public void Enter(Machine machine)
         {
@@ -115,6 +115,7 @@ namespace ACManager.StateMachine.States
                 machine.Fizzled = false;
                 machine.CastCompleted = false;
                 machine.CastStarted = false;
+                LostTarget = false; // Put here in case of more than 2 fizzles on a buff cycle
                 return;
             }
 
@@ -123,14 +124,10 @@ namespace ACManager.StateMachine.States
                 return;
             }
 
-            foreach (string cancel in machine.CancelList)
+            if (machine.CurrentRequest.IsCancelled)
             {
-                if (machine.CurrentRequest.RequesterName.Equals(cancel))
-                {
-                    machine.CurrentRequest.SpellsToCast.Clear();
-                    machine.CancelList.Remove(cancel);
-                    return;
-                }
+                machine.CurrentRequest.SpellsToCast.Clear();
+                return;
             }
 
             if (CoreManager.Current.CharacterFilter.Mana < Utility.BotSettings.ManaThreshold * CoreManager.Current.CharacterFilter.EffectiveVital[CharFilterVitalType.Mana]

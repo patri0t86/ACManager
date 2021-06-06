@@ -85,11 +85,6 @@ namespace ACManager.StateMachine
         public Request CurrentRequest { get; set; } = new Request();
 
         /// <summary>
-        /// List to keep track of cancelled requests as the requests are dequeued.
-        /// </summary>
-        public List<string> CancelList { get; set; } = new List<string>();
-
-        /// <summary>
         /// List of objects in the character's inventory. Includes wands, armor, clothing and jewelry.
         /// </summary>
         public List<WorldObject> CharacterEquipment { get; set; } = new List<WorldObject>();
@@ -357,22 +352,23 @@ namespace ACManager.StateMachine
         {
             if (CurrentRequest.RequesterName.Equals(name))
             {
-                CancelList.Add(name);
+                CurrentRequest.IsCancelled = true;
                 ChatManager.SendTell(name, "Your current request is now cancelled. If you had another request in the queue then your spot is maintained.");
+                return;
             }
-            else
+                        
+            foreach (Request request in Requests)
             {
-                foreach (Request request in Requests)
+                if (request.RequesterName.Equals(name))
                 {
-                    if (request.RequesterName.Equals(name))
-                    {
-                        CancelList.Add(name);
-                        ChatManager.SendTell(name, "I will remove your next request from my queue. If you wish to remove all requests, say 'cancel' for each request you have put in.");
-                        return;
-                    }
+                    request.IsCancelled = true;
+                    ChatManager.SendTell(name, "Your next request has been removed from my queue. If you wish to remove all requests, say 'cancel' for each request you have put in.");
+                    return;
                 }
-                ChatManager.SendTell(name, "You don't have any requests in at this time.");
             }
+
+            ChatManager.SendTell(name, "You don't have any requests in at this time.");
+            
         }
     }
 }

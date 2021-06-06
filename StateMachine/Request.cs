@@ -15,6 +15,8 @@ namespace ACManager.StateMachine
         public double Heading = -1;
         public string Destination;
         public string ItemToUse;
+        public bool IsFinished = false;
+        public bool IsCancelled = false;
 
         public bool Equals(Request other)
         {
@@ -27,6 +29,7 @@ namespace ACManager.StateMachine
         Buff,
         Portal,
         Gem,
-        SelfBuff
+        SelfBuff,
+        Tinker
     }
 }

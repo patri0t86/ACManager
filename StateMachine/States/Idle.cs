@@ -74,18 +74,20 @@ namespace ACManager.StateMachine.States
                 return;
             }
 
+            if (machine.CurrentRequest.RequestType.Equals(RequestType.Tinker) && !machine.CurrentRequest.IsFinished) {
+                machine.NextState = Tinkering.GetInstance;
+                return;
+            }
+
             if (machine.Requests.Count > 0)
             {
-                machine.CurrentRequest = machine.Requests.Dequeue();
-                foreach (string cancelled in machine.CancelList)
+                while(machine.Requests.Peek().IsCancelled)
                 {
-                    if (machine.CurrentRequest.RequesterName.Equals(cancelled))
-                    {
-                        machine.CancelList.Remove(cancelled);
-                        return;
-                    }
+                    machine.Requests.Dequeue();
                 }
-                return;
+
+                machine.CurrentRequest = machine.Requests.Dequeue();
+                return; 
             }
 
             if (Utility.BotSettings.AdsEnabled && DateTime.Now - LastBroadcast > TimeSpan.FromMinutes(Utility.BotSettings.AdInterval))

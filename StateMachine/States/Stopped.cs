@@ -11,6 +11,7 @@ namespace ACManager.StateMachine.States
     {
         public void Enter(Machine machine)
         {
+            machine.CurrentRequest = new Request();
             machine.Requests.Clear();
             CoreManager.Current.ChatBoxMessage -= machine.ChatManager.Current_ChatBoxMessage;
             CoreManager.Current.Actions.SetIdleTime(1200);
