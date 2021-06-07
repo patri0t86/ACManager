@@ -6,31 +6,21 @@
     /// </summary>
     class StateTemplate : StateBase<StateTemplate>, IState
     {
-        public void Enter(Machine machine)
-        {
-            // Do this stuff only once when entering the state
-        }
+        public void Enter(Machine machine) {}
 
-        public void Exit(Machine machine)
-        {
-            // Do this stuff only once when exiting the state
-        }
+        public void Exit(Machine machine) {}
 
         public void Process(Machine machine)
         {
-            if (machine.Enabled)
+            if (!machine.Enabled)
             {
-                // Do stuff in here
-            }
-            else
-            {
-                machine.NextState = Idle.GetInstance;
+                machine.NextState = Idle.GetInstance; 
             }
         }
 
         public override string ToString()
         {
-            throw new System.NotImplementedException();
+            return nameof(StateTemplate);
         }
     }
 }

@@ -77,6 +77,9 @@ namespace ACManager.Settings
         public string BuffingCharacter;
 
         [XmlElement(IsNullable = false)]
+        public string TinkerCharacter;
+
+        [XmlElement(IsNullable = false)]
         public bool StayBuffed = true;
 
         [XmlElement(IsNullable = false)]

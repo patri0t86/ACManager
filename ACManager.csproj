@@ -121,6 +121,7 @@
     <Compile Include="StateMachine\Machine.cs" />
     <Compile Include="StateMachine\States\Positioning.cs" />
     <Compile Include="StateMachine\States\StateBase.cs" />
+    <Compile Include="StateMachine\States\Trading.cs" />
     <Compile Include="StateMachine\States\StateTemplate.cs" />
     <Compile Include="StateMachine\States\SwitchingCharacters.cs" />
     <Compile Include="StateMachine\States\Stopped.cs" />

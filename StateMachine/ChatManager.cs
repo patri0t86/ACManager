@@ -215,6 +215,15 @@ namespace ACManager.StateMachine
                 case "info":
                     SendTell(name, $"I'm using the ACManager bot v{Utility.Version} found at https://github.com/patri0t86/ACManager.");
                     break;
+                case "craft":
+                    Machine.AddToQueue(new Request
+                    {
+                        RequesterGuid = guid,
+                        Character = Utility.BotSettings.TinkerCharacter,
+                        RequesterName = name,
+                        RequestType = RequestType.Tinker
+                    });
+                    break;
                 default:
                     for (int i = 0; i < Utility.CharacterSettings.Characters.Count; i++)
                     {
