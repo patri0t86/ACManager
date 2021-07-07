@@ -23,6 +23,7 @@ namespace ACManager.StateMachine.States
             machine.MachineStarted = DateTime.Now;
             CoreManager.Current.Actions.SetIdleTime(double.MaxValue);
             CoreManager.Current.ChatBoxMessage += machine.ChatManager.Current_ChatBoxMessage;
+            machine.CurrentRequest = new Request();
             Debug.ToChat("Bot started successfully.");
         }
 
