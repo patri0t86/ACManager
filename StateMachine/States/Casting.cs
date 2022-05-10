@@ -101,7 +101,9 @@ namespace ACManager.StateMachine.States
                 if (machine.CurrentRequest.SpellsToCast[0].Id.Equals(157) || machine.CurrentRequest.SpellsToCast[0].Id.Equals(2648))
                 {
                     machine.PortalsSummonedThisSession += 1;
-                    ChatManager.Broadcast($"/s Portal now open to {(string.IsNullOrEmpty(machine.CurrentRequest.Destination) ? "Portal now open." : machine.CurrentRequest.Destination)}. Safe journey, friend.");
+                    string message = $"Portal now open to { (string.IsNullOrEmpty(machine.CurrentRequest.Destination) ? "Portal now open." : machine.CurrentRequest.Destination) }. Safe journey, friend.";
+                    ChatManager.Broadcast($"/s {message}");
+                    ChatManager.SendTell(machine.CurrentRequest.RequesterName, $"{message}");
                 }
                 machine.CurrentRequest.SpellsToCast.RemoveAt(0);
                 machine.CastCompleted = false;
