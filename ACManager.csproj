@@ -58,11 +58,11 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Decal.Adapter">
-      <HintPath>..\..\..\..\..\Program Files (x86)\Decal 3.0\Decal.Adapter.dll</HintPath>
+      <HintPath>..\..\..\..\..\..\Program Files (x86)\Decal 3.0\Decal.Adapter.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="Decal.FileService">
-      <HintPath>..\..\..\..\..\Program Files (x86)\Decal 3.0\Decal.FileService.dll</HintPath>
+      <HintPath>..\..\..\..\..\..\Program Files (x86)\Decal 3.0\Decal.FileService.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="Decal.Interop.Core, Version=2.9.7.5, Culture=neutral, PublicKeyToken=481f17d392f1fb65, processorArchitecture=MSIL">
@@ -88,7 +88,7 @@
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
     <Reference Include="VirindiViewService">
-      <HintPath>..\..\..\..\..\Games\VirindiPlugins\VirindiViewService\VirindiViewService.dll</HintPath>
+      <HintPath>..\..\..\..\..\..\Games\VirindiPlugins\VirindiViewService\VirindiViewService.dll</HintPath>
       <Private>False</Private>
     </Reference>
   </ItemGroup>
