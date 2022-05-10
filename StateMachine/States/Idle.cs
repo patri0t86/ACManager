@@ -74,11 +74,6 @@ namespace ACManager.StateMachine.States
                 return;
             }
 
-            if (machine.CurrentRequest.RequestType.Equals(RequestType.Tinker) && !machine.CurrentRequest.IsFinished) {
-                machine.NextState = Tinkering.GetInstance;
-                return;
-            }
-
             if (machine.Requests.Count > 0)
             {
                 while(machine.Requests.Peek().IsCancelled)
