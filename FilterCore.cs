@@ -134,14 +134,11 @@ namespace ACManager
         /// </summary>
         private void LogonTimer_Tick(object sender, EventArgs e)
         {
-            int XPixelOffset = 121;
-            int YTopOfBox = 209;
-            int YBottomOfBox = 532;
-            float characterNameSize = (YBottomOfBox - YTopOfBox) / (float)TotalSlots;
-            int yOffset = (int)(YTopOfBox + (characterNameSize / 2) + (characterNameSize * NextCharacterIndex));
+            var characterNameSize = (Globals.YBottomOfBox - Globals.YTopOfBox) / (float)TotalSlots;
+            var yOffset = (int)(Globals.YTopOfBox + characterNameSize / 2 + characterNameSize * NextCharacterIndex);
 
             // Select the character
-            Simulate.MouseClick(Core.Decal.Hwnd, XPixelOffset, yOffset);
+            Simulate.MouseClick(Core.Decal.Hwnd, Globals.XPixelOffset, yOffset);
 
             // Click the Enter button
             Simulate.MouseClick(Core.Decal.Hwnd, 0x015C, 0x0185);
